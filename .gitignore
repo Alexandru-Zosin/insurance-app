@@ -1,0 +1,129 @@
+# =========================
+# Build results
+# =========================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+#.gitignore
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Visual Studio Code
+# =========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# =========================
+# Rider / IntelliJ
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# .NET Core / .NET SDK
+# =========================
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+# Uncomment if packages are restored locally instead of via cache
+# packages/
+
+# =========================
+# Publish outputs
+# =========================
+**/publish/
+**/AppPackages/
+
+# =========================
+# Test results
+# =========================
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# =========================
+# BenchmarkDotNet
+# =========================
+BenchmarkDotNet.Artifacts/
+
+# =========================
+# ASP.NET
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# =========================
+# Entity Framework
+# =========================
+Migrations/*.Designer.cs
+Migrations/*.resx
+
+# =========================
+# Logs and diagnostics
+# =========================
+*.log
+*.diag
+
+# =========================
+# OS generated files
+# =========================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.bak
+*.swp
+
+#
+sqlserver-data
+
+# =========================
+# Resharper
+# =========================
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# =========================
+# DotCover
+# =========================
+*.dotCover
+
+# =========================
+# Azure / Azure Functions
+# =========================
+.local.settings.json
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
