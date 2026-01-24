@@ -2,6 +2,6 @@
 
 public interface ICountryRepository
 {
-    Country? GetById(int countryId);
     IReadOnlyList<Country> GetAll();
+    Country? GetById(int countryId);
 }

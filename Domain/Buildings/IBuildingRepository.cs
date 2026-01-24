@@ -1,8 +1,11 @@
-﻿namespace Domain.Buildings;
+﻿using Domain.Buildings;
 
-public interface IBuildingRepository
+namespace Infrastructure.Persistence.Repositories
 {
-    Building? GetById(Guid buildingId);
-    IReadOnlyList<Building> GetByClientId(Guid clientId);
-    void Add(Building building);
+    public interface IBuildingRepository
+    {
+        void Add(Building building);
+        IReadOnlyList<Building> GetByClientId(Guid clientId);
+        Building? GetById(Guid buildingId);
+    }
 }

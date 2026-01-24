@@ -7,6 +7,7 @@ public sealed class Policy
     public Guid Id { get; }
     public Guid ClientId { get; }
     public Guid BuildingId { get; }
+    public Guid BrokerId { get; }
     public Money Premium { get; }
     public DateOnly StartDate { get; }
     public DateOnly EndDate { get; }
@@ -15,6 +16,7 @@ public sealed class Policy
         Guid id,
         Guid clientId,
         Guid buildingId,
+        Guid brokerId,
         Money premium,
         DateOnly start,
         DateOnly end)
@@ -22,6 +24,7 @@ public sealed class Policy
         Id = id;
         ClientId = clientId;
         BuildingId = buildingId;
+        BrokerId = brokerId;
         Premium = premium;
         StartDate = start;
         EndDate = end;
@@ -30,6 +33,7 @@ public sealed class Policy
     public static Result<Policy> Issue(
         Guid clientId,
         Guid buildingId,
+        Guid brokerId,
         Money premium,
         DateOnly start,
         DateOnly end)
@@ -38,6 +42,6 @@ public sealed class Policy
             return Result<Policy>.Fail(ErrorType.Validation, "Invalid policy period");
 
         return Result<Policy>.Ok(
-            new Policy(Guid.NewGuid(), clientId, buildingId, premium, start, end));
+            new Policy(Guid.NewGuid(), clientId, buildingId, brokerId, premium, start, end));
     }
 }

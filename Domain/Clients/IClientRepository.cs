@@ -1,8 +1,13 @@
-﻿namespace Domain.Clients;
+﻿using Domain.Clients;
 
-public interface IClientRepository
+namespace Infrastructure.Persistence.Repositories
 {
-    Client? GetById(Guid clientId);
-    Client? GetByRegistrationNumber(string registrationNumber);
-    void Add(Client client);
+    public interface IClientRepository
+    {
+        void Add(Client client);
+        Client? GetById(Guid clientId);
+        Client? GetByRegistrationNumber(string registrationNumber);
+        IReadOnlyList<Client> SearchByName(string name);
+        void Update(Client client);
+    }
 }

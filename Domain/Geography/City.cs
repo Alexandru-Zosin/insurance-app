@@ -1,15 +1,16 @@
 ﻿namespace Domain.Geography;
 
-public sealed class City
+public sealed record City
 {
-    public Guid Id { get; }
+    public int Id { get; }
     public string Name { get; }
-    public County County { get; }
 
-    internal City (Guid id, string name, County county)
+    public City(int id, string name)
     {
-        id = Guid.NewGuid();
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("City name required");
+
+        Id = id;
         Name = name;
-        County = county;
     }
 }
