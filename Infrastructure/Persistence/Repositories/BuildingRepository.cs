@@ -14,49 +14,65 @@ public sealed class BuildingRepository : IBuildingRepository
         _db = db;
     }
 
-    public Domain.Buildings.Building? GetById(Guid buildingId)
+    public async Task<Domain.Buildings.Building?> GetByIdAsync(
+        Guid buildingId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Buildings
+        var ef = await _db.Buildings
             .Include(b => b.City)
             .AsNoTracking()
-            .SingleOrDefault(b => b.BuildingKey == buildingId);
+            .SingleOrDefaultAsync(
+                b => b.BuildingKey == buildingId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : Map(ef);
     }
 
-    public IReadOnlyList<Domain.Buildings.Building> GetByClientId(Guid clientId)
+    public async Task<IReadOnlyList<Domain.Buildings.Building>> GetByClientIdAsync(
+        Guid clientId,
+        CancellationToken cancellationToken)
     {
-        return _db.Buildings
+        var entities = await _db.Buildings
             .Include(b => b.City)
             .Where(b => b.Client.ClientKey == clientId)
             .AsNoTracking()
-            .Select(Map)
-            .ToList();
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities.Select(Map).ToList();
     }
 
-    public void Add(Domain.Buildings.Building building)
+    public async Task AddAsync(
+        Domain.Buildings.Building building,
+        CancellationToken cancellationToken)
     {
-        var clientId = _db.Clients
-                        .Where(c => c.ClientKey == building.ClientId)
-                        .Select(c => c.ClientId)
-                        .Single();
+        var clientId = await _db.Clients
+            .Where(c => c.ClientKey == building.ClientId)
+            .Select(c => c.ClientId)
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        _db.Buildings.Add(new Models.Building
-        {
-            BuildingKey = building.Id,
-            ClientId = clientId,
-            CityId = building.City.Id,
-            ConstructionYear = building.ConstructionYear,
-            Address = $"{building.Address.Street} {building.Address.Number}",
-            BuildingType = building.BuildingType.ToString(),
-            NumberOfFloors = 1,
-            SurfaceArea = building.SurfaceArea,
-            InsuredValue = (int)building.InsuredValue.Amount,
-            InsuredValueCurrency = building.InsuredValue.Currency,
-            FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0,
-            EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0
-        });
+        await _db.Buildings.AddAsync(
+            new Models.Building
+            {
+                BuildingKey = building.Id,
+                ClientId = clientId,
+                CityId = building.City.Id,
+                ConstructionYear = building.ConstructionYear,
+                Address = $"{building.Address.Street} {building.Address.Number}",
+                BuildingType = building.BuildingType.ToString(),
+                NumberOfFloors = 1,
+                SurfaceArea = building.SurfaceArea,
+                InsuredValue = (int)building.InsuredValue.Amount,
+                InsuredValueCurrency = building.InsuredValue.Currency,
+                FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0,
+                EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0
+            },
+            cancellationToken
+        ).ConfigureAwait(false);
     }
+
     private static Domain.Buildings.Building Map(Models.Building ef)
     {
         var address = Address.Create(ef.Address, "").Value!;

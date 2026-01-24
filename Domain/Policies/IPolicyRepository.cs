@@ -2,8 +2,12 @@
 
 public interface IPolicyRepository
 {
-    Policy? GetById(Guid policyId);
-    IReadOnlyList<Policy> GetByClientId(Guid clientId);
-    IReadOnlyList<Policy> GetByBuildingId(Guid buildingId);
-    void Add(Policy policy);
+    Task<Policy?> GetByIdAsync(Guid policyId,
+        CancellationToken cancellationToken);
+    Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId,
+        CancellationToken cancellationToken);
+    Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId,
+        CancellationToken cancellationToken);
+    Task AddAsync(Policy policy,
+        CancellationToken cancellationToken);
 }

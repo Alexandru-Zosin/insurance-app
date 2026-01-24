@@ -1,6 +1,10 @@
 ﻿using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -13,12 +17,15 @@ public sealed class CountyRepository : ICountyRepository
         _db = db;
     }
 
-    public IReadOnlyList<County> GetByCountryId(int countryId)
+    public async Task<IReadOnlyList<County>> GetByCountryIdAsync(
+        int countryId,
+        CancellationToken cancellationToken)
     {
-        return _db.Counties
+        return await _db.Counties
             .AsNoTracking()
             .Where(c => c.CountryId == countryId)
             .Select(c => new County(c.CountyId, c.Name))
-            .ToList();
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 }

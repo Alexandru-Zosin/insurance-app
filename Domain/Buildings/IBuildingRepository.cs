@@ -4,8 +4,8 @@ namespace Infrastructure.Persistence.Repositories
 {
     public interface IBuildingRepository
     {
-        void Add(Building building);
-        IReadOnlyList<Building> GetByClientId(Guid clientId);
-        Building? GetById(Guid buildingId);
+        Task AddAsync(Building building, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default);
+        Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken = default);
     }
 }

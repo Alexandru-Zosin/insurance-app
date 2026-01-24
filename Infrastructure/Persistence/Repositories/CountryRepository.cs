@@ -1,6 +1,9 @@
 ﻿using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -13,19 +16,26 @@ public sealed class CountryRepository : ICountryRepository
         _db = db;
     }
 
-    public IReadOnlyList<Country> GetAll()
+    public async Task<IReadOnlyList<Country>> GetAllAsync(
+        CancellationToken cancellationToken)
     {
-        return _db.Countries
+        return await _db.Countries
             .AsNoTracking()
             .Select(c => new Country(c.CountryId, c.Name))
-            .ToList();
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public Country? GetById(int countryId)
+    public async Task<Country?> GetByIdAsync(
+        int countryId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Countries
+        var ef = await _db.Countries
             .AsNoTracking()
-            .SingleOrDefault(c => c.CountryId == countryId);
+            .SingleOrDefaultAsync(
+                c => c.CountryId == countryId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : new Country(ef.CountryId, ef.Name);
     }

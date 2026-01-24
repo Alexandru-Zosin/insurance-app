@@ -2,7 +2,7 @@
 
 public interface IBrokerRepository
 {
-    Broker? GetById(Guid brokerId);
-    void Add(Broker broker);
-    void Update(Broker broker);
+    Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken cancellationToken = default);
+    Task AddAsync(Broker broker, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Broker broker, CancellationToken cancellationToken = default);
 }

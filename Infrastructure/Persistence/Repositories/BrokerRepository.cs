@@ -1,5 +1,6 @@
 ﻿using Domain.Brokers;
 using Infrastructure.Persistence.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -12,29 +13,48 @@ public sealed class BrokerRepository : IBrokerRepository
         _db = db;
     }
 
-    public Domain.Brokers.Broker? GetById(Guid brokerId)
+    public async Task<Domain.Brokers.Broker?> GetByIdAsync(
+        Guid brokerId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Brokers.SingleOrDefault(b => b.BrokerKey == brokerId);
+        var ef = await _db.Brokers
+            .SingleOrDefaultAsync(b => b.BrokerKey == brokerId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (ef == null)
+            return null;
+
         var broker = new Domain.Brokers.Broker(ef.BrokerKey, ef.Name);
+
         if (!ef.IsActive)
             broker.Deactivate();
 
         return broker;
     }
 
-    public void Add(Domain.Brokers.Broker broker)
+    public async Task AddAsync(
+        Domain.Brokers.Broker broker,
+        CancellationToken cancellationToken)
     {
-        _db.Brokers.Add(new Models.Broker
-        {
-            BrokerKey = broker.Id,
-            Name = broker.Name,
-            IsActive = broker.IsActive
-        });
+        await _db.Brokers.AddAsync(
+            new Models.Broker
+            {
+                BrokerKey = broker.Id,
+                Name = broker.Name,
+                IsActive = broker.IsActive
+            },
+            cancellationToken
+        ).ConfigureAwait(false);
     }
 
-    public void Update(Domain.Brokers.Broker broker)
+    public async Task UpdateAsync(
+        Domain.Brokers.Broker broker,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Brokers.Single(b => b.BrokerKey == broker.Id);
+        var ef = await _db.Brokers
+            .SingleAsync(b => b.BrokerKey == broker.Id, cancellationToken)
+            .ConfigureAwait(false);
+
         ef.IsActive = broker.IsActive;
     }
 }

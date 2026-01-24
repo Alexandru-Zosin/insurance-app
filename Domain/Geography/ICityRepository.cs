@@ -2,6 +2,6 @@
 
 public interface ICityRepository
 {
-    IReadOnlyList<City> GetByCountyId(int countyId);
-    City? GetById(int cityId);
+    Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken cancellationToken = default);
+    Task<City?> GetByIdAsync(int cityId, CancellationToken cancellationToken = default);
 }
