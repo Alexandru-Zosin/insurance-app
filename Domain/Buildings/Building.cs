@@ -14,11 +14,11 @@ public class Building
     public Guid ClientId { get; }
     public Address Address { get; }
     public City City { get; }
-    public int ConstructionYear { get; }
+    public int ConstructionYear { get; private set; }
     public BuildingType BuildingType { get; }
-    public int SurfaceArea { get; }
-    public Money InsuredValue { get; }
-    public RiskProfile RiskProfile { get; }
+    public int SurfaceArea { get; private set; }
+    public Money InsuredValue { get; private set;  }
+    public RiskProfile RiskProfile { get; private set; }
 
     private Building(
         Guid id,
@@ -70,4 +70,35 @@ public class Building
                 insuredValue,
                 riskProfile));
     }
+
+    public Result UpdateConstructionYear(int year)
+    {
+        if (year < 1700 || year > DateTime.UtcNow.Year)
+            return Result.Fail(ErrorType.Validation, "Invalid construction year");
+
+        ConstructionYear = year;
+        return Result.Ok();
+    }
+
+    public Result UpdateSurfaceArea(int surfaceArea)
+    {
+        if (surfaceArea <= 0)
+            return Result.Fail(ErrorType.Validation, "Surface area must be positive");
+
+        SurfaceArea = surfaceArea;
+        return Result.Ok();
+    }
+
+    public Result UpdateInsuredValue(Money insuredValue)
+    {
+        InsuredValue = insuredValue;
+        return Result.Ok();
+    }
+
+    public Result UpdateRiskProfile(RiskProfile riskProfile)
+    {
+        RiskProfile = riskProfile;
+        return Result.Ok();
+    }
+
 }
