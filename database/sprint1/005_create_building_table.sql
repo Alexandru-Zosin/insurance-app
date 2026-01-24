@@ -2,8 +2,8 @@ use InsuranceDb;
 go
 
 create table core.Building(
-	BuildingId INT IDENTITY(1,1) PRIMARY KEY, -- -- nonclustered index auto. created to obtain bId with bKey
-	BuildingKey UNIQUEIDENTIFIER UNIQUE NOT NULL,  -- to later use clustered index from pk
+	BuildingId INT IDENTITY(1,1) PRIMARY KEY, -- -- clustered index auto. created to obtain bId with bKey
+	BuildingKey UNIQUEIDENTIFIER UNIQUE NOT NULL,  -- noncl ind. to later use clustered index from pk
 	ClientId INT NOT NULL,
 	CityId INT NOT NULL,
 	ConstructionYear INT NOT NULL,
