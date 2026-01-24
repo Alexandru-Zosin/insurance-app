@@ -12,6 +12,8 @@ public partial class InsuranceDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Broker> Brokers { get; set; }
+
     public virtual DbSet<Building> Buildings { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
@@ -22,8 +24,21 @@ public partial class InsuranceDbContext : DbContext
 
     public virtual DbSet<County> Counties { get; set; }
 
+    public virtual DbSet<Policy> Policies { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Broker>(entity =>
+        {
+            entity.HasKey(e => e.BrokerId).HasName("PK__Broker__5D1D9A50541B3E14");
+
+            entity.ToTable("Broker", "core");
+
+            entity.HasIndex(e => e.BrokerKey, "UQ__Broker__F550972FCE41AACA").IsUnique();
+
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Building>(entity =>
         {
             entity.HasKey(e => e.BuildingId).HasName("PK__Building__5463CDC43DF497B4");
@@ -34,6 +49,9 @@ public partial class InsuranceDbContext : DbContext
 
             entity.Property(e => e.Address).HasMaxLength(100);
             entity.Property(e => e.BuildingType).HasMaxLength(50);
+            entity.Property(e => e.InsuredValueCurrency)
+                .HasMaxLength(10)
+                .HasDefaultValue("RON");
 
             entity.HasOne(d => d.City).WithMany(p => p.Buildings)
                 .HasForeignKey(d => d.CityId)
@@ -107,6 +125,33 @@ public partial class InsuranceDbContext : DbContext
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_country");
+        });
+
+        modelBuilder.Entity<Policy>(entity =>
+        {
+            entity.HasKey(e => e.PolicyId).HasName("PK__Policy__2E1339A4D9C0B346");
+
+            entity.ToTable("Policy", "core");
+
+            entity.HasIndex(e => e.PolicyKey, "UQ__Policy__7DF846F41AC2A907").IsUnique();
+
+            entity.Property(e => e.PremiumAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PremiumCurrency).HasMaxLength(10);
+
+            entity.HasOne(d => d.Broker).WithMany(p => p.Policies)
+                .HasForeignKey(d => d.BrokerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_policy_broker");
+
+            entity.HasOne(d => d.Building).WithMany(p => p.Policies)
+                .HasForeignKey(d => d.BuildingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_policy_building");
+
+            entity.HasOne(d => d.Client).WithMany(p => p.Policies)
+                .HasForeignKey(d => d.ClientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_policy_client");
         });
 
         OnModelCreatingPartial(modelBuilder);
