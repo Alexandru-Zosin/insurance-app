@@ -1,14 +1,27 @@
-﻿namespace Infrastructure.Persistence.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Infrastructure.Persistence.Models;
 
 public partial class Client
 {
     public int ClientId { get; set; }
+
     public Guid ClientKey { get; set; }
+
     public string ClientType { get; set; } = null!;
+
     public string Name { get; set; } = null!;
+
     public string RegistrationNumber { get; set; } = null!;
+
     public string Email { get; set; } = null!;
+
     public string Phone { get; set; } = null!;
+
     public string Address { get; set; } = null!;
+
     public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
+
+    public virtual ICollection<Policy> Policies { get; set; } = new List<Policy>();
 }
