@@ -3,7 +3,6 @@ using Domain.Shared;
 using Domain.ValueObjects;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
-
 namespace Infrastructure.Persistence.Repositories;
 
 public class ClientRepository : IClientRepository
@@ -15,51 +14,77 @@ public class ClientRepository : IClientRepository
         _db = db;
     }
 
-    public Domain.Clients.Client? GetById(Guid clientId)
+    public async Task<Domain.Clients.Client?> GetByIdAsync(
+        Guid clientId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Clients
-                .AsNoTracking()
-                .SingleOrDefault(c => c.ClientKey == clientId);
+        var ef = await _db.Clients
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                c => c.ClientKey == clientId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : Map(ef);
     }
 
-    public Domain.Clients.Client? GetByRegistrationNumber(string registrationNumber)
+    public async Task<Domain.Clients.Client?> GetByRegistrationNumberAsync(
+        string registrationNumber,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Clients
-                .AsNoTracking()
-                .SingleOrDefault(x => x.RegistrationNumber == registrationNumber);
+        var ef = await _db.Clients
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                x => x.RegistrationNumber == registrationNumber,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : Map(ef);
     }
 
-    public IReadOnlyList<Client> SearchByName(string name)
+    public async Task<IReadOnlyList<Client>> SearchByNameAsync(
+    string name,
+    CancellationToken cancellationToken)
     {
-        return _db.Clients
+        var entities = await _db.Clients
             .AsNoTracking()
             .Where(c => c.Name.Contains(name))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities
             .Select(Map)
             .ToList();
     }
 
-    public void Add(Client client)
+    public async Task AddAsync(
+        Client client,
+        CancellationToken cancellationToken)
     {
-        _db.Clients.Add(new Models.Client
-        {
-            ClientKey = client.Id,
-            ClientType = client.Type.ToString(),
-            Name = client.Name,
-            RegistrationNumber = client.Identifier.Value,
-            Email = client.ContactInfo.Email,
-            Phone = client.ContactInfo.Phone,
-            Address = $"{client.Address!.Street} {client.Address.Number}"
-        });
+        await _db.Clients.AddAsync(
+            new Models.Client
+            {
+                ClientKey = client.Id,
+                ClientType = client.Type.ToString(),
+                Name = client.Name,
+                RegistrationNumber = client.Identifier.Value,
+                Email = client.ContactInfo.Email,
+                Phone = client.ContactInfo.Phone,
+                Address = $"{client.Address!.Street} {client.Address.Number}"
+            },
+            cancellationToken
+        ).ConfigureAwait(false);
     }
 
-    public void Update(Client client)
+    public async Task UpdateAsync(
+        Client client,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Clients
-            .Single(c => c.ClientKey == client.Id);
+        var ef = await _db.Clients
+            .SingleAsync(
+                c => c.ClientKey == client.Id,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         ef.Name = client.Name;
         ef.Email = client.ContactInfo.Email;
@@ -80,5 +105,4 @@ public class ClientRepository : IClientRepository
             contact,
             address).Value!;
     }
-
 }

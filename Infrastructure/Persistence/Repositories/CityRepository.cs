@@ -13,20 +13,28 @@ public sealed class CityRepository : ICityRepository
         _db = db;
     }
 
-    public IReadOnlyList<City> GetByCountyId(int countyId)
+    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(
+        int countyId,
+        CancellationToken cancellationToken)
     {
-        return _db.Cities
+        return await _db.Cities
             .AsNoTracking()
             .Where(c => c.CountyId == countyId)
             .Select(c => new City(c.CityId, c.Name))
-            .ToList();
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
-    public City? GetById(int cityId)
+    public async Task<City?> GetByIdAsync(
+        int cityId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Cities
+        var ef = await _db.Cities
             .AsNoTracking()
-            .SingleOrDefault(c => c.CityId == cityId);
+            .SingleOrDefaultAsync(
+                c => c.CityId == cityId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : new City(ef.CityId, ef.Name);
     }

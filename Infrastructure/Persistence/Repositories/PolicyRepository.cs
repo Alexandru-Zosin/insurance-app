@@ -14,61 +14,86 @@ public sealed class PolicyRepository : IPolicyRepository
         _db = db;
     }
 
-    public Policy? GetById(Guid policyId)
+    public async Task<Policy?> GetByIdAsync(
+        Guid policyId,
+        CancellationToken cancellationToken)
     {
-        var ef = _db.Policies
+        var ef = await _db.Policies
             .AsNoTracking()
-            .SingleOrDefault(p => p.PolicyKey == policyId);
+            .SingleOrDefaultAsync(
+                p => p.PolicyKey == policyId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         return ef == null ? null : Map(ef);
     }
 
-    public IReadOnlyList<Policy> GetByClientId(Guid clientId)
+    public async Task<IReadOnlyList<Policy>> GetByClientIdAsync(
+        Guid clientId,
+        CancellationToken cancellationToken)
     {
-        return _db.Policies
+        var entities = await _db.Policies
             .Where(p => p.Client.ClientKey == clientId)
             .AsNoTracking()
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities
             .Select(Map)
             .ToList();
     }
 
-    public IReadOnlyList<Policy> GetByBuildingId(Guid buildingId)
+    public async Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(
+        Guid buildingId,
+        CancellationToken cancellationToken)
     {
-        return _db.Policies
+        var entities = await _db.Policies
             .Where(p => p.Building.BuildingKey == buildingId)
             .AsNoTracking()
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities
             .Select(Map)
             .ToList();
     }
 
-    public void Add(Policy policy)
+    public async Task AddAsync(
+        Policy policy,
+        CancellationToken cancellationToken)
     {
-        var clientId = _db.Clients
+        var clientId = await _db.Clients
             .Where(c => c.ClientKey == policy.ClientId)
             .Select(c => c.ClientId)
-            .Single();
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        var buildingId = _db.Buildings
+        var buildingId = await _db.Buildings
             .Where(b => b.BuildingKey == policy.BuildingId)
             .Select(b => b.BuildingId)
-            .Single();
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        var brokerId = _db.Brokers
+        var brokerId = await _db.Brokers
             .Where(b => b.BrokerKey == policy.BrokerId)
             .Select(b => b.BrokerId)
-            .Single();
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        _db.Policies.Add(new Models.Policy
-        {
-            PolicyKey = policy.Id,
-            ClientId = clientId,
-            BuildingId = buildingId,
-            BrokerId = brokerId,
-            PremiumAmount = policy.Premium.Amount,
-            PremiumCurrency = policy.Premium.Currency,
-            StartDate = policy.StartDate,
-            EndDate = policy.EndDate
-        });
+        await _db.Policies.AddAsync(
+            new Models.Policy
+            {
+                PolicyKey = policy.Id,
+                ClientId = clientId,
+                BuildingId = buildingId,
+                BrokerId = brokerId,
+                PremiumAmount = policy.Premium.Amount,
+                PremiumCurrency = policy.Premium.Currency,
+                StartDate = policy.StartDate,
+                EndDate = policy.EndDate
+            },
+            cancellationToken
+        ).ConfigureAwait(false);
     }
 
     private static Policy Map(Models.Policy ef)

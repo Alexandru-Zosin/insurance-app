@@ -2,6 +2,5 @@
 
 public interface ICountyRepository
 {
-    IReadOnlyList<County> GetByCountryId(int countryId);
-
+    Task<IReadOnlyList<County>> GetByCountryIdAsync(int countryId, CancellationToken cancellationToken = default);
 }
