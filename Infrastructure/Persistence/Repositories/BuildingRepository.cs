@@ -73,6 +73,26 @@ public sealed class BuildingRepository : IBuildingRepository
         ).ConfigureAwait(false);
     }
 
+    public async Task UpdateAsync(
+    Domain.Buildings.Building building,
+    CancellationToken cancellationToken)
+    {
+        var ef = await _db.Buildings
+            .SingleAsync(
+                b => b.BuildingKey == building.Id,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        ef.CityId = building.City.Id;
+        ef.ConstructionYear = building.ConstructionYear;
+        ef.Address = $"{building.Address.Street} {building.Address.Number}";
+        ef.BuildingType = building.BuildingType.ToString();
+        ef.SurfaceArea = building.SurfaceArea;
+        ef.InsuredValue = (int)building.InsuredValue.Amount;
+        ef.InsuredValueCurrency = building.InsuredValue.Currency;
+        ef.FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0;
+        ef.EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0;
+    }
     private static Domain.Buildings.Building Map(Models.Building ef)
     {
         var address = Address.Create(ef.Address, "").Value!;
