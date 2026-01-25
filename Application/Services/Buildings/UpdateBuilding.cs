@@ -3,7 +3,7 @@ using Domain.Common;
 using Domain.Shared;
 using Infrastructure.Persistence.Repositories;
 
-namespace Application.UseCases.Buildings;
+namespace Application.Services.Buildings.UpdateBuilding;
 
 public sealed class UpdateBuildingService
     : IUseCase<UpdateBuildingService.Request, Result<UpdateBuildingService.Response>>
@@ -21,7 +21,7 @@ public sealed class UpdateBuildingService
 
     private readonly IBuildingRepository _buildings;
 
-    public UpdateBuildingService(IBuildingRepository buildings)
+    public UpdateBuildingService(IBuildingRepository buildings) 
     {
         _buildings = buildings;
     }

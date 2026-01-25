@@ -3,7 +3,7 @@ using Domain.Buildings;
 using Domain.Common;
 using Infrastructure.Persistence.Repositories;
 
-namespace Application.UseCases.Buildings;
+namespace Application.Services.Buildings.GetBuildingsForClient;
 
 public sealed class GetBuildingsForClientService
     : IUseCase<GetBuildingsForClientService.Request, Result<GetBuildingsForClientService.Response>>

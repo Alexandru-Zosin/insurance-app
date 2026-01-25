@@ -1,4 +1,6 @@
-﻿using Application.UseCases.Buildings;
+﻿using Application.Services.Buildings;
+using Application.Services.Buildings.GetBuildingsForClient;
+using Application.Services.Buildings.UpdateBuilding;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 

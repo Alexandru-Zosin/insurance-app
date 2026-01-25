@@ -1,0 +1,21 @@
+﻿<Project>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<DisableImplicitEditorConfig>true</DisableImplicitEditorConfig>
+		<!--<AnalysisLevel>latest</AnalysisLevel>
+		<AnalysisMode>All</AnalysisMode>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>-->
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(MSBuildProjectExtension)' != '.dcproj'">
+		<!--<PackageReference Include="SonarAnalyzer.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		SonarAnalyzer over all projects inside this solution-->
+		</ItemGroup>
+	</Project>
