@@ -1,6 +1,5 @@
 ﻿using Application.Common;
-using Domain.Buildings;
-using Domain.Clients;
+using Application.Services.Clients.DTO;
 using Domain.Common;
 using Domain.Policies;
 using Infrastructure.Persistence.Repositories;
@@ -9,16 +8,9 @@ namespace Application.UseCases.Clients;
 
 public sealed class GetClientDetailsService
     : IUseCase<
-        GetClientDetailsService.Request,
-        Result<GetClientDetailsService.Response>>
+        GetClientDetailsRequest,
+        Result<GetClientDetailsResponse>>
 {
-    public sealed record Request(Guid ClientId);
-
-    public sealed record Response(
-        Client Client,
-        IReadOnlyList<Building> Buildings,
-        IReadOnlyList<Policy> Policies);
-
     private readonly IClientRepository _clients;
     private readonly IBuildingRepository _buildings;
     private readonly IPolicyRepository _policies;
@@ -33,14 +25,14 @@ public sealed class GetClientDetailsService
         _policies = policies;
     }
 
-    public async Task<Result<Response>> HandleAsync(
-        Request request,
+    public async Task<Result<GetClientDetailsResponse>> HandleAsync(
+        GetClientDetailsRequest request,
         CancellationToken ct = default)
     {
         var client = await _clients.GetByIdAsync(request.ClientId, ct);
         if (client == null)
         {
-            return Result<Response>.Fail(
+            return Result<GetClientDetailsResponse>.Fail(
                 ErrorType.NotFound,
                 "Client not found");
         }
@@ -48,7 +40,11 @@ public sealed class GetClientDetailsService
         var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
         var policies = await _policies.GetByClientIdAsync(request.ClientId, ct);
 
-        return Result<Response>.Ok(
-            new Response(client, buildings, policies));
+        var response = new GetClientDetailsResponse(
+            ClientDto.From(client),
+            buildings.Select(BuildingDto.From).ToList(),
+            policies.Select(PolicyDto.From).ToList());
+
+        return Result<GetClientDetailsResponse>.Ok(response);
     }
 }

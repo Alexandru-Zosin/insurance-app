@@ -1,8 +1,9 @@
-﻿using Application.UseCases.Clients;
+﻿using Application.Services.Clients.DTO;
+using Application.UseCases.Clients;
 using FluentValidation;
 
 public sealed class CreateClientRequestValidator
-    : AbstractValidator<CreateClientService.Request>
+    : AbstractValidator<CreateClientRequest>
 {
     public CreateClientRequestValidator()
     {

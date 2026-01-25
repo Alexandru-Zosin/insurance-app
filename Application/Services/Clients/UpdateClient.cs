@@ -1,5 +1,5 @@
 ﻿using Application.Common;
-using Domain.Clients;
+using Application.Services.Clients.DTO;
 using Domain.Common;
 using Domain.Shared;
 using Domain.ValueObjects;
@@ -9,17 +9,9 @@ namespace Application.UseCases.Clients;
 
 public sealed class UpdateClientService
     : IUseCase<
-        UpdateClientService.Request,
-        Result<UpdateClientService.Response>>
+        UpdateClientRequest,
+        Result<UpdateClientResponse>>
 {
-    public sealed record Request(
-        Guid ClientId,
-        string Name,
-        string Email,
-        string Phone,
-        string? Address);
-
-    public sealed record Response(bool Updated);
 
     private readonly IClientRepository _clients;
 
@@ -28,14 +20,14 @@ public sealed class UpdateClientService
         _clients = clients;
     }
 
-    public async Task<Result<Response>> HandleAsync(
-        Request request,
+    public async Task<Result<UpdateClientResponse>> HandleAsync(
+        UpdateClientRequest request,
         CancellationToken ct = default)
     {
         var client = await _clients.GetByIdAsync(request.ClientId, ct);
         if (client == null)
         {
-            return Result<Response>.Fail(
+            return Result<UpdateClientResponse>.Fail(
                 ErrorType.NotFound,
                 "Client not found");
         }
@@ -44,7 +36,7 @@ public sealed class UpdateClientService
         var nameResult = client.ChangeName(request.Name);
         if (!nameResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<UpdateClientResponse>.Fail(
                 nameResult.ErrorType,
                 nameResult.ErrorMessage);
         }
@@ -52,7 +44,7 @@ public sealed class UpdateClientService
         var contactResult = ContactInfo.Create(request.Email, request.Phone);
         if (!contactResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<UpdateClientResponse>.Fail(
                 contactResult.ErrorType,
                 contactResult.ErrorMessage);
         }
@@ -60,7 +52,7 @@ public sealed class UpdateClientService
         var contactUpdateResult = client.ChangeContactInfo(contactResult.Value!);
         if (!contactUpdateResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<UpdateClientResponse>.Fail(
                 contactUpdateResult.ErrorType,
                 contactUpdateResult.ErrorMessage);
         }
@@ -70,7 +62,7 @@ public sealed class UpdateClientService
             var addressResult = Address.Create(request.Address, "");
             if (!addressResult.IsSuccess)
             {
-                return Result<Response>.Fail(
+                return Result<UpdateClientResponse>.Fail(
                     addressResult.ErrorType,
                     addressResult.ErrorMessage);
             }
@@ -78,7 +70,7 @@ public sealed class UpdateClientService
             var addressUpdateResult = client.ChangeAddress(addressResult.Value!);
             if (!addressUpdateResult.IsSuccess)
             {
-                return Result<Response>.Fail(
+                return Result<UpdateClientResponse>.Fail(
                     addressUpdateResult.ErrorType,
                     addressUpdateResult.ErrorMessage);
             }
@@ -86,7 +78,7 @@ public sealed class UpdateClientService
 
         await _clients.UpdateAsync(client, ct);
 
-        return Result<Response>.Ok(
-            new Response(true));
+        return Result<UpdateClientResponse>.Ok(
+            new UpdateClientResponse(true));
     }
 }

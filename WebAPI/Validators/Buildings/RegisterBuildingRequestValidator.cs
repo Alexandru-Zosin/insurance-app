@@ -1,9 +1,9 @@
-﻿using Application.Services.Buildings;
+﻿using Application.Services.Buildings.DTO;
 using Domain.Buildings;
 using FluentValidation;
 
 public sealed class RegisterBuildingRequestValidator
-    : AbstractValidator<RegisterBuildingService.Request>
+    : AbstractValidator<RegisterBuildingRequest>
 {
     public RegisterBuildingRequestValidator()
     {

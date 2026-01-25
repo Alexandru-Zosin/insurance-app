@@ -1,8 +1,8 @@
-﻿using Application.UseCases.Clients;
+﻿using Application.Services.Clients.DTO;
 using FluentValidation;
 
 public sealed class UpdateClientRequestValidator
-    : AbstractValidator<UpdateClientService.Request>
+    : AbstractValidator<UpdateClientRequest>
 {
     public UpdateClientRequestValidator()
     {

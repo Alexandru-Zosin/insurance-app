@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Services.Buildings.DTO;
 using Domain.Buildings;
 using Domain.Common;
 using Domain.Geography;
@@ -9,24 +10,9 @@ namespace Application.Services.Buildings;
 
 public sealed class RegisterBuildingService
     : IUseCase<
-        RegisterBuildingService.Request,
-        Result<RegisterBuildingService.Response>>
+        RegisterBuildingRequest,
+        Result<RegisterBuildingResponse>>
 {
-    public sealed record Request(
-        Guid ClientId,
-        int CityId,
-        string Street,
-        string Number,
-        int ConstructionYear,
-        string BuildingType,
-        int SurfaceArea,
-        decimal InsuredValue,
-        string Currency,
-        bool FloodRisk,
-        bool EarthquakeRisk);
-
-    public sealed record Response(Guid BuildingId);
-
     private readonly IBuildingRepository _buildings;
     private readonly ICityRepository _cities;
 
@@ -38,14 +24,14 @@ public sealed class RegisterBuildingService
         _cities = cities;
     }
 
-    public async Task<Result<Response>> HandleAsync(
-        Request request,
+    public async Task<Result<RegisterBuildingResponse>> HandleAsync(
+        RegisterBuildingRequest request,
         CancellationToken ct = default)
     {
         var city = await _cities.GetByIdAsync(request.CityId, ct);
         if (city == null)
         {
-            return Result<Response>.Fail(
+            return Result<RegisterBuildingResponse>.Fail(
                 ErrorType.NotFound,
                 "City not found");
         }
@@ -53,7 +39,7 @@ public sealed class RegisterBuildingService
         var addressResult = Address.Create(request.Street, request.Number);
         if (!addressResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<RegisterBuildingResponse>.Fail(
                 addressResult.ErrorType,
                 addressResult.ErrorMessage);
         }
@@ -61,7 +47,7 @@ public sealed class RegisterBuildingService
         var moneyResult = Money.Create(request.InsuredValue, request.Currency);
         if (!moneyResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<RegisterBuildingResponse>.Fail(
                 moneyResult.ErrorType,
                 moneyResult.ErrorMessage);
         }
@@ -78,14 +64,16 @@ public sealed class RegisterBuildingService
 
         if (!buildingResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<RegisterBuildingResponse>.Fail(
                 buildingResult.ErrorType,
                 buildingResult.ErrorMessage);
         }
 
         await _buildings.AddAsync(buildingResult.Value!, ct);
 
-        return Result<Response>.Ok(
-            new Response(buildingResult.Value!.Id));
+        return Result<RegisterBuildingResponse>.Ok(
+            new RegisterBuildingResponse{
+                BuildingId = buildingResult.Value!.Id
+            });
     }
 }

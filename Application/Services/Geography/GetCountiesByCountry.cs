@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Services.Geography.DTO;
 using Domain.Common;
 using Domain.Geography;
 
@@ -6,14 +7,9 @@ namespace Application.UseCases.Geography;
 
 public sealed class GetCountiesByCountryService
     : IUseCase<
-        GetCountiesByCountryService.Request,
-        Result<GetCountiesByCountryService.Response>>
+        GetCountiesByCountryRequest,
+        Result<GetCountiesByCountryResponse>>
 {
-    public sealed record Request(int CountryId);
-
-    public sealed record Response(
-        IReadOnlyList<County> Counties);
-
     private readonly ICountryRepository _countries;
     private readonly ICountyRepository _counties;
 
@@ -25,8 +21,8 @@ public sealed class GetCountiesByCountryService
         _counties = counties;
     }
 
-    public async Task<Result<Response>> HandleAsync(
-        Request request,
+    public async Task<Result<GetCountiesByCountryResponse>> HandleAsync(
+        GetCountiesByCountryRequest request,
         CancellationToken ct = default)
     {
         var country = await _countries.GetByIdAsync(
@@ -35,7 +31,7 @@ public sealed class GetCountiesByCountryService
 
         if (country == null)
         {
-            return Result<Response>.Fail(
+            return Result<GetCountiesByCountryResponse>.Fail(
                 ErrorType.NotFound,
                 "Country not found");
         }
@@ -44,7 +40,8 @@ public sealed class GetCountiesByCountryService
             request.CountryId,
             ct);
 
-        return Result<Response>.Ok(
-            new Response(counties));
+        return Result<GetCountiesByCountryResponse>.Ok(
+            new GetCountiesByCountryResponse(
+                counties.Select(CountyDto.From).ToList()));
     }
 }
