@@ -1,5 +1,5 @@
 # jan_2026_Alexandru.Zosin
-
+Project-level decisions were documented and tracked in the Git issue records, providing a persistent decision history."
 
 
 ## Getting started
