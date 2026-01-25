@@ -1,4 +1,4 @@
-﻿using Application.UseCases.Buildings;
+﻿using Application.Services.Buildings;
 using Domain.Buildings;
 using FluentValidation;
 

@@ -5,7 +5,7 @@ using Domain.Geography;
 using Domain.Shared;
 using Infrastructure.Persistence.Repositories;
 
-namespace Application.UseCases.Buildings;
+namespace Application.Services.Buildings;
 
 public sealed class RegisterBuildingService
     : IUseCase<

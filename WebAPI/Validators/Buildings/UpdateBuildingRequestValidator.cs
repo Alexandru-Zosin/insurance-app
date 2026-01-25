@@ -1,4 +1,4 @@
-﻿using Application.UseCases.Buildings;
+﻿using Application.Services.Buildings.UpdateBuilding;
 using FluentValidation;
 
 public sealed class UpdateBuildingRequestValidator

@@ -4,7 +4,7 @@ using Domain.Common;
 using Domain.Policies;
 using Infrastructure.Persistence.Repositories;
 
-namespace Application.UseCases.Buildings;
+namespace Application.Services.Buildings;
 
 public sealed class GetBuildingDetailsService
     : IUseCase<GetBuildingDetailsService.Request, Result<GetBuildingDetailsService.Response>>
