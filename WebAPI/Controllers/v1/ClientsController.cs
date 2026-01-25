@@ -1,4 +1,5 @@
-﻿using Application.UseCases.Clients;
+﻿using Application.Services.Clients.DTO;
+using Application.UseCases.Clients;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 
@@ -23,31 +24,31 @@ public sealed class ClientsController : BaseApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<SearchClientsService.Response>> Search(
+    public async Task<ActionResult<SearchClientsResponse>> Search(
         [FromQuery] string? name,
         [FromQuery] string? identifier,
         CancellationToken ct)
     {
         var result = await _search.HandleAsync(
-            new SearchClientsService.Request(name, identifier), ct);
+            new SearchClientsRequest(name, identifier), ct);
 
         return FromResult(result);
     }
 
     [HttpGet("{clientId:guid}")]
-    public async Task<ActionResult<GetClientDetailsService.Response>> Get(
+    public async Task<ActionResult<GetClientDetailsResponse>> Get(
         Guid clientId,
         CancellationToken ct)
     {
         var result = await _getDetails.HandleAsync(
-            new GetClientDetailsService.Request(clientId), ct);
+            new GetClientDetailsRequest(clientId), ct);
 
         return FromResult(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateClientService.Response>> Create(
-        [FromBody] CreateClientService.Request request,
+    public async Task<ActionResult<CreateClientResponse>> Create(
+        [FromBody] CreateClientRequest request,
         CancellationToken ct)
     {
         var result = await _create.HandleAsync(request, ct);
@@ -58,9 +59,9 @@ public sealed class ClientsController : BaseApiController
     }
 
     [HttpPut("{clientId:guid}")]
-    public async Task<ActionResult<UpdateClientService.Response>> Update(
+    public async Task<ActionResult<UpdateClientResponse>> Update(
         Guid clientId,
-        [FromBody] UpdateClientService.Request request,
+        [FromBody] UpdateClientRequest request,
         CancellationToken ct)
     {
         var result = await _update.HandleAsync(

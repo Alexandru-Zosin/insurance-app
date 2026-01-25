@@ -25,7 +25,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<UpdateBuildingService>();
 
         // Geography
-        services.AddScoped<GetCountriesService>();
+        services.AddScoped<GetCountries>();
         services.AddScoped<GetCountiesByCountryService>();
         services.AddScoped<GetCitiesByCountyService>();
 

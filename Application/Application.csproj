@@ -5,9 +5,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\Buildings\DTOs\" />
-    <Folder Include="Services\Clients\DTOs\" />
-    <Folder Include="Services\Geography\DTOs\" />
-  </ItemGroup>
 </Project>

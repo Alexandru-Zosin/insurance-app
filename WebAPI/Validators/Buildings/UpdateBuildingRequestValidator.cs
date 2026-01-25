@@ -1,8 +1,8 @@
-﻿using Application.Services.Buildings.UpdateBuilding;
+﻿using Application.Services.Buildings.DTO;
 using FluentValidation;
 
 public sealed class UpdateBuildingRequestValidator
-    : AbstractValidator<UpdateBuildingService.Request>
+    : AbstractValidator<UpdateBuildingRequest>
 {
     public UpdateBuildingRequestValidator()
     {

@@ -1,4 +1,5 @@
-﻿using Application.Services.Buildings;
+﻿using Application.Services.Buildings.DTO;
+using Application.Services.Buildings;
 using Application.Services.Buildings.GetBuildingsForClient;
 using Application.Services.Buildings.UpdateBuilding;
 using Microsoft.AspNetCore.Mvc;
@@ -25,31 +26,31 @@ public sealed class BuildingsController : BaseApiController
     }
 
     [HttpGet("clients/{clientId:guid}/buildings")]
-    public async Task<ActionResult<GetBuildingsForClientService.Response>> GetForClient(
+    public async Task<ActionResult<GetBuildingsForClientResponse>> GetForClient(
         Guid clientId,
         CancellationToken ct)
     {
         var result = await _getForClient.HandleAsync(
-            new GetBuildingsForClientService.Request(clientId), ct);
+            new GetBuildingsForClientRequest(clientId), ct);
 
         return FromResult(result);
     }
 
     [HttpGet("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<GetBuildingDetailsService.Response>> Get(
+    public async Task<ActionResult<GetBuildingDetailsResponse>> Get(
         Guid buildingId,
         CancellationToken ct)
     {
         var result = await _getDetails.HandleAsync(
-            new GetBuildingDetailsService.Request(buildingId), ct);
+            new GetBuildingDetailsRequest(buildingId), ct);
 
         return FromResult(result);
     }
 
     [HttpPost("clients/{clientId:guid}/buildings")]
-    public async Task<ActionResult<RegisterBuildingService.Response>> Register(
+    public async Task<ActionResult<RegisterBuildingResponse>> Register(
         Guid clientId,
-        [FromBody] RegisterBuildingService.Request request,
+        [FromBody] RegisterBuildingRequest request,
         CancellationToken ct)
     {
         var result = await _register.HandleAsync(
@@ -61,9 +62,9 @@ public sealed class BuildingsController : BaseApiController
     }
 
     [HttpPut("buildings/{buildingId:guid}")]
-    public async Task<ActionResult<UpdateBuildingService.Response>> Update(
+    public async Task<ActionResult<UpdateBuildingResponse>> Update(
         Guid buildingId,
-        [FromBody] UpdateBuildingService.Request request,
+        [FromBody] UpdateBuildingRequest request,
         CancellationToken ct)
     {
         var result = await _update.HandleAsync(

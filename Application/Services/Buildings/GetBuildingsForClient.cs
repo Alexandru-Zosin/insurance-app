@@ -1,15 +1,13 @@
 ﻿using Application.Common;
-using Domain.Buildings;
+using Application.Services.Buildings.DTO;
 using Domain.Common;
 using Infrastructure.Persistence.Repositories;
 
 namespace Application.Services.Buildings.GetBuildingsForClient;
 
 public sealed class GetBuildingsForClientService
-    : IUseCase<GetBuildingsForClientService.Request, Result<GetBuildingsForClientService.Response>>
+    : IUseCase<GetBuildingsForClientRequest, Result<GetBuildingsForClientResponse>>
 {
-    public sealed record Request(Guid ClientId);
-    public sealed record Response(IReadOnlyList<Building> Buildings);
 
     private readonly IBuildingRepository _buildings;
 
@@ -18,10 +16,15 @@ public sealed class GetBuildingsForClientService
         _buildings = buildings;
     }
 
-    public async Task<Result<Response>> HandleAsync(Request request, CancellationToken ct = default)
+    public async Task<Result<GetBuildingsForClientResponse>> HandleAsync(
+        GetBuildingsForClientRequest request, CancellationToken ct = default)
     {
         var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
-        return Result<Response>.Ok(
-                    new Response(buildings));
+        var response = new GetBuildingsForClientResponse
+        {
+            Buildings = buildings.Select(BuildingSummaryDto.From).ToList()
+        };
+
+        return Result<GetBuildingsForClientResponse>.Ok(response);
     }
 }

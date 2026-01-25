@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Services.Clients.DTO;
 using Domain.Clients;
 using Domain.Common;
 using Domain.Shared;
@@ -9,28 +10,17 @@ namespace Application.UseCases.Clients;
 
 public sealed class CreateClientService
     : IUseCase<
-        CreateClientService.Request,
-        Result<CreateClientService.Response>>
+        CreateClientRequest,
+         Result<CreateClientResponse>>
 {
-    public sealed record Request(
-        string ClientType,
-        string Name,
-        string RegistrationNumber,
-        string Email,
-        string Phone,
-        string? Address);
-
-    public sealed record Response(Guid ClientId);
-
     private readonly IClientRepository _clients;
 
     public CreateClientService(IClientRepository clients)
     {
         _clients = clients;
     }
-
-    public async Task<Result<Response>> HandleAsync(
-        Request request,
+    public async Task<Result<CreateClientResponse>> HandleAsync(
+        CreateClientRequest request,
         CancellationToken ct = default)
     {
         var existing = await _clients.GetByRegistrationNumberAsync(
@@ -39,7 +29,7 @@ public sealed class CreateClientService
 
         if (existing != null)
         {
-            return Result<Response>.Fail(
+            return Result<CreateClientResponse>.Fail(
                 ErrorType.Conflict,
                 "Identification number already exists");
         }
@@ -47,7 +37,7 @@ public sealed class CreateClientService
         var idResult = IdentificationNumber.Create(request.RegistrationNumber);
         if (!idResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<CreateClientResponse>.Fail(
                 idResult.ErrorType,
                 idResult.ErrorMessage);
         }
@@ -55,7 +45,7 @@ public sealed class CreateClientService
         var contactResult = ContactInfo.Create(request.Email, request.Phone);
         if (!contactResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<CreateClientResponse>.Fail(
                 contactResult.ErrorType,
                 contactResult.ErrorMessage);
         }
@@ -66,7 +56,7 @@ public sealed class CreateClientService
             var addressResult = Address.Create(request.Address, "");
             if (!addressResult.IsSuccess)
             {
-                return Result<Response>.Fail(
+                return Result<CreateClientResponse>.Fail(
                     addressResult.ErrorType,
                     addressResult.ErrorMessage);
             }
@@ -83,14 +73,14 @@ public sealed class CreateClientService
 
         if (!clientResult.IsSuccess)
         {
-            return Result<Response>.Fail(
+            return Result<CreateClientResponse>.Fail(
                 clientResult.ErrorType,
                 clientResult.ErrorMessage);
         }
 
         await _clients.AddAsync(clientResult.Value!, ct);
 
-        return Result<Response>.Ok(
-            new Response(clientResult.Value!.Id));
+        return Result<CreateClientResponse>.Ok(
+            new CreateClientResponse(clientResult.Value!.Id));
     }
 }

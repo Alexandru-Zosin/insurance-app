@@ -1,16 +1,17 @@
-﻿using Application.UseCases.Geography;
+﻿using Application.Services.Geography.DTO;
+using Application.UseCases.Geography;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 
 [Route("api/brokers")]
 public sealed class GeographyController : BaseApiController
 {
-    private readonly GetCountriesService _countries;
+    private readonly GetCountries _countries;
     private readonly GetCountiesByCountryService _counties;
     private readonly GetCitiesByCountyService _cities;
 
     public GeographyController(
-        GetCountriesService countries,
+        GetCountries countries,
         GetCountiesByCountryService counties,
         GetCitiesByCountyService cities)
     {
@@ -20,33 +21,33 @@ public sealed class GeographyController : BaseApiController
     }
 
     [HttpGet("countries")]
-    public async Task<ActionResult<GetCountriesService.Response>> GetCountries(
+    public async Task<ActionResult<GetCountriesResponse>> GetCountries(
         CancellationToken ct)
     {
         var result = await _countries.HandleAsync(
-            new GetCountriesService.Request(), ct);
+            new GetCountriesRequest(), ct);
 
         return FromResult(result);
     }
 
     [HttpGet("countries/{countryId:int}/counties")]
-    public async Task<ActionResult<GetCountiesByCountryService.Response>> GetCounties(
+    public async Task<ActionResult<GetCountiesByCountryResponse>> GetCounties(
         int countryId,
         CancellationToken ct)
     {
         var result = await _counties.HandleAsync(
-            new GetCountiesByCountryService.Request(countryId), ct);
+            new GetCountiesByCountryRequest(countryId), ct);
 
         return FromResult(result);
     }
 
     [HttpGet("counties/{countyId:int}/cities")]
-    public async Task<ActionResult<GetCitiesByCountyService.Response>> GetCities(
+    public async Task<ActionResult<GetCitiesByCountyResponse>> GetCities(
         int countyId,
         CancellationToken ct)
     {
         var result = await _cities.HandleAsync(
-            new GetCitiesByCountyService.Request(countyId), ct);
+            new GetCitiesByCountyRequest(countyId), ct);
 
         return FromResult(result);
     }
