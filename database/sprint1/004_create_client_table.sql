@@ -12,7 +12,7 @@ create table core.Client (
 	Address nvarchar(100) NOT NULL,
 
 	constraint ck_client_type 
-		check (ClientType in ('Person', 'Company')),
+		check (ClientType in ('Individual', 'Company')),
 
 	constraint ck_client_name
 		check (len(ltrim(rtrim(Name))) > 0),

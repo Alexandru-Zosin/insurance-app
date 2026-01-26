@@ -18,12 +18,15 @@ public sealed class PolicyRepository : IPolicyRepository
         Guid policyId,
         CancellationToken cancellationToken)
     {
-        var ef = await _db.Policies
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                p => p.PolicyKey == policyId,
-                cancellationToken)
-            .ConfigureAwait(false);
+            var ef = await _db.Policies
+                .Include(p => p.Client)
+                .Include(p => p.Building)
+                .Include(p => p.Broker)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    p => p.PolicyKey == policyId,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
         return ef == null ? null : Map(ef);
     }
@@ -33,6 +36,9 @@ public sealed class PolicyRepository : IPolicyRepository
         CancellationToken cancellationToken)
     {
         var entities = await _db.Policies
+            .Include(p => p.Client)
+            .Include(p => p.Building)
+            .Include(p => p.Broker)
             .Where(p => p.Client.ClientKey == clientId)
             .AsNoTracking()
             .ToListAsync(cancellationToken)
@@ -48,6 +54,9 @@ public sealed class PolicyRepository : IPolicyRepository
         CancellationToken cancellationToken)
     {
         var entities = await _db.Policies
+            .Include(p => p.Client)
+            .Include(p => p.Building)   
+            .Include(p => p.Broker)
             .Where(p => p.Building.BuildingKey == buildingId)
             .AsNoTracking()
             .ToListAsync(cancellationToken)
@@ -98,6 +107,11 @@ public sealed class PolicyRepository : IPolicyRepository
 
     private static Policy Map(Models.Policy ef)
     {
+        if (ef.Client == null || ef.Building == null || ef.Broker == null)
+        {
+            throw new InvalidOperationException("Required navigation not loaded");
+        }
+
         var money = Money.Create(ef.PremiumAmount, ef.PremiumCurrency).Value!;
 
         return Policy.Issue(

@@ -1,0 +1,344 @@
+USE [master]
+GO
+/****** Object:  Database [InsuranceDb]    Script Date: 1/26/2026 3:50:07 PM ******/
+CREATE DATABASE [InsuranceDb]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'InsuranceDb', FILENAME = N'/var/opt/mssql/data/InsuranceDb.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON 
+( NAME = N'InsuranceDb_log', FILENAME = N'/var/opt/mssql/data/InsuranceDb_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+GO
+ALTER DATABASE [InsuranceDb] SET COMPATIBILITY_LEVEL = 160
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [InsuranceDb].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [InsuranceDb] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET AUTO_CLOSE OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [InsuranceDb] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [InsuranceDb] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [InsuranceDb] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [InsuranceDb] SET READ_COMMITTED_SNAPSHOT OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET HONOR_BROKER_PRIORITY OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET RECOVERY FULL 
+GO
+ALTER DATABASE [InsuranceDb] SET  MULTI_USER 
+GO
+ALTER DATABASE [InsuranceDb] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [InsuranceDb] SET DB_CHAINING OFF 
+GO
+ALTER DATABASE [InsuranceDb] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+GO
+ALTER DATABASE [InsuranceDb] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+GO
+ALTER DATABASE [InsuranceDb] SET DELAYED_DURABILITY = DISABLED 
+GO
+ALTER DATABASE [InsuranceDb] SET ACCELERATED_DATABASE_RECOVERY = OFF  
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'InsuranceDb', N'ON'
+GO
+ALTER DATABASE [InsuranceDb] SET QUERY_STORE = ON
+GO
+ALTER DATABASE [InsuranceDb] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30), DATA_FLUSH_INTERVAL_SECONDS = 900, INTERVAL_LENGTH_MINUTES = 60, MAX_STORAGE_SIZE_MB = 1000, QUERY_CAPTURE_MODE = AUTO, SIZE_BASED_CLEANUP_MODE = AUTO, MAX_PLANS_PER_QUERY = 200, WAIT_STATS_CAPTURE_MODE = ON)
+GO
+USE [InsuranceDb]
+GO
+/****** Object:  Schema [core]    Script Date: 1/26/2026 3:50:07 PM ******/
+CREATE SCHEMA [core]
+GO
+/****** Object:  Table [core].[Broker]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[Broker](
+	[BrokerId] [int] IDENTITY(1,1) NOT NULL,
+	[BrokerKey] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[BrokerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[BrokerKey] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[Building]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[Building](
+	[BuildingId] [int] IDENTITY(1,1) NOT NULL,
+	[BuildingKey] [uniqueidentifier] NOT NULL,
+	[ClientId] [int] NOT NULL,
+	[CityId] [int] NOT NULL,
+	[ConstructionYear] [int] NOT NULL,
+	[BuildingType] [nvarchar](50) NOT NULL,
+	[NumberOfFloors] [int] NOT NULL,
+	[SurfaceArea] [int] NOT NULL,
+	[InsuredValue] [int] NOT NULL,
+	[FloodRiskZone] [int] NULL,
+	[EarthquakeRiskZone] [int] NULL,
+	[InsuredValueCurrency] [nvarchar](10) NOT NULL,
+	[Street] [nvarchar](100) NOT NULL,
+	[Number] [nvarchar](20) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[BuildingId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[BuildingKey] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[City]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[City](
+	[CityId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[CountyId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CityId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [uq_city] UNIQUE NONCLUSTERED 
+(
+	[Name] ASC,
+	[CountyId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[Client]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[Client](
+	[ClientId] [int] IDENTITY(1,1) NOT NULL,
+	[ClientKey] [uniqueidentifier] NOT NULL,
+	[ClientType] [varchar](20) NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[RegistrationNumber] [nvarchar](50) NOT NULL,
+	[Email] [nvarchar](100) NOT NULL,
+	[Phone] [nvarchar](50) NOT NULL,
+	[Street] [nvarchar](100) NOT NULL,
+	[Number] [nvarchar](20) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ClientId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[ClientKey] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[RegistrationNumber] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[Country]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[Country](
+	[CountryId] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CountryId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[County]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[County](
+	[CountyId] [int] IDENTITY(1,1) NOT NULL,
+	[CountryId] [int] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CountyId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [uq_county] UNIQUE NONCLUSTERED 
+(
+	[CountryId] ASC,
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [core].[Policy]    Script Date: 1/26/2026 3:50:07 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [core].[Policy](
+	[PolicyId] [int] IDENTITY(1,1) NOT NULL,
+	[PolicyKey] [uniqueidentifier] NOT NULL,
+	[ClientId] [int] NOT NULL,
+	[BuildingId] [int] NOT NULL,
+	[BrokerId] [int] NOT NULL,
+	[PremiumAmount] [decimal](18, 2) NOT NULL,
+	[PremiumCurrency] [nvarchar](10) NOT NULL,
+	[StartDate] [date] NOT NULL,
+	[EndDate] [date] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[PolicyId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[PolicyKey] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [core].[Building] ADD  CONSTRAINT [df_building_currency]  DEFAULT ('RON') FOR [InsuredValueCurrency]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [fk_city] FOREIGN KEY([CityId])
+REFERENCES [core].[City] ([CityId])
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [fk_city]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [fk_client] FOREIGN KEY([ClientId])
+REFERENCES [core].[Client] ([ClientId])
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [fk_client]
+GO
+ALTER TABLE [core].[City]  WITH NOCHECK ADD  CONSTRAINT [fk_county] FOREIGN KEY([CountyId])
+REFERENCES [core].[County] ([CountyId])
+GO
+ALTER TABLE [core].[City] CHECK CONSTRAINT [fk_county]
+GO
+ALTER TABLE [core].[County]  WITH NOCHECK ADD  CONSTRAINT [fk_country] FOREIGN KEY([CountryId])
+REFERENCES [core].[Country] ([CountryId])
+GO
+ALTER TABLE [core].[County] CHECK CONSTRAINT [fk_country]
+GO
+ALTER TABLE [core].[Policy]  WITH NOCHECK ADD  CONSTRAINT [fk_policy_broker] FOREIGN KEY([BrokerId])
+REFERENCES [core].[Broker] ([BrokerId])
+GO
+ALTER TABLE [core].[Policy] CHECK CONSTRAINT [fk_policy_broker]
+GO
+ALTER TABLE [core].[Policy]  WITH NOCHECK ADD  CONSTRAINT [fk_policy_building] FOREIGN KEY([BuildingId])
+REFERENCES [core].[Building] ([BuildingId])
+GO
+ALTER TABLE [core].[Policy] CHECK CONSTRAINT [fk_policy_building]
+GO
+ALTER TABLE [core].[Policy]  WITH NOCHECK ADD  CONSTRAINT [fk_policy_client] FOREIGN KEY([ClientId])
+REFERENCES [core].[Client] ([ClientId])
+GO
+ALTER TABLE [core].[Policy] CHECK CONSTRAINT [fk_policy_client]
+GO
+ALTER TABLE [core].[Broker]  WITH NOCHECK ADD  CONSTRAINT [ck_broker_name] CHECK  ((len(ltrim(rtrim([name])))>(0)))
+GO
+ALTER TABLE [core].[Broker] CHECK CONSTRAINT [ck_broker_name]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [ck_building_currency] CHECK  ((len(ltrim(rtrim([InsuredValueCurrency])))>(0)))
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [ck_building_currency]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [ck_building_specs_positive_values] CHECK  (([NumberOfFloors]>(0) AND [SurfaceArea]>(0) AND [InsuredValue]>(0)))
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [ck_building_specs_positive_values]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [ck_building_type] CHECK  (([BuildingType]='Industrial' OR [BuildingType]='Office' OR [BuildingType]='Residential'))
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [ck_building_type]
+GO
+ALTER TABLE [core].[Building]  WITH NOCHECK ADD  CONSTRAINT [ck_construction_year] CHECK  (([ConstructionYear]>=(1600) AND [ConstructionYear]<=(3000)))
+GO
+ALTER TABLE [core].[Building] CHECK CONSTRAINT [ck_construction_year]
+GO
+ALTER TABLE [core].[City]  WITH NOCHECK ADD  CONSTRAINT [ck_city_name] CHECK  ((len(ltrim(rtrim([Name])))>(0)))
+GO
+ALTER TABLE [core].[City] CHECK CONSTRAINT [ck_city_name]
+GO
+ALTER TABLE [core].[Client]  WITH NOCHECK ADD  CONSTRAINT [ck_client_name] CHECK  ((len(ltrim(rtrim([Name])))>(0)))
+GO
+ALTER TABLE [core].[Client] CHECK CONSTRAINT [ck_client_name]
+GO
+ALTER TABLE [core].[Client]  WITH NOCHECK ADD  CONSTRAINT [ck_client_type] CHECK  (([ClientType]='Individual' OR [ClientType]='Company'))
+GO
+ALTER TABLE [core].[Client] CHECK CONSTRAINT [ck_client_type]
+GO
+ALTER TABLE [core].[Client]  WITH NOCHECK ADD  CONSTRAINT [ck_registration_number] CHECK  ((len(ltrim(rtrim([RegistrationNumber])))>(0)))
+GO
+ALTER TABLE [core].[Client] CHECK CONSTRAINT [ck_registration_number]
+GO
+ALTER TABLE [core].[Country]  WITH NOCHECK ADD  CONSTRAINT [ck_country_name] CHECK  ((len(ltrim(rtrim([Name])))>(0)))
+GO
+ALTER TABLE [core].[Country] CHECK CONSTRAINT [ck_country_name]
+GO
+ALTER TABLE [core].[County]  WITH NOCHECK ADD  CONSTRAINT [ck_county_name] CHECK  ((len(ltrim(rtrim([Name])))>(0)))
+GO
+ALTER TABLE [core].[County] CHECK CONSTRAINT [ck_county_name]
+GO
+ALTER TABLE [core].[Policy]  WITH NOCHECK ADD  CONSTRAINT [ck_policy_dates] CHECK  (([EndDate]>[StartDate]))
+GO
+ALTER TABLE [core].[Policy] CHECK CONSTRAINT [ck_policy_dates]
+GO
+ALTER TABLE [core].[Policy]  WITH NOCHECK ADD  CONSTRAINT [ck_policy_premium] CHECK  (([PremiumAmount]>(0) AND len(ltrim(rtrim([PremiumCurrency])))>(0)))
+GO
+ALTER TABLE [core].[Policy] CHECK CONSTRAINT [ck_policy_premium]
+GO
+USE [master]
+GO
+ALTER DATABASE [InsuranceDb] SET  READ_WRITE 
+GO

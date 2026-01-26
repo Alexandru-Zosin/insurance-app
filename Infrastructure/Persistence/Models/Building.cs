@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Infrastructure.Persistence.Models;
+﻿namespace Infrastructure.Persistence.Models;
 
 public partial class Building
 {
@@ -14,8 +11,6 @@ public partial class Building
     public int CityId { get; set; }
 
     public int ConstructionYear { get; set; }
-
-    public string Address { get; set; } = null!;
 
     public string BuildingType { get; set; } = null!;
 
@@ -30,6 +25,10 @@ public partial class Building
     public int? EarthquakeRiskZone { get; set; }
 
     public string InsuredValueCurrency { get; set; } = null!;
+
+    public string Street { get; set; } = null!;
+
+    public string Number { get; set; } = null!;
 
     public virtual City City { get; set; } = null!;
 
