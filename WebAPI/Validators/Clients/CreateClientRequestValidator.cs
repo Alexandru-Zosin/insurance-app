@@ -26,8 +26,13 @@ public sealed class CreateClientRequestValidator
         RuleFor(x => x.Phone)
             .NotEmpty()
             .MaximumLength(50);
+        
+        RuleFor(x => x.Street)
+            .NotEmpty()
+            .MaximumLength(150);
 
-        RuleFor(x => x.Address)
-            .MaximumLength(200);
+        RuleFor(x => x.Number)
+            .NotEmpty()
+            .MaximumLength(20);
     }
 }

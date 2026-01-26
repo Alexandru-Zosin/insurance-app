@@ -34,30 +34,8 @@ public sealed class GetBuildingDetailsService
 
         var response = new GetBuildingDetailsResponse
         {
-            Building = new BuildingDto
-            {
-                Id = building.Id,
-                ClientId = building.ClientId,
-                Street = building.Address.Street,
-                Number = building.Address.Number,
-                CityId = building.City.Id,
-                CityName = building.City.Name,
-                ConstructionYear = building.ConstructionYear,
-                BuildingType = building.BuildingType.ToString(),
-                SurfaceArea = building.SurfaceArea,
-                InsuredValue = building.InsuredValue.Amount,
-                Currency = building.InsuredValue.Currency,
-                FloodRisk = building.RiskProfile.FloodRisk,
-                EarthquakeRisk = building.RiskProfile.EarthquakeRisk
-            },
-            Policies = policies.Select(p => new PolicyDto
-            {
-                Id = p.Id,
-                StartDate = p.StartDate,
-                EndDate = p.EndDate,
-                Premium = p.Premium.Amount,
-                Currency = p.Premium.Currency
-            }).ToList()
+            Building = BuildingDto.From(building),
+            Policies = policies.Select(PolicyDto.From).ToList()
         };
 
         return Result<GetBuildingDetailsResponse>.Ok(response);

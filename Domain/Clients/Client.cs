@@ -16,12 +16,12 @@ public sealed class Client
     public string Name { get; private set; }
     public IdentificationNumber Identifier { get; }
     public ContactInfo ContactInfo { get; private set; }
-    public Address? Address { get; private set; }
+    public Address Address { get; private set; }
 
 
     private Client(Guid id, ClientType type, string name, IdentificationNumber identifier,
         ContactInfo contactInfo,
-        Address? address)
+        Address address)
     {
         Id = id;
         Type = type;
@@ -36,7 +36,7 @@ public sealed class Client
         string name,
         IdentificationNumber identifier,
         ContactInfo contactInfo,
-        Address? address)
+        Address address)
     {
         if (string.IsNullOrWhiteSpace(name))
             return Result<Client>.Fail(ErrorType.Validation, "Name required");

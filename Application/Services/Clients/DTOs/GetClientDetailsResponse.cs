@@ -16,7 +16,8 @@ public sealed record ClientDto(
     string RegistrationNumber,
     string Email,
     string Phone,
-    string? Address)
+    string Address,
+    string Number)
 {
     public static ClientDto From(Client client)
     {
@@ -27,7 +28,8 @@ public sealed record ClientDto(
             client.Identifier.Value,
             client.ContactInfo.Email,
             client.ContactInfo.Phone,
-            client.Address?.Street);
+            client.Address.Street,
+            client.Address.Number);
     }
 }
 public sealed record BuildingDto(
