@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Infrastructure.Persistence.Models;
+﻿namespace Infrastructure.Persistence.Models;
 
 public partial class Client
 {
@@ -19,7 +16,9 @@ public partial class Client
 
     public string Phone { get; set; } = null!;
 
-    public string Address { get; set; } = null!;
+    public string Street { get; set; } = null!;
+
+    public string Number { get; set; } = null!;
 
     public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
 

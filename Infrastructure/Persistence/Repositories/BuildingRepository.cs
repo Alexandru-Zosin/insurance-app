@@ -19,6 +19,7 @@ public sealed class BuildingRepository : IBuildingRepository
         CancellationToken cancellationToken)
     {
         var ef = await _db.Buildings
+            .Include(b => b.Client)
             .Include(b => b.City)
             .AsNoTracking()
             .SingleOrDefaultAsync(
@@ -34,6 +35,7 @@ public sealed class BuildingRepository : IBuildingRepository
         CancellationToken cancellationToken)
     {
         var entities = await _db.Buildings
+            .Include(b => b.Client)
             .Include(b => b.City)
             .Where(b => b.Client.ClientKey == clientId)
             .AsNoTracking()
@@ -60,7 +62,9 @@ public sealed class BuildingRepository : IBuildingRepository
                 ClientId = clientId,
                 CityId = building.City.Id,
                 ConstructionYear = building.ConstructionYear,
-                Address = $"{building.Address.Street} {building.Address.Number}",
+                Street = building.Address.Street,
+                Number = building.Address.Number,
+//                Address = $"{building.Address.Street} {building.Address.Number}",
                 BuildingType = building.BuildingType.ToString(),
                 NumberOfFloors = 1,
                 SurfaceArea = building.SurfaceArea,
@@ -85,7 +89,9 @@ public sealed class BuildingRepository : IBuildingRepository
 
         ef.CityId = building.City.Id;
         ef.ConstructionYear = building.ConstructionYear;
-        ef.Address = $"{building.Address.Street} {building.Address.Number}";
+        ef.Street = building.Address.Street;
+        ef.Number = building.Address.Number;
+//        ef.Address = $"{building.Address.Street} {building.Address.Number}";
         ef.BuildingType = building.BuildingType.ToString();
         ef.SurfaceArea = building.SurfaceArea;
         ef.InsuredValue = (int)building.InsuredValue.Amount;
@@ -95,7 +101,7 @@ public sealed class BuildingRepository : IBuildingRepository
     }
     private static Domain.Buildings.Building Map(Models.Building ef)
     {
-        var address = Address.Create(ef.Address, "").Value!;
+        var address = Address.Create(ef.Street, ef.Number).Value!;
         var money = Money.Create(ef.InsuredValue, ef.InsuredValueCurrency).Value!;
         var risk = new RiskProfile(
             ef.FloodRiskZone == 1,

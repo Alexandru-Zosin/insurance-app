@@ -70,7 +70,9 @@ public class ClientRepository : IClientRepository
                 RegistrationNumber = client.Identifier.Value,
                 Email = client.ContactInfo.Email,
                 Phone = client.ContactInfo.Phone,
-                Address = $"{client.Address!.Street} {client.Address.Number}"
+                Street = client.Address.Street,
+                Number = client.Address.Number
+ //               Address = $"{client.Address!.Street} {client.Address.Number}"
             },
             cancellationToken
         ).ConfigureAwait(false);
@@ -89,14 +91,16 @@ public class ClientRepository : IClientRepository
         ef.Name = client.Name;
         ef.Email = client.ContactInfo.Email;
         ef.Phone = client.ContactInfo.Phone;
-        ef.Address = $"{client.Address!.Street} {client.Address.Number}";
+        ef.Street = client.Address.Street;
+        ef.Number = client.Address.Number;
+        //ef.Address = $"{client.Address!.Street} {client.Address.Number}";
     }
 
     private static Client Map(Models.Client ef)
     {
         var identifier = IdentificationNumber.Create(ef.RegistrationNumber).Value!;
         var contact = ContactInfo.Create(ef.Email, ef.Phone).Value!;
-        var address = Address.Create(ef.Address, "").Value!;
+        var address = Address.Create(ef.Street, ef.Number).Value!;
 
         return Client.Create(
             Enum.Parse<ClientType>(ef.ClientType),

@@ -47,11 +47,12 @@ public partial class InsuranceDbContext : DbContext
 
             entity.HasIndex(e => e.BuildingKey, "UQ__Building__94E7067EB2C4F6A2").IsUnique();
 
-            entity.Property(e => e.Address).HasMaxLength(100);
             entity.Property(e => e.BuildingType).HasMaxLength(50);
             entity.Property(e => e.InsuredValueCurrency)
                 .HasMaxLength(10)
                 .HasDefaultValue("RON");
+            entity.Property(e => e.Number).HasMaxLength(20);
+            entity.Property(e => e.Street).HasMaxLength(100);
 
             entity.HasOne(d => d.City).WithMany(p => p.Buildings)
                 .HasForeignKey(d => d.CityId)
@@ -90,14 +91,15 @@ public partial class InsuranceDbContext : DbContext
 
             entity.HasIndex(e => e.RegistrationNumber, "UQ__Client__E886460267752FE1").IsUnique();
 
-            entity.Property(e => e.Address).HasMaxLength(100);
             entity.Property(e => e.ClientType)
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Number).HasMaxLength(20);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.RegistrationNumber).HasMaxLength(50);
+            entity.Property(e => e.Street).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Country>(entity =>
