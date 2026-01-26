@@ -50,26 +50,34 @@ public sealed class CreateClientService
                 contactResult.ErrorMessage);
         }
 
-        Address? address = null;
-        if (request.Address != null)
+        var addressResult = Address.Create(request.Street, request.Number);
+        if (!addressResult.IsSuccess)
         {
-            var addressResult = Address.Create(request.Address, "");
-            if (!addressResult.IsSuccess)
-            {
-                return Result<CreateClientResponse>.Fail(
-                    addressResult.ErrorType,
-                    addressResult.ErrorMessage);
-            }
-
-            address = addressResult.Value!;
+            return Result<CreateClientResponse>.Fail(
+                addressResult.ErrorType,
+                addressResult.ErrorMessage);
         }
+
+        //Address? address = null;
+        //if (request.Street != null || request.Number != null)
+        //{
+        //    var addressResult = Address.Create(request.Street ?? string.Empty, request.Number ?? string.Empty);
+        //    if (!addressResult.IsSuccess)
+        //    {
+        //        return Result<CreateClientResponse>.Fail(
+        //            addressResult.ErrorType,
+        //            addressResult.ErrorMessage);
+        //    }
+
+        //    address = addressResult.Value!;
+        //}
 
         var clientResult = Client.Create(
             Enum.Parse<ClientType>(request.ClientType),
             request.Name,
             idResult.Value!,
             contactResult.Value!,
-            address);
+            addressResult.Value!);
 
         if (!clientResult.IsSuccess)
         {

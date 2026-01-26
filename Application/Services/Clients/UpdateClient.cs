@@ -57,9 +57,9 @@ public sealed class UpdateClientService
                 contactUpdateResult.ErrorMessage);
         }
 
-        if (request.Address != null)
+        if (request.Street != null || request.Number != null)
         {
-            var addressResult = Address.Create(request.Address, "");
+            var addressResult = Address.Create(request.Street ?? string.Empty, request.Number ?? string.Empty);
             if (!addressResult.IsSuccess)
             {
                 return Result<UpdateClientResponse>.Fail(

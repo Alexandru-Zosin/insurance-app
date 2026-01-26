@@ -5,4 +5,5 @@ public sealed record UpdateClientRequest(
     string Name,
     string Email,
     string Phone,
-    string? Address);
+    string Street,
+    string Number);
