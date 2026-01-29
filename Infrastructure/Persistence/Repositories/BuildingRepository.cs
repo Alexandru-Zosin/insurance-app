@@ -1,4 +1,4 @@
-﻿using Domain.Buildings;
+﻿using Application.Repositories;
 using Domain.Shared;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
@@ -111,7 +111,8 @@ public sealed class BuildingRepository : IBuildingRepository
             ef.City.CityId,
             ef.City.Name);
 
-        return Domain.Buildings.Building.Create(
+        return Domain.Buildings.Building.Rehydrate(
+            ef.BuildingKey,
             ef.Client.ClientKey,
             address,
             city,

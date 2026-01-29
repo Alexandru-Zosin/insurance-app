@@ -1,5 +1,9 @@
-﻿using Domain.Geography;
+﻿using Application.Common;
+using Domain.Buildings;
+using Domain.Clients;
+using Domain.Geography;
 using Domain.Policies;
+using Infrastructure.Persistence;
 using Infrastructure.Persistence.Data;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +29,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICountryRepository, CountryRepository>();
         services.AddScoped<ICountyRepository, CountyRepository>();
         services.AddScoped<ICityRepository, CityRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

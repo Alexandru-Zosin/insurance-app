@@ -2,7 +2,7 @@
 using Domain.Clients;
 using Domain.Policies;
 
-namespace Application.Services.Clients.DTO;
+namespace Application.Services.Clients.DTOs;
 
 public sealed record GetClientDetailsResponse(
     ClientDto Client,

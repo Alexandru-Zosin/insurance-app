@@ -1,5 +1,6 @@
 ﻿using Domain.Policies;
 using Domain.Shared;
+using Application.Repositories;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 

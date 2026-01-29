@@ -1,4 +1,5 @@
-﻿using Domain.Clients;
+﻿using Application.Repositories;
+using Domain.Clients;
 using Domain.Shared;
 using Domain.ValueObjects;
 using Infrastructure.Persistence.Data;
@@ -72,7 +73,6 @@ public class ClientRepository : IClientRepository
                 Phone = client.ContactInfo.Phone,
                 Street = client.Address.Street,
                 Number = client.Address.Number
- //               Address = $"{client.Address!.Street} {client.Address.Number}"
             },
             cancellationToken
         ).ConfigureAwait(false);
@@ -93,7 +93,6 @@ public class ClientRepository : IClientRepository
         ef.Phone = client.ContactInfo.Phone;
         ef.Street = client.Address.Street;
         ef.Number = client.Address.Number;
-        //ef.Address = $"{client.Address!.Street} {client.Address.Number}";
     }
 
     private static Client Map(Models.Client ef)
@@ -102,11 +101,13 @@ public class ClientRepository : IClientRepository
         var contact = ContactInfo.Create(ef.Email, ef.Phone).Value!;
         var address = Address.Create(ef.Street, ef.Number).Value!;
 
-        return Client.Create(
-            Enum.Parse<ClientType>(ef.ClientType),
-            ef.Name,
-            identifier,
-            contact,
-            address).Value!;
+        return Client.Rehydrate(
+        ef.ClientKey,
+        Enum.Parse<ClientType>(ef.ClientType),
+        ef.Name,
+        identifier,
+        contact,
+        address
+         ).Value!;
     }
 }

@@ -1,4 +1,5 @@
-﻿namespace Domain.Brokers;
+﻿using Domain.Brokers;
+namespace Application.Repositories;
 
 public interface IBrokerRepository
 {

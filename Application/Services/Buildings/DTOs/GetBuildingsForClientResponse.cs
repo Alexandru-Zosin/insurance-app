@@ -1,6 +1,6 @@
 ﻿using Domain.Buildings;
 
-namespace Application.Services.Buildings.DTO;
+namespace Application.Services.Buildings.DTOs;
 
 public sealed class GetBuildingsForClientResponse
 {

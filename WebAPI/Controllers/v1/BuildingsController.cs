@@ -1,36 +1,17 @@
-﻿using Application.Services.Buildings.DTO;
-using Application.Services.Buildings;
-using Application.Services.Buildings.GetBuildingsForClient;
-using Application.Services.Buildings.UpdateBuilding;
+﻿using Application.Services.Buildings;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
+using Application.Services.Buildings.DTOs;
 
 [Route("api/brokers")]
-public sealed class BuildingsController : BaseApiController
+public sealed class BuildingsController(IBuildingService _buildingService) : BaseApiController
 {
-    private readonly GetBuildingsForClientService _getForClient;
-    private readonly GetBuildingDetailsService _getDetails;
-    private readonly RegisterBuildingService _register;
-    private readonly UpdateBuildingService _update;
-
-    public BuildingsController(
-        GetBuildingsForClientService getForClient,
-        GetBuildingDetailsService getDetails,
-        RegisterBuildingService register,
-        UpdateBuildingService update)
-    {
-        _getForClient = getForClient;
-        _getDetails = getDetails;
-        _register = register;
-        _update = update;
-    }
-
     [HttpGet("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<GetBuildingsForClientResponse>> GetForClient(
         Guid clientId,
         CancellationToken ct)
     {
-        var result = await _getForClient.HandleAsync(
+        var result = await _buildingService.GetBuildingsForClientAsync(
             new GetBuildingsForClientRequest(clientId), ct);
 
         return FromResult(result);
@@ -41,7 +22,7 @@ public sealed class BuildingsController : BaseApiController
         Guid buildingId,
         CancellationToken ct)
     {
-        var result = await _getDetails.HandleAsync(
+        var result = await _buildingService.GetBuildingDetailsAsync(
             new GetBuildingDetailsRequest(buildingId), ct);
 
         return FromResult(result);
@@ -53,7 +34,7 @@ public sealed class BuildingsController : BaseApiController
         [FromBody] RegisterBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await _register.HandleAsync(
+        var result = await _buildingService.RegisterBuildingAsync(
             request with { ClientId = clientId }, ct);
 
         return FromCreated(
@@ -67,7 +48,7 @@ public sealed class BuildingsController : BaseApiController
         [FromBody] UpdateBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await _update.HandleAsync(
+        var result = await _buildingService.UpdateBuildingAsync(
             request with { BuildingId = buildingId }, ct);
 
         return FromResult(result);

@@ -1,8 +1,7 @@
-﻿using Application.Services.Buildings;
-using Application.Services.Buildings.GetBuildingsForClient;
-using Application.Services.Buildings.UpdateBuilding;
-using Application.UseCases.Clients;
-using Application.UseCases.Geography;
+﻿using Application.Common;
+using Application.Services.Buildings;
+using Application.Services.Clients;
+using Application.Services.Geography;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApi.Extensions;
@@ -12,22 +11,9 @@ public static class ApplicationServiceCollectionExtensions
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
-        // Clients
-        services.AddScoped<SearchClientsService>();
-        services.AddScoped<GetClientDetailsService>();
-        services.AddScoped<CreateClientService>();
-        services.AddScoped<UpdateClientService>();
-
-        // Buildings
-        services.AddScoped<GetBuildingsForClientService>();
-        services.AddScoped<GetBuildingDetailsService>();
-        services.AddScoped<RegisterBuildingService>();
-        services.AddScoped<UpdateBuildingService>();
-
-        // Geography
-        services.AddScoped<GetCountries>();
-        services.AddScoped<GetCountiesByCountryService>();
-        services.AddScoped<GetCitiesByCountyService>();
+        services.AddScoped<IBuildingService, BuildingService>();
+        services.AddScoped<IClientService, ClientService>();
+        services.AddScoped<IGeographyService, GeographyService>();
 
         return services;
     }

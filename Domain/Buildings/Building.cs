@@ -71,6 +71,29 @@ public class Building
                 riskProfile));
     }
 
+    public static Result<Building> Rehydrate(
+    Guid id,
+    Guid clientId,
+    Address address,
+    City city,
+    int constructionYear,
+    BuildingType type,
+    int surfaceArea,
+    Money insuredValue,
+    RiskProfile riskProfile)
+    {
+        return Result<Building>.Ok(new Building(
+            id,
+            clientId,
+            address,
+            city,
+            constructionYear,
+            type,
+            surfaceArea,
+            insuredValue,
+            riskProfile));
+    }
+
     public Result UpdateConstructionYear(int year)
     {
         if (year < 1700 || year > DateTime.UtcNow.Year)

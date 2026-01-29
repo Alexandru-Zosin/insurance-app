@@ -1,27 +1,11 @@
-﻿using Application.Services.Clients.DTO;
-using Application.UseCases.Clients;
+﻿using Application.Services.Clients.DTOs;
+using Application.Services.Clients;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 
 [Route("api/brokers/clients")]
-public sealed class ClientsController : BaseApiController
+public sealed class ClientsController(IClientService _clientService) : BaseApiController
 {
-    private readonly SearchClientsService _search;
-    private readonly GetClientDetailsService _getDetails;
-    private readonly CreateClientService _create;
-    private readonly UpdateClientService _update;
-
-    public ClientsController(
-        SearchClientsService search,
-        GetClientDetailsService getDetails,
-        CreateClientService create,
-        UpdateClientService update)
-    {
-        _search = search;
-        _getDetails = getDetails;
-        _create = create;
-        _update = update;
-    }
 
     [HttpGet]
     public async Task<ActionResult<SearchClientsResponse>> Search(
@@ -29,7 +13,7 @@ public sealed class ClientsController : BaseApiController
         [FromQuery] string? identifier,
         CancellationToken ct)
     {
-        var result = await _search.HandleAsync(
+        var result = await _clientService.SearchClientsAsync(
             new SearchClientsRequest(name, identifier), ct);
 
         return FromResult(result);
@@ -40,7 +24,7 @@ public sealed class ClientsController : BaseApiController
         Guid clientId,
         CancellationToken ct)
     {
-        var result = await _getDetails.HandleAsync(
+        var result = await _clientService.GetClientDetailsAsync(
             new GetClientDetailsRequest(clientId), ct);
 
         return FromResult(result);
@@ -51,7 +35,7 @@ public sealed class ClientsController : BaseApiController
         [FromBody] CreateClientRequest request,
         CancellationToken ct)
     {
-        var result = await _create.HandleAsync(request, ct);
+        var result = await _clientService.CreateClientAsync(request, ct);
 
         return FromCreated(
             result,
@@ -64,7 +48,7 @@ public sealed class ClientsController : BaseApiController
         [FromBody] UpdateClientRequest request,
         CancellationToken ct)
     {
-        var result = await _update.HandleAsync(
+        var result = await _clientService.UpdateClientAsync(
             request with { ClientId = clientId }, ct);
 
         return FromResult(result);

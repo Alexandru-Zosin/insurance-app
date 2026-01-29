@@ -1,6 +1,6 @@
 ﻿using Domain.Geography;
 
-namespace Application.Services.Geography.DTO;
+namespace Application.Services.Geography.DTOs;
 
 public sealed record GetCountriesResponse(
     IReadOnlyList<CountryDto> Countries);

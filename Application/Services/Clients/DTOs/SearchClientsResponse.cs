@@ -1,6 +1,5 @@
-﻿namespace Application.Services.Clients.DTO;
-using Domain.Clients;
-
+﻿using Domain.Clients;
+namespace Application.Services.Clients.DTOs;
 public sealed record SearchClientsResponse(
     IReadOnlyList<ClientSearchResultDto> Clients);
 public sealed record ClientSearchResultDto(

@@ -46,6 +46,17 @@ public sealed class Client
                 address));
     }
 
+    public static Result<Client> Rehydrate(
+    Guid id,
+    ClientType type,
+    string name,
+    IdentificationNumber identifier,
+    ContactInfo contact,
+    Address address)
+    {
+        return Result<Client>.Ok(new Client(id, type, name, identifier, contact, address));
+    }
+
     public Result<bool> ChangeName(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))

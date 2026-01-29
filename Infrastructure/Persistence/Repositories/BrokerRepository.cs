@@ -1,4 +1,4 @@
-﻿using Domain.Brokers;
+﻿using Application.Repositories;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,9 +25,6 @@ public sealed class BrokerRepository : IBrokerRepository
             return null;
 
         var broker = new Domain.Brokers.Broker(ef.BrokerKey, ef.Name);
-
-        if (!ef.IsActive)
-            broker.Deactivate();
 
         return broker;
     }
