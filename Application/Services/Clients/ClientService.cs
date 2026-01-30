@@ -1,11 +1,8 @@
 ﻿using Application.Common;
+using Application.Repositories;
 using Application.Services.Clients.DTOs;
-using Domain.Buildings;
 using Domain.Clients;
-using Domain.Common;
-using Domain.Policies;
 using Domain.Shared;
-using Domain.ValueObjects;
 
 namespace Application.Services.Clients;
 
@@ -20,45 +17,18 @@ public sealed class ClientService(
         CreateClientRequest request,
         CancellationToken ct = default)
     {
-        var idResult = IdentificationNumber.Create(request.RegistrationNumber);
-        if (!idResult.IsSuccess)
-        {
-            return Result<CreateClientResponse>.Fail(
-                idResult.ErrorType,
-                idResult.ErrorMessage);
-        }
+        var identifier = IdentificationNumber.Create(request.RegistrationNumber);
+        var contact = ContactInfo.Create(request.Email, request.Phone);
+        var address = Address.CreateOptional(request.Street, request.Number);
 
-        var contactResult = ContactInfo.Create(request.Email, request.Phone);
-        if (!contactResult.IsSuccess)
-        {
-            return Result<CreateClientResponse>.Fail(
-                contactResult.ErrorType,
-                contactResult.ErrorMessage);
-        }
-
-        var addressResult = Address.Create(request.Street, request.Number);
-        if (!addressResult.IsSuccess)
-        {
-            return Result<CreateClientResponse>.Fail(
-                addressResult.ErrorType,
-                addressResult.ErrorMessage);
-        }
-
-        var clientResult = Client.Create(
+        var client = Client.Create(
             Enum.Parse<ClientType>(request.ClientType),
             request.Name,
-            idResult.Value!,
-            contactResult.Value!,
-            addressResult.Value!);
+            identifier,
+            contact,
+            address);
 
-        if (!clientResult.IsSuccess)
-        {
-            return Result<CreateClientResponse>.Fail(
-                clientResult.ErrorType,
-                clientResult.ErrorMessage);
-        }
-
-        await _clients.AddAsync(clientResult.Value!, ct);
+        await _clients.AddAsync(client, ct);
 
         try
         {
@@ -72,7 +42,7 @@ public sealed class ClientService(
         }
 
         return Result<CreateClientResponse>.Ok(
-            new CreateClientResponse(clientResult.Value!.Id));
+            new CreateClientResponse(client.Id));
     }
 
     public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(
@@ -101,35 +71,18 @@ public sealed class ClientService(
     public async Task<Result<SearchClientsResponse>> SearchClientsAsync(
         SearchClientsRequest request, CancellationToken ct = default)
     {
-        if (!string.IsNullOrWhiteSpace(request.Identifier))
-        {
-            var client = await _clients.GetByRegistrationNumberAsync(
-                request.Identifier,
-                ct);
+        var page = request.PageRequest;
 
-            return Result<SearchClientsResponse>.Ok(
-                new SearchClientsResponse(
-                    client == null
-                        ? Array.Empty<ClientSearchResultDto>()
-                        : new[] { ClientSearchResultDto.From(client) }));
-        }
+        var searchResult = await _clients.SearchAsync(
+            request.Identifier,
+            request.Name,
+            page,
+            ct);
 
-        if (!string.IsNullOrWhiteSpace(request.Name))
-        {
-            var results = await _clients.SearchByNameAsync(
-                request.Name,
-                ct);
-
-            return Result<SearchClientsResponse>.Ok(
-                new SearchClientsResponse(
-                    results.Select(ClientSearchResultDto.From).ToList()));
-        }
-        
         return Result<SearchClientsResponse>.Ok(
-           new SearchClientsResponse(
-               Array.Empty<ClientSearchResultDto>()));
+            new SearchClientsResponse(
+                searchResult.Select(ClientSearchResultDto.From).ToList()));
     }
-
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
         UpdateClientRequest request,
         CancellationToken ct = default)
@@ -138,55 +91,17 @@ public sealed class ClientService(
         if (client == null)
         {
             return Result<UpdateClientResponse>.Fail(
-                ErrorType.NotFound,
-                "Client not found");
+                ErrorType.NotFound, "Client not found");
         }
 
+        var newAddress = Address.CreateOptional(request.Street, request.Number);
+        var newContactInfo = ContactInfo.Create(request.Email, request.Phone);
 
-        var nameResult = client.ChangeName(request.Name);
-        if (!nameResult.IsSuccess)
-        {
-            return Result<UpdateClientResponse>.Fail(
-                nameResult.ErrorType,
-                nameResult.ErrorMessage);
-        }
+        var updatedClient = client.ChangeName(request.Name)
+                              .ChangeContactInfo(newContactInfo)
+                              .ChangeAddress(newAddress);
 
-        var contactResult = ContactInfo.Create(request.Email, request.Phone);
-        if (!contactResult.IsSuccess)
-        {
-            return Result<UpdateClientResponse>.Fail(
-                contactResult.ErrorType,
-                contactResult.ErrorMessage);
-        }
-
-        var contactUpdateResult = client.ChangeContactInfo(contactResult.Value!);
-        if (!contactUpdateResult.IsSuccess)
-        {
-            return Result<UpdateClientResponse>.Fail(
-                contactUpdateResult.ErrorType,
-                contactUpdateResult.ErrorMessage);
-        }
-
-        if (request.Street != null || request.Number != null)
-        {
-            var addressResult = Address.Create(request.Street ?? string.Empty, request.Number ?? string.Empty);
-            if (!addressResult.IsSuccess)
-            {
-                return Result<UpdateClientResponse>.Fail(
-                    addressResult.ErrorType,
-                    addressResult.ErrorMessage);
-            }
-
-            var addressUpdateResult = client.ChangeAddress(addressResult.Value!);
-            if (!addressUpdateResult.IsSuccess)
-            {
-                return Result<UpdateClientResponse>.Fail(
-                    addressUpdateResult.ErrorType,
-                    addressUpdateResult.ErrorMessage);
-            }
-        }
-
-        await _clients.UpdateAsync(client, ct);
+        await _clients.UpdateAsync(updatedClient, ct);
         await _uow.SaveChangesAsync(ct);
 
         return Result<UpdateClientResponse>.Ok(

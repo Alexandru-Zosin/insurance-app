@@ -6,6 +6,6 @@ public sealed record CreateClientRequest(
     string RegistrationNumber,
     string Email,
     string Phone,
-    string Street,
-    string Number
+    string? Street,
+    string? Number
     );

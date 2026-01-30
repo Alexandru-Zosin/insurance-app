@@ -16,8 +16,8 @@ public sealed record ClientDto(
     string RegistrationNumber,
     string Email,
     string Phone,
-    string Address,
-    string Number)
+    string? Street,
+    string? Number)
 {
     public static ClientDto From(Client client)
     {

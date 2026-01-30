@@ -1,6 +1,6 @@
-﻿using Application.Services.Geography.DTOs;
-using Domain.Common;
-using Domain.Geography;
+﻿using Application.Repositories;
+using Application.Services.Geography.DTOs;
+using Application.Common;
 
 namespace Application.Services.Geography;
 

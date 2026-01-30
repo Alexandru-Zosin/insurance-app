@@ -1,10 +1,7 @@
 ﻿using Application.Common;
+using Application.Repositories;
 using Application.Services.Buildings.DTOs;
 using Domain.Buildings;
-using Domain.Clients;
-using Domain.Common;
-using Domain.Geography;
-using Domain.Policies;
 using Domain.Shared;
 
 namespace Application.Services.Buildings;
@@ -64,46 +61,26 @@ public sealed class BuildingService(
                 "City not found");
         }
 
-        var addressResult = Address.Create(request.Street, request.Number);
-        if (!addressResult.IsSuccess)
-        {
-            return Result<RegisterBuildingResponse>.Fail(
-                addressResult.ErrorType,
-                addressResult.ErrorMessage);
-        }
-
-        var moneyResult = Money.Create(request.InsuredValue, request.Currency);
-        if (!moneyResult.IsSuccess)
-        {
-            return Result<RegisterBuildingResponse>.Fail(
-                moneyResult.ErrorType,
-                moneyResult.ErrorMessage);
-        }
-
-        var buildingResult = Building.Create(
+        var address = Address.Create(request.Street, request.Number);
+        var money = Money.Create(request.InsuredValue, request.Currency);
+        
+        var building = Building.Create(
             request.ClientId,
-            addressResult.Value!,
+            address,
             city,
             request.ConstructionYear,
             Enum.Parse<BuildingType>(request.BuildingType),
             request.SurfaceArea,
-            moneyResult.Value!,
+            money,
             new RiskProfile(request.FloodRisk, request.EarthquakeRisk));
 
-        if (!buildingResult.IsSuccess)
-        {
-            return Result<RegisterBuildingResponse>.Fail(
-                buildingResult.ErrorType,
-                buildingResult.ErrorMessage);
-        }
-
-        await _buildings.AddAsync(buildingResult.Value!, ct);
+        await _buildings.AddAsync(building, ct);
         await _uow.SaveChangesAsync(ct);
 
         return Result<RegisterBuildingResponse>.Ok(
             new RegisterBuildingResponse
             {
-                BuildingId = buildingResult.Value!.Id
+                BuildingId = building.Id
             });
     }
 
@@ -118,26 +95,12 @@ public sealed class BuildingService(
                 "Building not found");
         }
 
-        var yearResult = building.UpdateConstructionYear(request.ConstructionYear);
-        if (!yearResult.IsSuccess)
-            return Result<UpdateBuildingResponse>.Fail(yearResult.ErrorType, yearResult.ErrorMessage);
-
-        var areaResult = building.UpdateSurfaceArea(request.SurfaceArea);
-        if (!areaResult.IsSuccess)
-            return Result<UpdateBuildingResponse>.Fail(areaResult.ErrorType, areaResult.ErrorMessage);
-
-        var moneyResult = Money.Create(request.InsuredValue, request.Currency);
-        if (!moneyResult.IsSuccess)
-            return Result<UpdateBuildingResponse>.Fail(moneyResult.ErrorType, moneyResult.ErrorMessage);
-
-        var valueResult = building.UpdateInsuredValue(moneyResult.Value!);
-        if (!valueResult.IsSuccess)
-            return Result<UpdateBuildingResponse>.Fail(valueResult.ErrorType, valueResult.ErrorMessage);
-
-        var riskResult = building.UpdateRiskProfile(
-            new RiskProfile(request.FloodRisk, request.EarthquakeRisk));
-        if (!riskResult.IsSuccess)
-            return Result<UpdateBuildingResponse>.Fail(riskResult.ErrorType, riskResult.ErrorMessage);
+        var money = Money.Create(request.InsuredValue, request.Currency);
+        var riskProfile = new RiskProfile(request.FloodRisk, request.EarthquakeRisk); // Business logic needs updating
+        building.UpdateConstructionYear(request.ConstructionYear)
+                .UpdateSurfaceArea(request.SurfaceArea)
+                .UpdateInsuredValue(money)
+                .UpdateRiskProfile(riskProfile);
 
         await _buildings.UpdateAsync(building, ct);
         await _uow.SaveChangesAsync(ct);

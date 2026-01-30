@@ -1,4 +1,4 @@
-﻿using Domain.Common;
+﻿using Application.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers;

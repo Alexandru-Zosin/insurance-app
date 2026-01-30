@@ -2,25 +2,29 @@
 using Application.Services.Clients;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
+using Application.Common;
 
 [Route("api/brokers/clients")]
 public sealed class ClientsController(IClientService _clientService) : BaseApiController
 {
 
     [HttpGet]
-    public async Task<ActionResult<SearchClientsResponse>> Search(
+    public async Task<ActionResult<SearchClientsResponse>> SearchClient(
         [FromQuery] string? name,
         [FromQuery] string? identifier,
-        CancellationToken ct)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
     {
+        var pagedRequest = new PageRequest(page, pageSize);
         var result = await _clientService.SearchClientsAsync(
-            new SearchClientsRequest(name, identifier), ct);
+            new SearchClientsRequest(name, identifier, pagedRequest), ct);
 
         return FromResult(result);
     }
 
     [HttpGet("{clientId:guid}")]
-    public async Task<ActionResult<GetClientDetailsResponse>> Get(
+    public async Task<ActionResult<GetClientDetailsResponse>> GetClientDetails(
         Guid clientId,
         CancellationToken ct)
     {
@@ -31,7 +35,7 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateClientResponse>> Create(
+    public async Task<ActionResult<CreateClientResponse>> CreateClient(
         [FromBody] CreateClientRequest request,
         CancellationToken ct)
     {
@@ -43,7 +47,7 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
     }
 
     [HttpPut("{clientId:guid}")]
-    public async Task<ActionResult<UpdateClientResponse>> Update(
+    public async Task<ActionResult<UpdateClientResponse>> UpdateClient(
         Guid clientId,
         [FromBody] UpdateClientRequest request,
         CancellationToken ct)

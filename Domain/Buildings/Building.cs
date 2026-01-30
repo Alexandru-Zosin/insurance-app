@@ -12,8 +12,8 @@ public class Building
 {
     public Guid Id { get; }
     public Guid ClientId { get; }
-    public Address Address { get; }
-    public City City { get; }
+    public Address Address { get; private set; }
+    public City City { get; private set; }
     public int ConstructionYear { get; private set; }
     public BuildingType BuildingType { get; }
     public int SurfaceArea { get; private set; }
@@ -40,9 +40,11 @@ public class Building
         SurfaceArea = surfaceArea;
         InsuredValue = insuredValue;
         RiskProfile = riskProfile;
+
+        ValidateInvariants();
     }
 
-    public static Result<Building> Create(
+    public static Building Create(
         Guid clientId,
         Address address,
         City city,
@@ -52,14 +54,7 @@ public class Building
         Money insuredValue,
         RiskProfile riskProfile)
     {
-        if (surfaceArea <= 0)
-            return Result<Building>.Fail(ErrorType.Validation, "Surface area must be positive");
-
-        if (constructionYear < 1700 || constructionYear > DateTime.UtcNow.Year)
-            return Result<Building>.Fail(ErrorType.Validation, "Invalid construction year");
-
-        return Result<Building>.Ok(
-            new Building(
+        return new Building(
                 Guid.NewGuid(),
                 clientId,
                 address,
@@ -68,21 +63,21 @@ public class Building
                 type,
                 surfaceArea,
                 insuredValue,
-                riskProfile));
+                riskProfile);
     }
 
-    public static Result<Building> Rehydrate(
-    Guid id,
-    Guid clientId,
-    Address address,
-    City city,
-    int constructionYear,
-    BuildingType type,
-    int surfaceArea,
-    Money insuredValue,
-    RiskProfile riskProfile)
+    public static Building Rehydrate(
+        Guid id,
+        Guid clientId,
+        Address address,
+        City city,
+        int constructionYear,
+        BuildingType type,
+        int surfaceArea,
+        Money insuredValue,
+        RiskProfile riskProfile)
     {
-        return Result<Building>.Ok(new Building(
+        return new Building(
             id,
             clientId,
             address,
@@ -91,37 +86,58 @@ public class Building
             type,
             surfaceArea,
             insuredValue,
-            riskProfile));
+            riskProfile);
     }
 
-    public Result UpdateConstructionYear(int year)
+    public Building ChangeAddress(Address address)
     {
-        if (year < 1700 || year > DateTime.UtcNow.Year)
-            return Result.Fail(ErrorType.Validation, "Invalid construction year");
+        Address = address;
+        return this;
+    }
 
+    public Building ChangeCity(City city)
+    {
+        City = city;
+        return this;
+    }
+
+    public Building UpdateConstructionYear(int year)
+    {
+        EnsureConstructionYear(year);
         ConstructionYear = year;
-        return Result.Ok();
+        return this;
     }
 
-    public Result UpdateSurfaceArea(int surfaceArea)
+    private static void EnsureConstructionYear(int year)
     {
-        if (surfaceArea <= 0)
-            return Result.Fail(ErrorType.Validation, "Surface area must be positive");
-
+        var currentYear = DateTime.UtcNow.Year;
+        if (year < 1600 || year > currentYear) // will switch to config file with defined values
+            throw new DomainException("Invalid construction year.");
+    }
+    
+    public Building UpdateSurfaceArea(int surfaceArea)
+    {
+        if (surfaceArea <= 0) 
+            throw new DomainException("Surface area must be positive.");
         SurfaceArea = surfaceArea;
-        return Result.Ok();
+        return this;
     }
 
-    public Result UpdateInsuredValue(Money insuredValue)
+    public Building UpdateInsuredValue(Money insuredValue)
     {
         InsuredValue = insuredValue;
-        return Result.Ok();
+        return this;
     }
 
-    public Result UpdateRiskProfile(RiskProfile riskProfile)
+    public Building UpdateRiskProfile(RiskProfile riskProfile)
     {
+        if (riskProfile is null) 
+            throw new DomainException("Risk profile is required.");
         RiskProfile = riskProfile;
-        return Result.Ok();
+        return this;
     }
 
+    private void ValidateInvariants()
+    {
+    }
 }

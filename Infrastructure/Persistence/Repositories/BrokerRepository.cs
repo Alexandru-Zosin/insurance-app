@@ -1,6 +1,7 @@
 ﻿using Application.Repositories;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using Domain.Brokers;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -13,7 +14,7 @@ public sealed class BrokerRepository : IBrokerRepository
         _db = db;
     }
 
-    public async Task<Domain.Brokers.Broker?> GetByIdAsync(
+    public async Task<Broker?> GetByIdAsync(
         Guid brokerId,
         CancellationToken cancellationToken)
     {
@@ -24,13 +25,13 @@ public sealed class BrokerRepository : IBrokerRepository
         if (ef == null)
             return null;
 
-        var broker = new Domain.Brokers.Broker(ef.BrokerKey, ef.Name);
+        var broker = new Broker(ef.BrokerKey, ef.Name);
 
         return broker;
     }
 
     public async Task AddAsync(
-        Domain.Brokers.Broker broker,
+        Broker broker,
         CancellationToken cancellationToken)
     {
         await _db.Brokers.AddAsync(
@@ -45,7 +46,7 @@ public sealed class BrokerRepository : IBrokerRepository
     }
 
     public async Task UpdateAsync(
-        Domain.Brokers.Broker broker,
+        Broker broker,
         CancellationToken cancellationToken)
     {
         var ef = await _db.Brokers

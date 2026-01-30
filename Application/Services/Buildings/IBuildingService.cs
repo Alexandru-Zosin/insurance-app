@@ -1,5 +1,5 @@
 ﻿using Application.Services.Buildings.DTOs;
-using Domain.Common;
+using Application.Common;
 
 namespace Application.Services.Buildings;
 

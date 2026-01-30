@@ -1,7 +1,7 @@
-﻿using Application.Repositories;
+﻿using Application.Common;
+using Application.Repositories;
 using Domain.Clients;
 using Domain.Shared;
-using Domain.ValueObjects;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Persistence.Repositories;
@@ -15,7 +15,7 @@ public class ClientRepository : IClientRepository
         _db = db;
     }
 
-    public async Task<Domain.Clients.Client?> GetByIdAsync(
+    public async Task<Client?> GetByIdAsync(
         Guid clientId,
         CancellationToken cancellationToken)
     {
@@ -29,33 +29,37 @@ public class ClientRepository : IClientRepository
         return ef == null ? null : Map(ef);
     }
 
-    public async Task<Domain.Clients.Client?> GetByRegistrationNumberAsync(
-        string registrationNumber,
-        CancellationToken cancellationToken)
-    {
-        var ef = await _db.Clients
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.RegistrationNumber == registrationNumber,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        return ef == null ? null : Map(ef);
-    }
-
-    public async Task<IReadOnlyList<Client>> SearchByNameAsync(
-    string name,
+    public async Task<IReadOnlyList<Client>> SearchAsync(
+    string? registrationNumber,
+    string? name,
+    PageRequest page,
     CancellationToken cancellationToken)
     {
-        var entities = await _db.Clients
-            .AsNoTracking()
-            .Where(c => c.Name.Contains(name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(registrationNumber))
+        {
+            var result = await _db.Clients
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(
+                                c => c.RegistrationNumber == registrationNumber
+                            );
 
-        return entities
-            .Select(Map)
-            .ToList();
+            return result == null ? Array.Empty<Client>() : new[] { Map(result) }; 
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var result = await _db.Clients
+                                .AsNoTracking()
+                                .Where(c => c.Name.Contains(name))
+                                .OrderBy(c => c.ClientId)
+                                .Skip(page.Skip)
+                                .Take(page.Take)
+                                .ToListAsync();
+
+            return result.Select(Map).ToList();
+        }
+
+        return Array.Empty<Client>();
     }
 
     public async Task AddAsync(
@@ -71,35 +75,35 @@ public class ClientRepository : IClientRepository
                 RegistrationNumber = client.Identifier.Value,
                 Email = client.ContactInfo.Email,
                 Phone = client.ContactInfo.Phone,
-                Street = client.Address.Street,
-                Number = client.Address.Number
+                Street = client.Address?.Street,
+                Number = client.Address?.Number
             },
             cancellationToken
         ).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(
-        Client client,
+        Client updatedClient,
         CancellationToken cancellationToken)
     {
         var ef = await _db.Clients
             .SingleAsync(
-                c => c.ClientKey == client.Id,
+                c => c.ClientKey == updatedClient.Id,
                 cancellationToken)
             .ConfigureAwait(false);
 
-        ef.Name = client.Name;
-        ef.Email = client.ContactInfo.Email;
-        ef.Phone = client.ContactInfo.Phone;
-        ef.Street = client.Address.Street;
-        ef.Number = client.Address.Number;
+        ef.Name = updatedClient.Name;
+        ef.Email = updatedClient.ContactInfo.Email;
+        ef.Phone = updatedClient.ContactInfo.Phone;
+        ef.Street = updatedClient.Address?.Street;
+        ef.Number = updatedClient.Address?.Number;
     }
 
     private static Client Map(Models.Client ef)
     {
-        var identifier = IdentificationNumber.Create(ef.RegistrationNumber).Value!;
-        var contact = ContactInfo.Create(ef.Email, ef.Phone).Value!;
-        var address = Address.Create(ef.Street, ef.Number).Value!;
+        var identifier = IdentificationNumber.Create(ef.RegistrationNumber);
+        var contact = ContactInfo.Create(ef.Email, ef.Phone);
+        var address = Address.CreateOptional(ef.Street, ef.Number);
 
         return Client.Rehydrate(
         ef.ClientKey,
@@ -108,6 +112,6 @@ public class ClientRepository : IClientRepository
         identifier,
         contact,
         address
-         ).Value!;
+        );
     }
 }

@@ -1,5 +1,9 @@
-﻿namespace Application.Services.Clients.DTOs;
+﻿using Application.Common;
+
+namespace Application.Services.Clients.DTOs;
 
 public sealed record SearchClientsRequest(
     string? Name,
-    string? Identifier);
+    string? Identifier,
+    PageRequest PageRequest
+);

@@ -1,8 +1,5 @@
 ﻿using Application.Common;
-using Domain.Buildings;
-using Domain.Clients;
-using Domain.Geography;
-using Domain.Policies;
+using Application.Repositories;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Data;
 using Infrastructure.Persistence.Repositories;
