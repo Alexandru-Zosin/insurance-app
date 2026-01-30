@@ -28,8 +28,8 @@ public sealed record ClientDto(
             client.Identifier.Value,
             client.ContactInfo.Email,
             client.ContactInfo.Phone,
-            client.Address.Street,
-            client.Address.Number);
+            client.Address?.Street,
+            client.Address?.Number);
     }
 }
 public sealed record BuildingDto(

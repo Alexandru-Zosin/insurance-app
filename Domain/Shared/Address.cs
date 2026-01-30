@@ -24,7 +24,7 @@ public sealed record Address
     {
         var hasStreet = !string.IsNullOrWhiteSpace(street);
         var hasNumber = !string.IsNullOrWhiteSpace(number);
-        if (hasStreet && hasNumber)
+        if (!hasStreet && !hasNumber)
             return null;
 
         return Create(street ?? string.Empty, number ?? string.Empty);
