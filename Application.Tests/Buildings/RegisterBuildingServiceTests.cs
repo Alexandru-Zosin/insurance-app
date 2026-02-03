@@ -1,5 +1,5 @@
 ﻿using Application.Services.Buildings;
-using Application.Services.Buildings.DTO;
+using Application.Services.Buildings.DTOs;
 using Domain.Buildings;
 using Domain.Common;
 using Domain.Geography;

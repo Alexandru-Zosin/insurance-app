@@ -1,4 +1,5 @@
-﻿namespace Domain.Policies;
+﻿namespace Application.Repositories;
+using Domain.Policies;
 
 public interface IPolicyRepository
 {

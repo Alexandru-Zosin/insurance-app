@@ -1,4 +1,7 @@
-﻿namespace Infrastructure.Persistence.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Infrastructure.Persistence.Models;
 
 public partial class Building
 {

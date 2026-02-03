@@ -12,6 +12,4 @@ public class Broker
         Name = name;
         IsActive = true;
     }
-
-    public void Deactivate() => IsActive = false;
 }

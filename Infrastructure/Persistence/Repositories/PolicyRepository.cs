@@ -1,5 +1,6 @@
 ﻿using Domain.Policies;
 using Domain.Shared;
+using Application.Repositories;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -112,14 +113,14 @@ public sealed class PolicyRepository : IPolicyRepository
             throw new InvalidOperationException("Required navigation not loaded");
         }
 
-        var money = Money.Create(ef.PremiumAmount, ef.PremiumCurrency).Value!;
+        var money = Money.Create(ef.PremiumAmount, ef.PremiumCurrency);
 
-        return Policy.Issue(
+        return Policy.Create(
             ef.Client.ClientKey,
             ef.Building.BuildingKey,
             ef.Broker.BrokerKey,
             money,
             ef.StartDate,
-            ef.EndDate).Value!;
+            ef.EndDate);
     }
 }

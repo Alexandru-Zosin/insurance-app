@@ -1,7 +1,9 @@
-﻿using Domain.Buildings;
+﻿using Application.Repositories;
 using Domain.Shared;
+using Domain.Buildings;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using Domain.Geography;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -14,7 +16,7 @@ public sealed class BuildingRepository : IBuildingRepository
         _db = db;
     }
 
-    public async Task<Domain.Buildings.Building?> GetByIdAsync(
+    public async Task<Building?> GetByIdAsync(
         Guid buildingId,
         CancellationToken cancellationToken)
     {
@@ -30,7 +32,7 @@ public sealed class BuildingRepository : IBuildingRepository
         return ef == null ? null : Map(ef);
     }
 
-    public async Task<IReadOnlyList<Domain.Buildings.Building>> GetByClientIdAsync(
+    public async Task<IReadOnlyList<Building>> GetByClientIdAsync(
         Guid clientId,
         CancellationToken cancellationToken)
     {
@@ -46,7 +48,7 @@ public sealed class BuildingRepository : IBuildingRepository
     }
 
     public async Task AddAsync(
-        Domain.Buildings.Building building,
+        Building building,
         CancellationToken cancellationToken)
     {
         var clientId = await _db.Clients
@@ -64,7 +66,6 @@ public sealed class BuildingRepository : IBuildingRepository
                 ConstructionYear = building.ConstructionYear,
                 Street = building.Address.Street,
                 Number = building.Address.Number,
-//                Address = $"{building.Address.Street} {building.Address.Number}",
                 BuildingType = building.BuildingType.ToString(),
                 NumberOfFloors = 1,
                 SurfaceArea = building.SurfaceArea,
@@ -78,7 +79,7 @@ public sealed class BuildingRepository : IBuildingRepository
     }
 
     public async Task UpdateAsync(
-    Domain.Buildings.Building building,
+    Building building,
     CancellationToken cancellationToken)
     {
         var ef = await _db.Buildings
@@ -91,7 +92,6 @@ public sealed class BuildingRepository : IBuildingRepository
         ef.ConstructionYear = building.ConstructionYear;
         ef.Street = building.Address.Street;
         ef.Number = building.Address.Number;
-//        ef.Address = $"{building.Address.Street} {building.Address.Number}";
         ef.BuildingType = building.BuildingType.ToString();
         ef.SurfaceArea = building.SurfaceArea;
         ef.InsuredValue = (int)building.InsuredValue.Amount;
@@ -99,19 +99,19 @@ public sealed class BuildingRepository : IBuildingRepository
         ef.FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0;
         ef.EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0;
     }
-    private static Domain.Buildings.Building Map(Models.Building ef)
+    private static Building Map(Models.Building ef)
     {
-        var address = Address.Create(ef.Street, ef.Number).Value!;
-        var money = Money.Create(ef.InsuredValue, ef.InsuredValueCurrency).Value!;
+        var address = Address.Create(ef.Street, ef.Number);
+        var money = Money.Create(ef.InsuredValue, ef.InsuredValueCurrency);
         var risk = new RiskProfile(
             ef.FloodRiskZone == 1,
             ef.EarthquakeRiskZone == 1);
-
-        var city = new Domain.Geography.City(
+        var city = new City(
             ef.City.CityId,
             ef.City.Name);
 
-        return Domain.Buildings.Building.Create(
+        return Building.Rehydrate(
+            ef.BuildingKey,
             ef.Client.ClientKey,
             address,
             city,
@@ -119,6 +119,6 @@ public sealed class BuildingRepository : IBuildingRepository
             Enum.Parse<BuildingType>(ef.BuildingType),
             ef.SurfaceArea,
             money,
-            risk).Value!;
+            risk);
     }
 }

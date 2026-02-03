@@ -1,5 +1,5 @@
-﻿namespace Domain.Geography;
-
+﻿using Domain.Geography;
+namespace Application.Repositories;
 public interface ICountryRepository
 {
     Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken cancellationToken = default);

@@ -1,4 +1,4 @@
-﻿using Application.Services.Buildings.DTO;
+﻿using Application.Services.Buildings.DTOs;
 using FluentValidation;
 
 public sealed class UpdateBuildingRequestValidator

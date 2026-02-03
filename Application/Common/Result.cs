@@ -1,4 +1,4 @@
-﻿namespace Domain.Common;
+﻿namespace Application.Common;
 
 public sealed class Result
 {

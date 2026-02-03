@@ -1,7 +1,7 @@
 ﻿using Domain.Buildings;
 using Domain.Policies;
 
-namespace Application.Services.Buildings.DTO;
+namespace Application.Services.Buildings.DTOs;
 
 public sealed class GetBuildingDetailsResponse
 {

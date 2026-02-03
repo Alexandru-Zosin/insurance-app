@@ -1,4 +1,4 @@
-﻿using Application.Services.Clients.DTO;
+﻿using Application.Services.Clients.DTOs;
 using FluentValidation;
 
 public sealed class UpdateClientRequestValidator

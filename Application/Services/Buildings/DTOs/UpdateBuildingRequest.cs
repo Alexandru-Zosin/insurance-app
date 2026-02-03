@@ -1,4 +1,4 @@
-﻿namespace Application.Services.Buildings.DTO;
+﻿namespace Application.Services.Buildings.DTOs;
 
 public sealed record UpdateBuildingRequest(
     Guid BuildingId,

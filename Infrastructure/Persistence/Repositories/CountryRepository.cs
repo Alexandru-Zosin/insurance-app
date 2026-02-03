@@ -1,9 +1,7 @@
 ﻿using Domain.Geography;
+using Application.Repositories;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories;
 

@@ -1,5 +1,4 @@
-﻿using Domain.Common;
-namespace Domain.Shared;
+﻿namespace Domain.Shared;
 
 public sealed record IdentificationNumber
 {
@@ -10,11 +9,8 @@ public sealed record IdentificationNumber
         Value = value;
     }
 
-    public static Result<IdentificationNumber> Create(string value)
+    public static IdentificationNumber Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return Result<IdentificationNumber>.Fail(ErrorType.Validation, "Invalid identification number");
-
-        return Result<IdentificationNumber>.Ok(new IdentificationNumber(value));
+        return new IdentificationNumber(value);
     }
 }

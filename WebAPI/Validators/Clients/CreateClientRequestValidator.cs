@@ -1,5 +1,4 @@
-﻿using Application.Services.Clients.DTO;
-using Application.UseCases.Clients;
+﻿using Application.Services.Clients.DTOs;
 using FluentValidation;
 
 public sealed class CreateClientRequestValidator

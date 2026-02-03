@@ -1,4 +1,5 @@
-﻿namespace Domain.Geography;
+﻿using Domain.Geography;
+namespace Application.Repositories;
 
 public interface ICityRepository
 {

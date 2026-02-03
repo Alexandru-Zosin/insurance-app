@@ -2,7 +2,7 @@
 using Domain.Clients;
 using Domain.Policies;
 
-namespace Application.Services.Clients.DTO;
+namespace Application.Services.Clients.DTOs;
 
 public sealed record GetClientDetailsResponse(
     ClientDto Client,
@@ -16,8 +16,8 @@ public sealed record ClientDto(
     string RegistrationNumber,
     string Email,
     string Phone,
-    string Address,
-    string Number)
+    string? Street,
+    string? Number)
 {
     public static ClientDto From(Client client)
     {
@@ -28,8 +28,8 @@ public sealed record ClientDto(
             client.Identifier.Value,
             client.ContactInfo.Email,
             client.ContactInfo.Phone,
-            client.Address.Street,
-            client.Address.Number);
+            client.Address?.Street,
+            client.Address?.Number);
     }
 }
 public sealed record BuildingDto(
