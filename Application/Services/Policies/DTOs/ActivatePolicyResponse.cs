@@ -1,8 +1,4 @@
-﻿using Domain.Policies;
-
+﻿using Application.Services.Shared.DTOs.PolicyDTOs;
 namespace Application.Services.Policies.DTOs;
 
-public sealed record ActivatePolicyResponse(
-    Guid PolicyNumber,
-    PolicyStatus Status
-);
+public sealed record ActivatePolicyResponse(PolicyListItemDto Policy);

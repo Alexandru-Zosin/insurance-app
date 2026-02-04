@@ -130,11 +130,10 @@ public sealed class Policy
         LastUpdateDate = DateOnly.FromDateTime(DateTime.Now);
 
         ValidateInvariants();
-
         return this;
     }
 
-    public Policy Cancel(string reason, DateOnly effectiveCancellationDate)
+    public Policy Cancel(string reason, DateOnly cancellationEffectiveDate)
     {
         EnsureCancellable(reason);
 

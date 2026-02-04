@@ -1,8 +1,4 @@
-﻿using Domain.Policies;
+﻿using Application.Services.Shared.DTOs.PolicyDTOs;
 namespace Application.Services.Policies.DTOs;
 
-public sealed record CancelPolicyResponse(
-    Guid PolicyNumber,
-    PolicyStatus Status,
-    string? CancellationReason
-);
+public sealed record CancelPolicyResponse(PolicyListItemDto Policy);

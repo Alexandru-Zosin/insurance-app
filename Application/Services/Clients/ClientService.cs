@@ -5,6 +5,7 @@ using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
 using Domain.Clients;
+using System.Linq;
 
 namespace Application.Services.Clients;
 
@@ -63,9 +64,8 @@ public sealed class ClientService(
         var policies = await _policies.GetByClientIdAsync(request.ClientId, ct);
 
         var response = new GetClientDetailsResponse(
-            new ClientDetailedDto(
-                    client.Id,
-                    ClientCoreDto.From(client),
+            ClientDetailedDto.From(
+                    client,
                     buildings.Select(BuildingListItemDto.From).ToArray(),
                     policies.Select(PolicyListItemDto.From).ToArray()
                 ));
@@ -84,9 +84,8 @@ public sealed class ClientService(
             page,
             ct);
 
-        return Result<SearchClientsResponse>.Ok(
-            new SearchClientsResponse(
-                searchResult.Select(ClientListItemDto.From).ToList()));
+        var response = new SearchClientsResponse(searchResult.Select(ClientListItemDto.From).ToArray());
+        return Result<SearchClientsResponse>.Ok(response);
     }
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
         UpdateClientRequest request,
@@ -102,9 +101,9 @@ public sealed class ClientService(
         var newAddress = request.ClientInfo.Address.ToDomain();
         var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
 
-        var updatedClient = client.ChangeName(request.ClientInfo.Name)
-                              .ChangeContactInfo(newContactInfo)
-                              .ChangeAddress(newAddress);
+        var updatedClient = client.UpdateName(request.ClientInfo.Name)
+                              .UpdateContactInfo(newContactInfo)
+                              .UpdateAddress(newAddress);
 
         await _clients.UpdateAsync(updatedClient, ct);
         await _uow.SaveChangesAsync(ct);

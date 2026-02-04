@@ -107,21 +107,21 @@ public class Building
         return this;
     }
 
-    public Building ChangeAddress(Address address)
+    public Building UpdateAddress(Address address)
     {
         ValidateAddress(address);
         Address = address;
         return this;
     }
 
-    public Building ChangeSurfaceArea(int surfaceArea)
+    public Building UpdateSurfaceArea(int surfaceArea)
     {
         ValidateSurfaceArea(surfaceArea);
         SurfaceArea = surfaceArea;
         return this;
     }
 
-    public Building ChangeInsuredValue(Money insuredValue)
+    public Building UpdateInsuredValue(Money insuredValue)
     {
         ValidateInsuredValue(insuredValue);
         InsuredValue = insuredValue;

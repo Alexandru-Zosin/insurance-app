@@ -90,8 +90,8 @@ public sealed class BuildingService(
 
         var money = request.BuildingInfo.InsuredValue.ToDomain();
         
-        building.ChangeSurfaceArea(request.BuildingInfo.SurfaceArea)
-                .ChangeInsuredValue(money);
+        building.UpdateSurfaceArea(request.BuildingInfo.SurfaceArea)
+                .UpdateInsuredValue(money);
 
         await _buildings.UpdateAsync(building, ct);
         await _uow.SaveChangesAsync(ct);

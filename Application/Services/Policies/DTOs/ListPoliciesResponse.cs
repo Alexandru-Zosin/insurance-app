@@ -1,6 +1,4 @@
-﻿using Application.Services.Shared.DTOs.Details;
-using Application.Services.Shared.DTOs.Policy;
-
+﻿using Application.Services.Shared.DTOs.PolicyDTOs;
 namespace Application.Services.Policies.DTOs;
 
-public sealed record ListPoliciesResponse(ListResponse<PolicyListItemDto> Data);
+public sealed record ListPoliciesResponse(IReadOnlyList<PolicyListItemDto> Policies);

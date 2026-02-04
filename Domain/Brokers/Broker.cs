@@ -60,7 +60,7 @@ public class Broker
         return this;
     }
 
-    public Broker UpdateCommissionPercentage(decimal commissionPercentage)
+    public Broker UpdateCommissionPercentage(decimal? commissionPercentage)
     {
         ValidateCommissionPercentage(commissionPercentage);
         CommissionPercentage = commissionPercentage;

@@ -7,7 +7,7 @@ using Application.Common;
 namespace WebAPI.Controllers.v1;
 
 [Route("api/brokers/clients")]
-public sealed class ClientsController(IClientService ClientService) : BaseApiController
+public sealed class ClientsController(IClientService ClientService) : ApiController
 {
 
     [HttpGet]

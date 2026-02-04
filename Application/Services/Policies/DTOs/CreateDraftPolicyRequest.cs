@@ -1,12 +1,4 @@
-﻿using Domain.Shared;
-
+﻿using Application.Services.Shared.DTOs.PolicyDTOs;
 namespace Application.Services.Policies.DTOs;
 
-public sealed record CreateDraftPolicyRequest(
-    Guid BrokerId,
-    Guid ClientId,
-    Guid BuildingId,
-    string CurrencyCode,
-    Money BasePremium,
-    ValidityPeriod Tenure
-);
+public sealed record CreateDraftPolicyRequest(PolicyCoreDto Policy);

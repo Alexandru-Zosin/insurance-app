@@ -1,16 +1,5 @@
-﻿using Domain.Policies;
-using Domain.Shared;
-
+﻿using Application.Services.Shared.DTOs.PolicyDTOs;
 namespace Application.Services.Policies.DTOs;
 
-public sealed record CreateDraftPolicyResponse(
-    Guid PolicyNumber,
-    PolicyStatus Status,
-    Guid ClientId,
-    Guid BuildingId,
-    Guid BrokerId,
-    ValidityPeriod Tenure,
-    Money BasePremium,
-    string CurrencyCode,
-    Money PreliminaryFinalPremium);
+public sealed record CreateDraftPolicyResponse(PolicyListItemDto Policy);
 

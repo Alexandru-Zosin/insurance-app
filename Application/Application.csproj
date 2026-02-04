@@ -8,9 +8,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\Metadata\" />
-    <Folder Include="Services\Brokers\" />
-    <Folder Include="Services\Reports\" />
-  </ItemGroup>
 </Project>

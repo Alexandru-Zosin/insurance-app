@@ -1,4 +1,5 @@
-﻿using Domain.Policies;
+﻿using Application.Services.Shared.DTOs.CurrencyDTOs;
+using Domain.Policies;
 namespace Application.Services.Shared.DTOs.PolicyDTOs;
 
 public sealed record PolicyCoreDto(
@@ -7,6 +8,7 @@ public sealed record PolicyCoreDto(
     Guid BrokerId,
     ValidityPeriodDto Tenure,
     MoneyDto BasePremium,
+    CurrencyDto Currency,
     MoneyDto? PreliminaryFinalPremium)
 {
     public static PolicyCoreDto From(Policy e) =>
@@ -16,6 +18,7 @@ public sealed record PolicyCoreDto(
            e.BrokerId,
            ValidityPeriodDto.From(e.Tenure),
            MoneyDto.From(e.BasePremium),
+           CurrencyDto.From(e.Currency),
            MoneyDto.From(e.FinalPremium)
        );
 }

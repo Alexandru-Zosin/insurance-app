@@ -5,7 +5,7 @@ namespace Application.Services.Shared.DTOs.BrokerDTOs;
 public sealed record BrokerCoreDto(
     string BrokerCode,
     string Name,
-    ContactInfoDto Contact,
+    ContactInfoDto ContactInfo,
     bool IsActive,
     decimal? CommissionPercentage)
 {

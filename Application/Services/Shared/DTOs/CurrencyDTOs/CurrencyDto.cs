@@ -1,6 +1,6 @@
 ﻿using Domain.Currencies;
 
-namespace Application.Services.Shared.DTOs;
+namespace Application.Services.Shared.DTOs.CurrencyDTOs;
 
 public sealed record CurrencyDto(
     string Code,

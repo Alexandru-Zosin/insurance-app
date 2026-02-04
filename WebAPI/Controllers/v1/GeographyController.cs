@@ -6,7 +6,7 @@ using WebApi.Controllers;
 namespace WebAPI.Controllers.v1;
 
 [Route("api/brokers")]
-public sealed class GeographyController(IGeographyService GeographyService) : BaseApiController
+public sealed class GeographyController(IGeographyService GeographyService) : ApiController
 {
     [HttpGet("countries")]
     public async Task<ActionResult<GetCountriesResponse>> GetCountries(

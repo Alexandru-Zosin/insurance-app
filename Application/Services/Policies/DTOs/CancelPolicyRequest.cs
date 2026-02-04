@@ -3,5 +3,6 @@
 public sealed record CancelPolicyRequest(
     Guid BrokerId,
     Guid PolicyNumber,
+    DateOnly CancellationEffectiveDate,
     string Reason
 );

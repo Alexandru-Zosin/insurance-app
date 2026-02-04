@@ -6,7 +6,7 @@ using Application.Services.Buildings.DTOs;
 namespace WebAPI.Controllers.v1;
 
 [Route("api/brokers")]
-public sealed class BuildingsController(IBuildingService BuildingService) : BaseApiController
+public sealed class BuildingsController(IBuildingService BuildingService) : ApiController
 {
     [HttpGet("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<GetBuildingsForClientResponse>> GetForClient(

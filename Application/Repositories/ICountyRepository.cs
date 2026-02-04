@@ -2,5 +2,6 @@
 namespace Application.Repositories;
 public interface ICountyRepository
 {
-    Task<IReadOnlyList<County>> GetByCountryIdAsync(int countryId, CancellationToken cancellationToken = default);
+    Task AddAsync(County aggregate, CancellationToken ct = default);
+    Task<County?> GetByIdAsync(int id, CancellationToken ct = default);
 }
