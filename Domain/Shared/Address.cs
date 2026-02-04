@@ -1,18 +1,8 @@
 ﻿using Domain.Common;
-
 namespace Domain.Shared;
 
-public sealed record Address
+public sealed record Address(string Street, string Number)
 {
-    public string Street { get; }
-    public string Number { get; }
-
-    private Address(string street, string number)
-    {
-        Street = street;
-        Number = number;
-    }
-
     public static Address Create(string street, string number) {
         if (string.IsNullOrWhiteSpace(street) || string.IsNullOrWhiteSpace(number))
             throw new DomainException("Street and number must be provided together.");

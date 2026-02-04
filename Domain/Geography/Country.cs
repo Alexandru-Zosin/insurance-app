@@ -1,16 +1,16 @@
-﻿namespace Domain.Geography;
+﻿using Domain.Common;
+namespace Domain.Geography;
 
-public sealed record Country
+public sealed record Country(int Id, string Name)
 {
-    public int Id { get; }
-    public string Name { get; }
-
-    public Country(int id, string name)
+    public static Country Create(int id, string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Country name required");
+        if (id <= 0)
+            throw new DomainException("Country Id must be positive.");
 
-        Id = id;
-        Name = name;
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Country name is required.");
+
+        return new Country(id, name);
     }
 }

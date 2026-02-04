@@ -1,16 +1,13 @@
-﻿namespace Domain.Shared;
+﻿using Domain.Common;
+namespace Domain.Shared;
 
-public sealed record IdentificationNumber
+public sealed record IdentificationNumber(string Value)
 {
-    public string Value { get; }
-
-    private IdentificationNumber(string value)
-    {
-        Value = value;
-    }
-
     public static IdentificationNumber Create(string value)
     {
+        if (string.IsNullOrEmpty(value))
+            throw new DomainException("Identification not provided.");
+
         return new IdentificationNumber(value);
     }
 }

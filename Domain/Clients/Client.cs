@@ -1,11 +1,8 @@
-﻿using Domain.Shared;
+﻿using Domain.Common;
+using Domain.Shared;
 namespace Domain.Clients;
 
-public enum ClientType
-{
-    Individual,
-    Company
-}
+
 
 public sealed class Client
 {
@@ -17,8 +14,7 @@ public sealed class Client
     public Address? Address { get; private set; }
 
     private Client(Guid id, ClientType type, string name, IdentificationNumber identifier,
-        ContactInfo contactInfo,
-        Address? address)
+        ContactInfo contactInfo, Address? address)
     {
         Id = id;
         Type = type;
@@ -52,14 +48,16 @@ public sealed class Client
         return new Client(id, type, name, identifier, contactInfo, address);
     }
 
-    public Client ChangeName(string newName)
+    public Client ChangeName(string name)
     {
-        Name = newName;
+        ValidateName(name);
+        Name = name;
         return this;
     }
 
     public Client ChangeContactInfo(ContactInfo contactInfo)
     {
+        ValidateContactInfo(contactInfo);
         ContactInfo = contactInfo;
         return this;
     }
@@ -69,8 +67,22 @@ public sealed class Client
         return this;
     }
 
+    private static void ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Invalid Client Name.");
+    }
+
+    private static void ValidateContactInfo(ContactInfo contactInfo)
+    {
+        if (contactInfo is null)
+            throw new DomainException("Invalid ContactInfo.");
+    }
+
     private void ValidateInvariants()
     {
+        ValidateName(Name);
+        ValidateContactInfo(ContactInfo);
     }
 }
 

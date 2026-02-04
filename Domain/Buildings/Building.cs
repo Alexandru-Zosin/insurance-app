@@ -1,143 +1,147 @@
 ﻿using Domain.Common;
-using Domain.Geography;
 using Domain.Shared;
 namespace Domain.Buildings;
-
-public enum BuildingType
-{
-    Residential, Office, Industrial
-}
 
 public class Building
 {
     public Guid Id { get; }
-    public Guid ClientId { get; }
+    public Guid OwnerClientId { get; }
     public Address Address { get; private set; }
-    public City City { get; private set; }
-    public int ConstructionYear { get; private set; }
+    public int CityId { get; private set; }
+    public int ConstructionYear { get; }
     public BuildingType BuildingType { get; }
     public int SurfaceArea { get; private set; }
     public Money InsuredValue { get; private set;  }
-    public RiskProfile RiskProfile { get; private set; }
 
     private Building(
         Guid id,
-        Guid clientId,
+        Guid ownerClientId,
         Address address,
-        City city,
+        int cityId,
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue,
-        RiskProfile riskProfile)
+        Money insuredValue
+        )
     {
         Id = id;
-        ClientId = clientId;
+        OwnerClientId = ownerClientId;
         Address = address;
-        City = city;
+        CityId = cityId;
         ConstructionYear = constructionYear;
         BuildingType = type;
         SurfaceArea = surfaceArea;
         InsuredValue = insuredValue;
-        RiskProfile = riskProfile;
 
         ValidateInvariants();
     }
 
-    public static Building Create(
-        Guid clientId,
+    public static Building RegisterForClient(
+        Guid ownerClientId,
         Address address,
-        City city,
+        int cityId,
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue,
-        RiskProfile riskProfile)
+        Money insuredValue
+ )
     {
         return new Building(
                 Guid.NewGuid(),
-                clientId,
+                ownerClientId,
                 address,
-                city,
+                cityId,
                 constructionYear,
                 type,
                 surfaceArea,
-                insuredValue,
-                riskProfile);
+                insuredValue);
     }
 
     public static Building Rehydrate(
         Guid id,
-        Guid clientId,
+        Guid ownerClientId,
         Address address,
-        City city,
+        int cityId,
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue,
-        RiskProfile riskProfile)
+        Money insuredValue)
     {
         return new Building(
             id,
-            clientId,
+            ownerClientId,
             address,
-            city,
+            cityId,
             constructionYear,
             type,
             surfaceArea,
-            insuredValue,
-            riskProfile);
+            insuredValue);
     }
 
     public Building ChangeAddress(Address address)
     {
+        ValidateAddress(address);
         Address = address;
         return this;
     }
 
-    public Building ChangeCity(City city)
+    public Building ChangeCity(int cityId)
     {
-        City = city;
+        ValidateCity(cityId);
+        CityId = cityId;
         return this;
     }
 
-    public Building UpdateConstructionYear(int year)
-    {
-        EnsureConstructionYear(year);
-        ConstructionYear = year;
-        return this;
-    }
-
-    private static void EnsureConstructionYear(int year)
-    {
-        var currentYear = DateTime.UtcNow.Year;
-        if (year < 1600 || year > currentYear) // will switch to config file with defined values
-            throw new DomainException("Invalid construction year.");
-    }
-    
     public Building UpdateSurfaceArea(int surfaceArea)
     {
-        if (surfaceArea <= 0) 
-            throw new DomainException("Surface area must be positive.");
+        ValidateSurfaceArea(surfaceArea);
         SurfaceArea = surfaceArea;
         return this;
     }
 
     public Building UpdateInsuredValue(Money insuredValue)
     {
+        ValidateInsuredValue(insuredValue);
         InsuredValue = insuredValue;
         return this;
     }
 
-    public Building UpdateRiskProfile(RiskProfile riskProfile)
+    private static void ValidateAddress(Address address)
     {
-        if (riskProfile is null) 
-            throw new DomainException("Risk profile is required.");
-        RiskProfile = riskProfile;
-        return this;
+        if (address is null)
+            throw new DomainException("Invalid address.");
+    }
+
+    private static void ValidateCity(int cityId)
+    {
+        if (cityId <= 0)
+            throw new DomainException("Invalid City Id.");
+    }
+
+    private static void ValidateSurfaceArea(int surfaceArea)
+    {
+        if (surfaceArea <= 0)
+            throw new DomainException("Surface area must be positive.");
+    }
+
+    private void ValidateInsuredValue(Money insuredValue)
+    {
+        if (insuredValue is null)
+            throw new DomainException("Invalid insured value.");
+    }
+
+    private static void ValidateConstructionYear(int year)
+    {
+        if (year < 1600 || year > DateTime.UtcNow.Year)
+            throw new DomainException("Invalid construction year.");
     }
 
     private void ValidateInvariants()
     {
+        ValidateAddress(Address);
+        ValidateCity(CityId);
+        ValidateSurfaceArea(SurfaceArea);
+        ValidateInsuredValue(InsuredValue);
+        ValidateConstructionYear(ConstructionYear);
     }
 }
