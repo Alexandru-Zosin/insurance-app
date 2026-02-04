@@ -1,11 +1,4 @@
-﻿namespace Application.Services.Clients.DTOs;
+﻿using Application.Services.Shared.DTOs.ClientDTOs;
+namespace Application.Services.Clients.DTOs;
 
-public sealed record CreateClientRequest(
-    string ClientType,
-    string Name,
-    string RegistrationNumber,
-    string Email,
-    string Phone,
-    string? Street,
-    string? Number
-    );
+public sealed record CreateClientRequest(ClientCoreDto Client);

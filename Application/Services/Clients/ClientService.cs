@@ -1,8 +1,10 @@
 ﻿using Application.Common;
 using Application.Repositories;
 using Application.Services.Clients.DTOs;
+using Application.Services.Shared.DTOs.BuildingDTOs;
+using Application.Services.Shared.DTOs.ClientDTOs;
+using Application.Services.Shared.DTOs.PolicyDTOs;
 using Domain.Clients;
-using Domain.Shared;
 
 namespace Application.Services.Clients;
 
@@ -17,13 +19,13 @@ public sealed class ClientService(
         CreateClientRequest request,
         CancellationToken ct = default)
     {
-        var identifier = IdentificationNumber.Create(request.RegistrationNumber);
-        var contact = ContactInfo.Create(request.Email, request.Phone);
-        var address = Address.CreateOptional(request.Street, request.Number);
+        var identifier = request.Client.IdentificationNumber.ToDomain();
+        var contact = request.Client.ContactInfo.ToDomain();
+        var address = request.Client.Address.ToDomain();
 
         var client = Client.Create(
-            Enum.Parse<ClientType>(request.ClientType),
-            request.Name,
+            request.Client.Type,
+            request.Client.Name,
             identifier,
             contact,
             address);
@@ -61,9 +63,12 @@ public sealed class ClientService(
         var policies = await _policies.GetByClientIdAsync(request.ClientId, ct);
 
         var response = new GetClientDetailsResponse(
-            ClientDto.From(client),
-            buildings.Select(BuildingDto.From).ToList(),
-            policies.Select(PolicyDto.From).ToList());
+            new ClientDetailedDto(
+                    client.Id,
+                    ClientCoreDto.From(client),
+                    buildings.Select(BuildingListItemDto.From).ToArray(),
+                    policies.Select(PolicyListItemDto.From).ToArray()
+                ));
 
         return Result<GetClientDetailsResponse>.Ok(response);
     }
@@ -81,7 +86,7 @@ public sealed class ClientService(
 
         return Result<SearchClientsResponse>.Ok(
             new SearchClientsResponse(
-                searchResult.Select(ClientSearchResultDto.From).ToList()));
+                searchResult.Select(ClientListItemDto.From).ToList()));
     }
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
         UpdateClientRequest request,
@@ -94,10 +99,10 @@ public sealed class ClientService(
                 ErrorType.NotFound, "Client not found");
         }
 
-        var newAddress = Address.CreateOptional(request.Street, request.Number);
-        var newContactInfo = ContactInfo.Create(request.Email, request.Phone);
+        var newAddress = request.ClientInfo.Address.ToDomain();
+        var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
 
-        var updatedClient = client.ChangeName(request.Name)
+        var updatedClient = client.ChangeName(request.ClientInfo.Name)
                               .ChangeContactInfo(newContactInfo)
                               .ChangeAddress(newAddress);
 

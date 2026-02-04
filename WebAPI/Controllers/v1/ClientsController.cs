@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 using Application.Common;
 
+namespace WebAPI.Controllers.v1;
+
 [Route("api/brokers/clients")]
-public sealed class ClientsController(IClientService _clientService) : BaseApiController
+public sealed class ClientsController(IClientService ClientService) : BaseApiController
 {
 
     [HttpGet]
@@ -17,7 +19,7 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
         CancellationToken ct = default)
     {
         var pagedRequest = new PageRequest(page, pageSize);
-        var result = await _clientService.SearchClientsAsync(
+        var result = await ClientService.SearchClientsAsync(
             new SearchClientsRequest(name, identifier, pagedRequest), ct);
 
         return FromResult(result);
@@ -28,7 +30,7 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
         Guid clientId,
         CancellationToken ct)
     {
-        var result = await _clientService.GetClientDetailsAsync(
+        var result = await ClientService.GetClientDetailsAsync(
             new GetClientDetailsRequest(clientId), ct);
 
         return FromResult(result);
@@ -39,7 +41,7 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
         [FromBody] CreateClientRequest request,
         CancellationToken ct)
     {
-        var result = await _clientService.CreateClientAsync(request, ct);
+        var result = await ClientService.CreateClientAsync(request, ct);
 
         return FromCreated(
             result,
@@ -48,12 +50,11 @@ public sealed class ClientsController(IClientService _clientService) : BaseApiCo
 
     [HttpPut("{clientId:guid}")]
     public async Task<ActionResult<UpdateClientResponse>> UpdateClient(
-        Guid clientId,
         [FromBody] UpdateClientRequest request,
         CancellationToken ct)
     {
-        var result = await _clientService.UpdateClientAsync(
-            request with { ClientId = clientId }, ct);
+        var result = await ClientService.UpdateClientAsync(
+            request, ct);
 
         return FromResult(result);
     }

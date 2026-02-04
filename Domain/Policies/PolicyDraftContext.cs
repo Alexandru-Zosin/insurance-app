@@ -9,6 +9,7 @@ public sealed record PolicyDraftContext(
     int? CountyId,
     int? CityId,
     BuildingType BuildingType,
+    IReadOnlyCollection<RiskTag> BuildingRiskTags,
     Money BasePremium,
     DateOnly DraftDate
 );

@@ -1,9 +1,6 @@
 ﻿using Domain.Common;
 using Domain.Shared;
 namespace Domain.Clients;
-
-
-
 public sealed class Client
 {
     public Guid Id { get; }
