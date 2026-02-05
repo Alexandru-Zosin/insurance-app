@@ -2,7 +2,6 @@
 using Application.Services.Currencies;
 using Application.Services.Currencies.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Controllers;
 
 namespace WebAPI.Controllers;
 
@@ -11,13 +10,9 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
 {
     [HttpGet]
     public async Task<ActionResult<ListCurrenciesResponse>> List(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        var pagedRequest = new PageRequest(page, pageSize);
-        var result = await CurrencyService.ListCurrenciesAsync(
-            new ListCurrenciesRequest(pagedRequest), ct);
+        var result = await CurrencyService.ListCurrenciesAsync(ct);
 
         return FromResult(result);
     }

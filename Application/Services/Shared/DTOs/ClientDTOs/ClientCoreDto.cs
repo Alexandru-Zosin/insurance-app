@@ -15,5 +15,5 @@ public record ClientCoreDto(
             e.Name,
             IdentificationNumberDto.From(e.Identifier),
             ContactInfoDto.From(e.ContactInfo),
-            AddressDto.From(e.Address));
+            e.Address == null ? null : AddressDto.From(e.Address));
 }

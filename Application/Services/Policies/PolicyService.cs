@@ -41,26 +41,29 @@ public sealed class PolicyService(
         if (broker == null)
             return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
-        var currency = await _currencies.GetByCodeAsync(request.Policy.Currency.Code, ct);
+        var currency = await _currencies.GetByCodeAsync(request.Policy.CurrencyCode, ct);
         if (currency == null || !currency.IsActive)
             return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Currency not found or inactive");
 
         var city = await _cities.GetByIdAsync(building.CityId, ct);
-        var county = await _counties.GetByIdAsync(city.CountyId, ct);
-        var country = await _countries.GetByIdAsync(county.CountryId, ct);
+        var county = await _counties.GetByIdAsync(city!.CountyId, ct);
+        var country = await _countries.GetByIdAsync(county!.CountryId, ct);
 
         var basePremium = request.Policy.BasePremium.ToDomain();
         var tenure = request.Policy.Tenure.ToDomain();
         
         var feeConfigs = await _fees.GetActiveAsync(ct);
-        var riskConfigs = await _riskFactors.GetActiveAsync(ct);
-        IEnumerable<IPremiumRule> rules = feeConfigs.Cast<IPremiumRule>().
-                                            Concat(riskConfigs.Cast<IPremiumRule>());
+        //var riskConfigs = await _riskFactors.GetActiveAsync(ct);
+        IEnumerable<IPremiumRule> rules = feeConfigs.Cast<IPremiumRule>();
+                                                  //.Concat(riskConfigs.Cast<IPremiumRule>());
 
         var draftContext = new PolicyDraftContext
         (
             broker.Id,
-            country.Id, county.Id, city.Id,
+            broker.CommissionPercentage,
+            country!.Id,
+            county.Id,
+            city.Id,
             building.BuildingType,
             building.RiskTags,
             basePremium,
@@ -76,7 +79,7 @@ public sealed class PolicyService(
             broker.Id,
             tenure,
             basePremium,
-            currency,
+            currency.Code,
             finalPremium,
             DateOnly.FromDateTime(DateTime.Now)
             );
@@ -146,9 +149,9 @@ public sealed class PolicyService(
 
         var response = new GetPolicyDetailsResponse(PolicyDetailedDto.From(
             policy,
-            ClientListItemDto.From(client),
-            BuildingListItemDto.From(building),
-            BrokerListItemDto.From(broker)));
+            ClientListItemDto.From(client!),
+            BuildingListItemDto.From(building!),
+            BrokerListItemDto.From(broker!)));
 
         return Result<GetPolicyDetailsResponse>.Ok(response);
     }

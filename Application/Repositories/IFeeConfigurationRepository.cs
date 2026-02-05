@@ -9,5 +9,5 @@ public interface IFeeConfigurationRepository
     Task UpdateAsync(FeeConfiguration aggregate,CancellationToken ct = default);
     Task<FeeConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<FeeConfiguration>> GetActiveAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<FeeConfiguration>> ListAsync(bool? onlyActive, PageRequest page, CancellationToken ct = default);
+    Task<IReadOnlyList<FeeConfiguration>> ListAsync(PageRequest pageRequest, CancellationToken ct = default);
 }

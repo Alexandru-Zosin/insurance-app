@@ -92,7 +92,7 @@ public sealed class FeeConfigService(
         ListFeeConfigsRequest request,
         CancellationToken ct = default)
     {
-        var list = await _fees.ListAsync(request.OnlyActive, ct);
+        var list = await _fees.ListAsync(request.Page, ct);
         var response = new ListFeeConfigsResponse(list.Select(FeeConfigListItemDto.From).ToArray());
 
         return Result<ListFeeConfigsResponse>.Ok(response);

@@ -8,6 +8,6 @@ public interface IBrokerRepository
     Task UpdateAsync(Broker broker, CancellationToken cancellationToken = default);
     Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken cancellationToken = default);
     Task<Broker?> GetByCodeAsync(string code, CancellationToken ct = default);
-    Task<IReadOnlyList<Broker>> ListAsync(PageRequest page,
+    Task<IReadOnlyList<Broker>> ListAsync(PageRequest pageRequest,
                                           CancellationToken ct = default);
 }

@@ -1,7 +1,7 @@
 ﻿using Application.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApi.Controllers;
+namespace WebAPI.Controllers;
 
 [ApiController]
 public abstract class ApiController : ControllerBase

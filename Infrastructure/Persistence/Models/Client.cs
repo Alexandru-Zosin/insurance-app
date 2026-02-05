@@ -13,7 +13,7 @@ public partial class Client
 
     public string Name { get; set; } = null!;
 
-    public string RegistrationNumber { get; set; } = null!;
+    public string IdentificationNumber { get; set; } = null!;
 
     public string Email { get; set; } = null!;
 

@@ -12,11 +12,10 @@ public class Broker
     public bool IsActive { get; private set; }
     public decimal? CommissionPercentage { get; private set; }
 
-    private Broker(string code, string name, ContactInfo contactInfo,
+    private Broker(Guid id, string code, string name, ContactInfo contactInfo,
         bool isActive, decimal? commissionPercentage)
     {
-        Id = Guid.NewGuid();
-
+        Id = id;
         Code = code;
         Name = name;
         ContactInfo = contactInfo;
@@ -29,7 +28,24 @@ public class Broker
     public static Broker Create(string code, string name, ContactInfo contactInfo,
         bool isActive, decimal? commissionPercentage)
     {
-        return new Broker(code, name, contactInfo, isActive, commissionPercentage);
+        return new Broker(Guid.NewGuid(), code, name, contactInfo, isActive, commissionPercentage);
+    }
+
+     public static Broker Rehydrate(
+        Guid id,
+        string code,
+        string name,
+        ContactInfo contactInfo,
+        bool isActive,
+        decimal? commissionPercentage)
+    {
+        return new Broker(
+            id,
+            code,
+            name,
+            contactInfo,
+            isActive,
+            commissionPercentage);
     }
 
     public bool IsActiveForPolicyWork() => IsActive;

@@ -1,8 +1,6 @@
 ﻿using Application.Common;
-using Application.Services.Metadata;
 using Application.Services.Metadata.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Controllers;
 
 namespace WebAPI.Controllers;
 
@@ -31,7 +29,7 @@ public sealed class FeeConfigsController(IFeeConfigService FeeConfigService) : A
 
         return FromCreated(
             result,
-            $"/api/admin/fees/{result.Value!.FeeConfigId}");
+            $"/api/admin/fees/{result.Value!.FeeConfig.Id}");
     }
 
     [HttpPut("{feeConfigId:guid}")]

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
+using WebAPI.Validators.Buildings;
 
 namespace WebAPI.Extensions;
 
