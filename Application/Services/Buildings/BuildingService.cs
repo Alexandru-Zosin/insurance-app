@@ -1,8 +1,9 @@
 ﻿using Application.Common;
 using Application.Repositories;
 using Application.Services.Buildings.DTOs;
+using Application.Services.Shared.DTOs.BuildingDTOs;
+using Application.Services.Shared.DTOs.PolicyDTOs;
 using Domain.Buildings;
-using Domain.Shared;
 
 namespace Application.Services.Buildings;
 
@@ -23,11 +24,9 @@ public sealed class BuildingService(
 
         var policies = await _policies.GetByBuildingIdAsync(request.BuildingId, ct);
 
-        var response = new GetBuildingDetailsResponse
-        {
-            Building = BuildingDto.From(building),
-            Policies = policies.Select(PolicyDto.From).ToList()
-        };
+        var response = new GetBuildingDetailsResponse(
+            BuildingDetailedDto.From(
+                building, policies.Select(PolicyListItemDto.From).ToList()));
 
         return Result<GetBuildingDetailsResponse>.Ok(response);
     }
@@ -41,10 +40,8 @@ public sealed class BuildingService(
             return Result<GetBuildingsForClientResponse>.Fail(ErrorType.NotFound, "Client not found.");
 
         var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
-        var response = new GetBuildingsForClientResponse
-        {
-            Buildings = buildings.Select(BuildingSummaryDto.From).ToList()
-        };
+        var response = new GetBuildingsForClientResponse(
+            buildings.Select(BuildingListItemDto.From).ToList());
 
         return Result<GetBuildingsForClientResponse>.Ok(response);
     }
@@ -53,7 +50,7 @@ public sealed class BuildingService(
         RegisterBuildingRequest request,
         CancellationToken ct = default)
     {
-        var city = await _cities.GetByIdAsync(request.CityId, ct);
+        var city = await _cities.GetByIdAsync(request.Building.CityId, ct);
         if (city == null)
         {
             return Result<RegisterBuildingResponse>.Fail(
@@ -61,27 +58,23 @@ public sealed class BuildingService(
                 "City not found");
         }
 
-        var address = Address.Create(request.Street, request.Number);
-        var money = Money.Create(request.InsuredValue, request.Currency);
-        
-        var building = Building.Create(
-            request.ClientId,
+        var address = request.Building.Address.ToDomain();
+        var money = request.Building.InsuredValue.ToDomain();
+
+        var building = Building.RegisterForClient(
+            request.Building.OwnerClientId,
             address,
-            city,
-            request.ConstructionYear,
-            Enum.Parse<BuildingType>(request.BuildingType),
-            request.SurfaceArea,
+            city.Id,
+            request.Building.ConstructionYear,
+            request.Building.BuildingType,
+            request.Building.SurfaceArea,
             money,
-            new RiskProfile(request.FloodRisk, request.EarthquakeRisk));
+            request.Building.RiskTags.Select(t => t.Category));
 
         await _buildings.AddAsync(building, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return Result<RegisterBuildingResponse>.Ok(
-            new RegisterBuildingResponse
-            {
-                BuildingId = building.Id
-            });
+        return Result<RegisterBuildingResponse>.Ok(new RegisterBuildingResponse(building.Id));
     }
 
     public async Task<Result<UpdateBuildingResponse>> UpdateBuildingAsync(
@@ -95,12 +88,10 @@ public sealed class BuildingService(
                 "Building not found");
         }
 
-        var money = Money.Create(request.InsuredValue, request.Currency);
-        var riskProfile = new RiskProfile(request.FloodRisk, request.EarthquakeRisk); // Business logic needs updating
-        building.UpdateConstructionYear(request.ConstructionYear)
-                .UpdateSurfaceArea(request.SurfaceArea)
-                .UpdateInsuredValue(money)
-                .UpdateRiskProfile(riskProfile);
+        var money = request.BuildingInfo.InsuredValue.ToDomain();
+        
+        building.UpdateSurfaceArea(request.BuildingInfo.SurfaceArea)
+                .UpdateInsuredValue(money);
 
         await _buildings.UpdateAsync(building, ct);
         await _uow.SaveChangesAsync(ct);

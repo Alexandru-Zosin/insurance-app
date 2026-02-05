@@ -4,6 +4,8 @@ namespace Domain.Buildings;
 
 public class Building
 {
+    private HashSet<RiskTag> _riskTags = [];
+
     public Guid Id { get; }
     public Guid OwnerClientId { get; }
     public Address Address { get; private set; }
@@ -12,6 +14,7 @@ public class Building
     public BuildingType BuildingType { get; }
     public int SurfaceArea { get; private set; }
     public Money InsuredValue { get; private set;  }
+    public IReadOnlyCollection<RiskTag> RiskTags => _riskTags;
 
     private Building(
         Guid id,
@@ -43,10 +46,11 @@ public class Building
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue
+        Money insuredValue,
+        IEnumerable<RiskCategory> riskCategories
  )
     {
-        return new Building(
+        var b = new Building(
                 Guid.NewGuid(),
                 ownerClientId,
                 address,
@@ -55,6 +59,11 @@ public class Building
                 type,
                 surfaceArea,
                 insuredValue);
+
+        foreach (var c in riskCategories.Distinct())
+            b._riskTags.Add(new RiskTag(c));
+
+        return b;
     }
 
     public static Building Rehydrate(
@@ -65,9 +74,10 @@ public class Building
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue)
+        Money insuredValue,
+        IEnumerable<RiskTag> riskTags)
     {
-        return new Building(
+        var b = new Building(
             id,
             ownerClientId,
             address,
@@ -76,19 +86,29 @@ public class Building
             type,
             surfaceArea,
             insuredValue);
+
+        foreach (var tag in riskTags)
+            b.AddRisk(tag);
+
+        return b;
     }
 
-    public Building ChangeAddress(Address address)
+    public Building AddRisk(RiskTag tag)
     {
-        ValidateAddress(address);
-        Address = address;
+        _riskTags.Add(tag);
         return this;
     }
 
-    public Building ChangeCity(int cityId)
+    public Building RemoveRisk(RiskTag tag)
     {
-        ValidateCity(cityId);
-        CityId = cityId;
+        _riskTags.Remove(tag);
+        return this;
+    }
+
+    public Building UpdateAddress(Address address)
+    {
+        ValidateAddress(address);
+        Address = address;
         return this;
     }
 

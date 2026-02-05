@@ -3,6 +3,5 @@
 public enum FeeType
 {
     BrokerCommission,
-    RiskAdjustment,
     AdminFee
 }

@@ -3,6 +3,6 @@ namespace Application.Repositories;
 
 public interface ICityRepository
 {
-    Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken cancellationToken = default);
+    Task AddAsync(City aggregate, CancellationToken ct = default);
     Task<City?> GetByIdAsync(int cityId, CancellationToken cancellationToken = default);
 }

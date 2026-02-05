@@ -1,9 +1,6 @@
 ﻿using Domain.Common;
 using Domain.Shared;
 namespace Domain.Clients;
-
-
-
 public sealed class Client
 {
     public Guid Id { get; }
@@ -48,20 +45,20 @@ public sealed class Client
         return new Client(id, type, name, identifier, contactInfo, address);
     }
 
-    public Client ChangeName(string name)
+    public Client UpdateName(string name)
     {
         ValidateName(name);
         Name = name;
         return this;
     }
 
-    public Client ChangeContactInfo(ContactInfo contactInfo)
+    public Client UpdateContactInfo(ContactInfo contactInfo)
     {
         ValidateContactInfo(contactInfo);
         ContactInfo = contactInfo;
         return this;
     }
-    public Client ChangeAddress(Address? address)
+    public Client UpdateAddress(Address? address)
     {
         Address = address;
         return this;

@@ -3,7 +3,8 @@ using Domain.Policies;
 
 namespace Domain.Configurations;
 
-public sealed class CityRiskConfiguration : RiskFactorConfiguration<CityRiskConfiguration>
+public sealed class CityRiskConfiguration 
+    : RiskFactorConfiguration<CityRiskConfiguration>
 {
     public int CityId { get; }
     

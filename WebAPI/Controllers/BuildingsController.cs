@@ -3,15 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 using Application.Services.Buildings.DTOs;
 
+namespace WebAPI.Controllers;
+
 [Route("api/brokers")]
-public sealed class BuildingsController(IBuildingService _buildingService) : BaseApiController
+public sealed class BuildingsController(IBuildingService BuildingService) : ApiController
 {
     [HttpGet("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<GetBuildingsForClientResponse>> GetForClient(
         Guid clientId,
         CancellationToken ct)
     {
-        var result = await _buildingService.GetBuildingsForClientAsync(
+        var result = await BuildingService.GetBuildingsForClientAsync(
             new GetBuildingsForClientRequest(clientId), ct);
 
         return FromResult(result);
@@ -22,7 +24,7 @@ public sealed class BuildingsController(IBuildingService _buildingService) : Bas
         Guid buildingId,
         CancellationToken ct)
     {
-        var result = await _buildingService.GetBuildingDetailsAsync(
+        var result = await BuildingService.GetBuildingDetailsAsync(
             new GetBuildingDetailsRequest(buildingId), ct);
 
         return FromResult(result);
@@ -30,12 +32,10 @@ public sealed class BuildingsController(IBuildingService _buildingService) : Bas
 
     [HttpPost("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<RegisterBuildingResponse>> Register(
-        Guid clientId,
         [FromBody] RegisterBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await _buildingService.RegisterBuildingAsync(
-            request with { ClientId = clientId }, ct);
+        var result = await BuildingService.RegisterBuildingAsync(request, ct);
 
         return FromCreated(
             result,
@@ -44,12 +44,11 @@ public sealed class BuildingsController(IBuildingService _buildingService) : Bas
 
     [HttpPut("buildings/{buildingId:guid}")]
     public async Task<ActionResult<UpdateBuildingResponse>> Update(
-        Guid buildingId,
         [FromBody] UpdateBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await _buildingService.UpdateBuildingAsync(
-            request with { BuildingId = buildingId }, ct);
+        var result = await BuildingService.UpdateBuildingAsync(
+            request, ct);
 
         return FromResult(result);
     }

@@ -23,9 +23,9 @@ public sealed class Currency
         return new Currency(code, name, exchangeRateToBase, isActive);
     }
 
-    public Currency UpdateExchangeRate(decimal exchangeRateToBase)
+    public Currency UpdateExchangeRateToBase(decimal exchangeRateToBase)
     {
-        ValidateExchangeRate(exchangeRateToBase);
+        ValidateExchangeRateToBase(exchangeRateToBase);
         ExchangeRateToBase = exchangeRateToBase;
         return this;
     }
@@ -46,7 +46,7 @@ public sealed class Currency
     {
         ValidateCode(Code);
         ValidateName(Name);
-        ValidateExchangeRate(ExchangeRateToBase);
+        ValidateExchangeRateToBase(ExchangeRateToBase);
     }
 
     private static void ValidateCode(string code)
@@ -61,7 +61,7 @@ public sealed class Currency
             throw new DomainException("Invalid name for currency");
     }
 
-    private static void ValidateExchangeRate(decimal exchangeRateToBase)
+    private static void ValidateExchangeRateToBase(decimal exchangeRateToBase)
     {
         if (exchangeRateToBase <= 0m)
             throw new DomainException("Invalid exchange rate for currency");

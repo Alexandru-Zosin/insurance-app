@@ -3,7 +3,8 @@ using Domain.Policies;
 
 namespace Domain.Configurations;
 
-public sealed class CountyRiskConfiguration : RiskFactorConfiguration<CountyRiskConfiguration>
+public sealed class CountyRiskConfiguration 
+    : RiskFactorConfiguration<CountyRiskConfiguration>
 {
     public int CountyId { get; }
 

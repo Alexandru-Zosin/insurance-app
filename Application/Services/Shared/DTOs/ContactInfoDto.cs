@@ -1,0 +1,12 @@
+﻿using Domain.Shared;
+
+namespace Application.Services.Shared.DTOs;
+
+public sealed record ContactInfoDto(string Email, string Phone)
+{
+    public static ContactInfoDto? From(ContactInfo? v) =>
+     v is null ? null : new(v.Email, v.Phone);
+
+    public ContactInfo ToDomain() => ContactInfo.Create(Email, Phone);
+
+}

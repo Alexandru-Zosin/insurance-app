@@ -1,6 +1,7 @@
 ﻿using Application.Repositories;
 using Application.Services.Geography.DTOs;
 using Application.Common;
+using Application.Services.Shared.DTOs.GeographyDTOs;
 
 namespace Application.Services.Geography;
 
@@ -20,7 +21,7 @@ public sealed class GeographyService(
 
         return Result<GetCitiesByCountyResponse>.Ok(
            new GetCitiesByCountyResponse(
-               cities.Select(CityDto.From).ToList()));
+               cities.Select(CityListItemDto.From).ToList()));
     }
 
     public async Task<Result<GetCountiesByCountryResponse>> GetCountiesByCountryAsync(
@@ -44,7 +45,7 @@ public sealed class GeographyService(
 
         return Result<GetCountiesByCountryResponse>.Ok(
             new GetCountiesByCountryResponse(
-                counties.Select(CountyDto.From).ToList()));
+                counties.Select(CountyListItemDto.From).ToList()));
     }
 
     public async Task<Result<GetCountriesResponse>> GetCountriesAsync(
@@ -55,7 +56,7 @@ public sealed class GeographyService(
 
         return Result<GetCountriesResponse>.Ok(
            new GetCountriesResponse(
-               countries.Select(CountryDto.From).ToList()));
+               countries.Select(CountryListItemDto.From).ToList()));
     }
 
 }

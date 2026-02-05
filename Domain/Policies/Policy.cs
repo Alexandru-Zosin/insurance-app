@@ -1,6 +1,5 @@
 ﻿using Domain.Common;
 using Domain.Shared;
-using Domain.Currencies;
 
 namespace Domain.Policies;
 public sealed class Policy
@@ -12,7 +11,7 @@ public sealed class Policy
     public PolicyStatus Status { get; private set; }
     public ValidityPeriod Tenure { get; private set; }
     public Money BasePremium { get; }
-    public Currency Currency { get; private set; }
+    public string CurrencyCode { get; private set; }
     public Money FinalPremium { get; private set; }
     public DateOnly CreationDate { get; private set; }
     public DateOnly? LastUpdateDate { get; private set; }
@@ -26,7 +25,7 @@ public sealed class Policy
         Guid brokerId,
         ValidityPeriod tenure,
         Money basePremium,
-        Currency currency,
+        string currencyCode,
         Money finalPremium,
         PolicyStatus status,
         DateOnly creationDate,
@@ -41,7 +40,7 @@ public sealed class Policy
 
         Tenure = tenure;
         BasePremium = basePremium;
-        Currency = currency;
+        CurrencyCode = currencyCode;
         FinalPremium = finalPremium;
 
         Status = status;
@@ -60,7 +59,7 @@ public sealed class Policy
         Guid brokerId,
         ValidityPeriod tenure,
         Money basePremium,
-        Currency currency,
+        string currencyCode,
         Money preliminaryFinalPremium,
         DateOnly creationDate)
     {
@@ -73,7 +72,7 @@ public sealed class Policy
             brokerId: brokerId,
             tenure: tenure,
             basePremium: basePremium,
-            currency: currency,
+            currencyCode: currencyCode,
             finalPremium: preliminaryFinalPremium,
             status: PolicyStatus.Draft,
             creationDate: today,
@@ -89,7 +88,7 @@ public sealed class Policy
         Guid brokerId,
         ValidityPeriod tenure,
         Money basePremium,
-        Currency currency,
+        string currencyCode,
         Money finalPremium,
         PolicyStatus status,
         DateOnly creationDate,
@@ -104,7 +103,7 @@ public sealed class Policy
             brokerId: brokerId,
             tenure: tenure,
             basePremium: basePremium,
-            currency: currency,
+            currencyCode: currencyCode,
             finalPremium: finalPremium,
             status: status,
             creationDate: creationDate,
@@ -130,16 +129,15 @@ public sealed class Policy
         LastUpdateDate = DateOnly.FromDateTime(DateTime.Now);
 
         ValidateInvariants();
-
         return this;
     }
 
-    public Policy Cancel(string reason, DateOnly effectiveCancellationDate)
+    public Policy Cancel(string reason, DateOnly cancellationEffectiveDate)
     {
         EnsureCancellable(reason);
 
         CancellationReason = reason;
-        CancellationEffectiveDate = effectiveCancellationDate;
+        CancellationEffectiveDate = cancellationEffectiveDate;
         Status = PolicyStatus.Cancelled;
         LastUpdateDate = DateOnly.FromDateTime(DateTime.Now);
 
@@ -154,7 +152,7 @@ public sealed class Policy
         if (finalPremium is null)
             throw new DomainException("Invalid final premium.");
 
-        if (finalPremium.CurrencyCode != Currency.Code)
+        if (finalPremium.CurrencyCode != CurrencyCode)
             throw new DomainException("Final premium currency must match policy currency.");
 
         if (finalPremium.Amount < 0m)
@@ -210,13 +208,13 @@ public sealed class Policy
 
     private void ValidateCurrencies()
     {
-        if (Currency is null)
+        if (string.IsNullOrWhiteSpace(CurrencyCode))
             throw new DomainException("Invalid Currency.");
 
-         if (BasePremium.CurrencyCode != Currency.Code)
+         if (BasePremium.CurrencyCode != CurrencyCode)
             throw new DomainException("Base premium currency must match policy currency.");
 
-        if (FinalPremium.CurrencyCode != Currency.Code)
+        if (FinalPremium.CurrencyCode != CurrencyCode)
             throw new DomainException("Final premium currency must match policy currency.");
 
         if (BasePremium.CurrencyCode != FinalPremium.CurrencyCode)

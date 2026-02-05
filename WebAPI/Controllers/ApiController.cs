@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebApi.Controllers;
 
 [ApiController]
-public abstract class BaseApiController : ControllerBase
+public abstract class ApiController : ControllerBase
 {
     protected ActionResult MapError(ErrorType type, string? message) =>
         type switch
