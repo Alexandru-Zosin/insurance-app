@@ -1,4 +1,4 @@
 ﻿namespace Application.Services.Currencies.DTOs
 {
-    public sealed record SetCurrencyStatusRequest(Guid CurrencyId, bool Active);
+    public sealed record SetCurrencyStatusRequest(Guid CurrencyCode, bool Active);
 }

@@ -3,7 +3,8 @@ using Domain.Policies;
 
 namespace Domain.Configurations;
 
-public sealed class CountryRiskConfiguration : RiskFactorConfiguration<CountryRiskConfiguration>
+public sealed class CountryRiskConfiguration
+    : RiskFactorConfiguration<CountryRiskConfiguration>
 {
     public int CountryId { get; }
 

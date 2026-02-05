@@ -6,7 +6,7 @@ using Domain.Configurations;
 
 public sealed class FeeConfigService(
     IFeeConfigurationRepository _fees,
-    IUnitOfWork _uow) : IFeeConfigService
+    IUnitOfWork _uow) : IFeeConfigService 
 {
     public async Task<Result<CreateFeeConfigResponse>> CreateFeeConfigAsync(
         CreateFeeConfigRequest request,

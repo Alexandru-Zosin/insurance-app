@@ -3,7 +3,7 @@ using Application.Services.Geography;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 
-namespace WebAPI.Controllers.v1;
+namespace WebAPI.Controllers;
 
 [Route("api/brokers")]
 public sealed class GeographyController(IGeographyService GeographyService) : ApiController

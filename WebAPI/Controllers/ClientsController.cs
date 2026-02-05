@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers;
 using Application.Common;
 
-namespace WebAPI.Controllers.v1;
+namespace WebAPI.Controllers;
 
 [Route("api/brokers/clients")]
 public sealed class ClientsController(IClientService ClientService) : ApiController

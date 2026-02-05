@@ -1,13 +1,16 @@
-﻿namespace Application.Repositories;
+﻿using Application.Common;
+using Domain.Configurations;
+
+namespace Application.Repositories;
 
 public interface IRiskFactorRepository
 {
-    Task AddAsync(RiskFactorConfiguration aggregate,
-                                            CancellationToken ct = default);
-    Task UpdateAsync(RiskFactorConfiguration aggregate,
-                                            CancellationToken ct = default);
-    Task<RiskFactorConfiguration?> GetByIdAsync(Guid id,
-                                                CancellationToken ct = default);
-    Task<IReadOnlyList<RiskFactorConfiguration>> GetActiveAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<RiskFactorConfiguration>> ListAsync(CancellationToken ct = default);
+    Task AddAsync<T>(T cfg, CancellationToken ct = default)
+        where T : RiskFactorConfiguration<T>;
+
+    Task UpdateAsync<T>(T cfg, CancellationToken ct = default)
+        where T : RiskFactorConfiguration<T>;
+
+    Task<T?> GetByIdAsync<T>(Guid id, CancellationToken ct = default)
+        where T : RiskFactorConfiguration<T>;
 }

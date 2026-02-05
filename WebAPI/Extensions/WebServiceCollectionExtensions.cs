@@ -10,11 +10,9 @@ public static class WebServiceCollectionExtensions
     {
         services.AddControllers();
 
-        // Fluent validation
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<RegisterBuildingRequestValidator>();
 
-        // swagger
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(cfg =>
         {

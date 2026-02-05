@@ -47,7 +47,7 @@ public class Building
         BuildingType type,
         int surfaceArea,
         Money insuredValue,
-        IEnumerable<RiskCategory>? riskCategories = null
+        IEnumerable<RiskCategory> riskCategories
  )
     {
         var b = new Building(
@@ -60,9 +60,8 @@ public class Building
                 surfaceArea,
                 insuredValue);
 
-        if (riskCategories != null)
-            foreach (var c in riskCategories.Distinct())
-                b._riskTags.Add(new RiskTag(c));
+        foreach (var c in riskCategories.Distinct())
+            b._riskTags.Add(new RiskTag(c));
 
         return b;
     }
@@ -76,7 +75,7 @@ public class Building
         BuildingType type,
         int surfaceArea,
         Money insuredValue,
-        IEnumerable<RiskTag>? riskTags = null)
+        IEnumerable<RiskTag> riskTags)
     {
         var b = new Building(
             id,
@@ -88,9 +87,8 @@ public class Building
             surfaceArea,
             insuredValue);
 
-        if (riskTags != null)
-            foreach (var tag in riskTags)
-                b.AddRisk(tag);
+        foreach (var tag in riskTags)
+            b.AddRisk(tag);
 
         return b;
     }
