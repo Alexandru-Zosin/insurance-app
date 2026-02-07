@@ -10,4 +10,6 @@ public partial class Country
     public string Name { get; set; } = null!;
 
     public virtual ICollection<County> Counties { get; set; } = new List<County>();
+
+    public virtual ICollection<PremiumRule> PremiumRules { get; set; } = new List<PremiumRule>();
 }

@@ -1,4 +1,4 @@
-﻿using Application.Services.Buildings.DTO;
+﻿using Application.Services.Buildings.DTOs;
 using Application.Services.Buildings.UpdateBuilding;
 using Domain.Buildings;
 using Domain.Common;

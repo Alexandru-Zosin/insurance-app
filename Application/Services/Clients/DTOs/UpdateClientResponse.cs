@@ -1,3 +1,3 @@
-﻿namespace Application.Services.Clients.DTO;
+﻿namespace Application.Services.Clients.DTOs;
 
 public sealed record UpdateClientResponse(bool Updated);

@@ -1,112 +1,128 @@
-﻿using Domain.Clients;
+﻿using Application.Common;
+using Application.Repositories;
+using Domain.Clients;
 using Domain.Shared;
-using Domain.ValueObjects;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfClient = Infrastructure.Persistence.Models.Client;
+
 namespace Infrastructure.Persistence.Repositories;
 
-public class ClientRepository : IClientRepository
+public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public ClientRepository(InsuranceDbContext db)
+    public async Task AddAsync(Client client, CancellationToken ct = default)
     {
-        _db = db;
+        if (client is null) throw new ArgumentNullException(nameof(client));
+
+        var ef = ToEfModel(client);
+
+        _db.Clients.Add(ef);
+        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<Domain.Clients.Client?> GetByIdAsync(
-        Guid clientId,
-        CancellationToken cancellationToken)
+    public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
+        if (clientId == Guid.Empty) throw new ArgumentException("Client id is required.", nameof(clientId));
+
         var ef = await _db.Clients
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.ClientKey == clientId,
-                cancellationToken)
+            .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct)
             .ConfigureAwait(false);
 
-        return ef == null ? null : Map(ef);
+        return ef is null ? null : ToDomain(ef);
     }
 
-    public async Task<Domain.Clients.Client?> GetByRegistrationNumberAsync(
-        string registrationNumber,
-        CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifier, string? name, PageRequest pageRequest, CancellationToken ct = default)
     {
+        if (pageRequest is null) throw new ArgumentNullException(nameof(pageRequest));
+        if (pageRequest.PageNumber <= 0) throw new ArgumentOutOfRangeException(nameof(pageRequest.PageNumber));
+        if (pageRequest.PageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageRequest.PageSize));
+
+        var q = _db.Clients.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(identifier))
+        {
+            var id = identifier.Trim();
+            q = q.Where(x => x.IdentificationNumber.Contains(id));
+        }
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var n = name.Trim();
+            q = q.Where(x => x.Name.Contains(n));
+        }
+
+        var skip = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
+
+        var rows = await q
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.IdentificationNumber)
+            .Skip(skip)
+            .Take(pageRequest.PageSize)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return rows.Select(ToDomain).ToList();
+    }
+
+    public async Task UpdateAsync(Client client, CancellationToken ct = default)
+    {
+        if (client is null) throw new ArgumentNullException(nameof(client));
+
         var ef = await _db.Clients
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.RegistrationNumber == registrationNumber,
-                cancellationToken)
+            .SingleOrDefaultAsync(x => x.ClientKey == client.Id, ct)
             .ConfigureAwait(false);
 
-        return ef == null ? null : Map(ef);
+        if (ef is null)
+            throw new InvalidOperationException("Client not found.");
+
+        UpdateEfModel(ef, client);
+
+        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<Client>> SearchByNameAsync(
-    string name,
-    CancellationToken cancellationToken)
+    private static EfClient ToEfModel(Client domain)
     {
-        var entities = await _db.Clients
-            .AsNoTracking()
-            .Where(c => c.Name.Contains(name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        return entities
-            .Select(Map)
-            .ToList();
+        return new EfClient
+        {
+            ClientKey = domain.Id,
+            ClientType = domain.Type.ToString(),
+            Name = domain.Name,
+            IdentificationNumber = domain.Identifier.Value,
+            Email = domain.ContactInfo.Email,
+            Phone = domain.ContactInfo.Phone,
+            Street = domain.Address?.Street,
+            Number = domain.Address?.Number
+        };
     }
 
-    public async Task AddAsync(
-        Client client,
-        CancellationToken cancellationToken)
+    private static void UpdateEfModel(EfClient ef, Client domain)
     {
-        await _db.Clients.AddAsync(
-            new Models.Client
-            {
-                ClientKey = client.Id,
-                ClientType = client.Type.ToString(),
-                Name = client.Name,
-                RegistrationNumber = client.Identifier.Value,
-                Email = client.ContactInfo.Email,
-                Phone = client.ContactInfo.Phone,
-                Street = client.Address.Street,
-                Number = client.Address.Number
- //               Address = $"{client.Address!.Street} {client.Address.Number}"
-            },
-            cancellationToken
-        ).ConfigureAwait(false);
+        ef.ClientType = domain.Type.ToString();
+        ef.Name = domain.Name;
+        ef.IdentificationNumber = domain.Identifier.Value;
+        ef.Email = domain.ContactInfo.Email;
+        ef.Phone = domain.ContactInfo.Phone;
+        ef.Street = domain.Address?.Street;
+        ef.Number = domain.Address?.Number;
     }
 
-    public async Task UpdateAsync(
-        Client client,
-        CancellationToken cancellationToken)
+    private static Client ToDomain(EfClient ef)
     {
-        var ef = await _db.Clients
-            .SingleAsync(
-                c => c.ClientKey == client.Id,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        ef.Name = client.Name;
-        ef.Email = client.ContactInfo.Email;
-        ef.Phone = client.ContactInfo.Phone;
-        ef.Street = client.Address.Street;
-        ef.Number = client.Address.Number;
-        //ef.Address = $"{client.Address!.Street} {client.Address.Number}";
+        return Client.Rehydrate(
+            id: ef.ClientKey,
+            type: ParseClientType(ef.ClientType),
+            name: ef.Name,
+            identifier: IdentificationNumber.Create(ef.IdentificationNumber),
+            contactInfo: ContactInfo.Create(ef.Email, ef.Phone),
+            address: Address.CreateOptional(ef.Street, ef.Number));
     }
 
-    private static Client Map(Models.Client ef)
+    private static ClientType ParseClientType(string value)
     {
-        var identifier = IdentificationNumber.Create(ef.RegistrationNumber).Value!;
-        var contact = ContactInfo.Create(ef.Email, ef.Phone).Value!;
-        var address = Address.Create(ef.Street, ef.Number).Value!;
+        if (Enum.TryParse<ClientType>(value, ignoreCase: true, out var parsed))
+            return parsed;
 
-        return Client.Create(
-            Enum.Parse<ClientType>(ef.ClientType),
-            ef.Name,
-            identifier,
-            contact,
-            address).Value!;
+        throw new InvalidOperationException($"Unknown client type '{value}'.");
     }
 }

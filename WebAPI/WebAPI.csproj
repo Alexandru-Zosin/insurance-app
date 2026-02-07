@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <UserSecretsId>1db78d73-1296-49ae-9871-35d13b3cfa9c</UserSecretsId>
+    <Configurations>Debug;Release;Debug-NoTests</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

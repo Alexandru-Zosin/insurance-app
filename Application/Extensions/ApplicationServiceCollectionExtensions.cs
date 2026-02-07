@@ -1,33 +1,30 @@
-﻿using Application.Services.Buildings;
-using Application.Services.Buildings.GetBuildingsForClient;
-using Application.Services.Buildings.UpdateBuilding;
-using Application.UseCases.Clients;
-using Application.UseCases.Geography;
+﻿using Application.Services.Brokers;
+using Application.Services.Buildings;
+using Application.Services.Clients;
+using Application.Services.Currencies;
+using Application.Services.Geography;
+using Application.Services.Policies;
+using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WebApi.Extensions;
+namespace Application.Extensions;
 
 public static class ApplicationServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(
+    public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
-        // Clients
-        services.AddScoped<SearchClientsService>();
-        services.AddScoped<GetClientDetailsService>();
-        services.AddScoped<CreateClientService>();
-        services.AddScoped<UpdateClientService>();
+        // Application services
+        services.AddScoped<IBrokerService, BrokerService>();
+        services.AddScoped<IBuildingService, BuildingService>();
+        services.AddScoped<IClientService, ClientService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
+        services.AddScoped<IGeographyService, GeographyService>();
+        services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
+        services.AddScoped<IPolicyService, PolicyService>();
 
-        // Buildings
-        services.AddScoped<GetBuildingsForClientService>();
-        services.AddScoped<GetBuildingDetailsService>();
-        services.AddScoped<RegisterBuildingService>();
-        services.AddScoped<UpdateBuildingService>();
-
-        // Geography
-        services.AddScoped<GetCountries>();
-        services.AddScoped<GetCountiesByCountryService>();
-        services.AddScoped<GetCitiesByCountyService>();
+        // Domain services
+        services.AddScoped<IPremiumCalculatorService, PremiumCalculatorService>();
 
         return services;
     }

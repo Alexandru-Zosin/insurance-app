@@ -1,41 +1,64 @@
-﻿using Domain.Geography;
+﻿using Application.Repositories;
+using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfCity = Infrastructure.Persistence.Models.City;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CityRepository : ICityRepository
+public sealed class CityRepository(InsuranceDbContext _db) : ICityRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public CityRepository(InsuranceDbContext db)
+    public async Task AddAsync(City aggregate, CancellationToken ct = default)
     {
-        _db = db;
+        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+
+        var ef = ToEfModel(aggregate);
+
+        _db.Cities.Add(ef);
+        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(
-        int countyId,
-        CancellationToken cancellationToken)
+    public async Task<City?> GetByIdAsync(int cityId, CancellationToken cancellationToken = default)
     {
-        return await _db.Cities
-            .AsNoTracking()
-            .Where(c => c.CountyId == countyId)
-            .Select(c => new City(c.CityId, c.Name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-    }
+        if (cityId <= 0) throw new ArgumentOutOfRangeException(nameof(cityId));
 
-    public async Task<City?> GetByIdAsync(
-        int cityId,
-        CancellationToken cancellationToken)
-    {
         var ef = await _db.Cities
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.CityId == cityId,
-                cancellationToken)
+            .SingleOrDefaultAsync(c => c.CityId == cityId, cancellationToken)
             .ConfigureAwait(false);
 
-        return ef == null ? null : new City(ef.CityId, ef.Name);
+        return ef is null ? null : ToDomain(ef);
+    }
+
+    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken ct = default)
+    {
+        if (countyId <= 0) throw new ArgumentOutOfRangeException(nameof(countyId));
+
+        var rows = await _db.Cities
+            .AsNoTracking()
+            .Where(c => c.CountyId == countyId)
+            .OrderBy(c => c.Name)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return rows.Select(ToDomain).ToList();
+    }
+
+    private static EfCity ToEfModel(City domain)
+    {
+        return new EfCity
+        {
+            CityId = domain.Id,
+            CountyId = domain.CountyId,
+            Name = domain.Name
+        };
+    }
+
+    private static City ToDomain(EfCity ef)
+    {
+        return City.Create(
+            id: ef.CityId,
+            countyId: ef.CountyId,
+            name: ef.Name);
     }
 }

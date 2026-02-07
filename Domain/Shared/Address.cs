@@ -3,10 +3,20 @@ namespace Domain.Shared;
 
 public sealed record Address(string Street, string Number)
 {
-    public static Result<Address> Create(string street, string number) {
+    public static Address Create(string street, string number) {
         if (string.IsNullOrWhiteSpace(street) || string.IsNullOrWhiteSpace(number))
-            return Result<Address>.Fail(ErrorType.Validation, "Invalid address");
+            throw new DomainException("Street and number must be provided together.");
+        
+        return new Address(street, number);
+    }
 
-        return Result<Address>.Ok(new Address(street, number));
+    public static Address? CreateOptional(string? street, string? number)
+    {
+        var hasStreet = !string.IsNullOrWhiteSpace(street);
+        var hasNumber = !string.IsNullOrWhiteSpace(number);
+        if (!hasStreet && !hasNumber)
+            return null;
+
+        return Create(street ?? string.Empty, number ?? string.Empty);
     }
 }
