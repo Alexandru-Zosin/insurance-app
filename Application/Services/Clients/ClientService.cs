@@ -5,7 +5,6 @@ using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
 using Domain.Clients;
-using System.Linq;
 
 namespace Application.Services.Clients;
 

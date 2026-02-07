@@ -244,6 +244,9 @@ public partial class InsuranceDbContext : DbContext
             entity.Property(e => e.RuleKind)
                 .HasMaxLength(30)
                 .IsUnicode(false);
+            entity.Property(e => e.ZoneRiskCategoryCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.City).WithMany(p => p.PremiumRules)
                 .HasForeignKey(d => d.CityId)
@@ -257,9 +260,10 @@ public partial class InsuranceDbContext : DbContext
                 .HasForeignKey(d => d.CountyId)
                 .HasConstraintName("FK_PremiumRules_County");
 
-            entity.HasOne(d => d.RiskCategory).WithMany(p => p.PremiumRules)
-                .HasForeignKey(d => d.RiskCategoryId)
-                .HasConstraintName("FK_PremiumRules_RiskCategory");
+            entity.HasOne(d => d.ZoneRiskCategoryCodeNavigation).WithMany(p => p.PremiumRules)
+                .HasPrincipalKey(p => p.Code)
+                .HasForeignKey(d => d.ZoneRiskCategoryCode)
+                .HasConstraintName("FK_PremiumRules_ZoneRiskCategoryCode");
         });
 
         modelBuilder.Entity<RiskCategory>(entity =>

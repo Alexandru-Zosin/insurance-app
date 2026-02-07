@@ -1,5 +1,6 @@
 ﻿using Application.Repositories;
 using Domain.Buildings;
+using Domain.Configurations;
 using Domain.Shared;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
@@ -97,7 +98,7 @@ public sealed class BuildingRepository(InsuranceDbContext _db) : IBuildingReposi
             type: ParseBuildingType(ef.BuildingType),
             surfaceArea: ef.SurfaceArea,
             insuredValue: insuredValue,
-            riskTags: ef.RiskCategories.Select(rc => new RiskTag(ParseRiskCategory(rc.Code))).ToList());
+            zoneRiskCategories: ef.RiskCategories.Select(rc => ParseRiskCategory(rc.Code)).ToList());
     }
 
     private async Task UpdateEfModelAsync(EfBuilding ef, Building domain, CancellationToken ct)
@@ -115,8 +116,8 @@ public sealed class BuildingRepository(InsuranceDbContext _db) : IBuildingReposi
 
     private async Task SetRiskCategoriesAsync(EfBuilding ef, Building domain, CancellationToken ct)
     {
-        var codes = domain.RiskTags
-            .Select(t => t.RiskCategory.ToString())
+        var codes = domain.ZoneRiskCategories
+            .Select(t => t.ToString())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -140,9 +141,9 @@ public sealed class BuildingRepository(InsuranceDbContext _db) : IBuildingReposi
         throw new InvalidOperationException($"Unknown building type '{value}'.");
     }
 
-    private static RiskCategory ParseRiskCategory(string code)
+    private static ZoneRiskCategory ParseRiskCategory(string code)
     {
-        if (Enum.TryParse<RiskCategory>(code, ignoreCase: true, out var parsed))
+        if (Enum.TryParse<ZoneRiskCategory>(code, ignoreCase: true, out var parsed))
             return parsed;
 
         throw new InvalidOperationException($"Unknown risk category code '{code}'.");

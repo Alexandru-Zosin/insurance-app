@@ -3,41 +3,38 @@ using Domain.Policies;
 
 namespace Domain.Configurations;
 
-public sealed class CountryRiskConfiguration
-    : RiskFactorConfiguration<CountryRiskConfiguration>
+public sealed class CountryRiskConfiguration : IRiskConfiguration
 {
+    private readonly RiskConfigCore _core;
+
+    public RiskConfigCore Core => _core;
+
+    public Guid Id => _core.Id;
+    public string Name => _core.Name;
+    public decimal Percentage => _core.Percentage;
+    public bool IsActive => _core.IsActive;
+
     public int CountryId { get; }
 
-    private CountryRiskConfiguration(Guid id,
-                                     string name,
-                                     decimal percentage,
-                                     bool isActive,
-                                     int countryId)
-        : base(id, name, percentage, isActive)
+    private CountryRiskConfiguration(RiskConfigCore core, int countryId)
     {
+        _core = core ?? throw new ArgumentNullException(nameof(core));
         CountryId = countryId;
+
         ValidateInvariants();
     }
 
-    public static CountryRiskConfiguration Create(string name,
-                                                  decimal percentage,
-                                                  bool isActive,
-                                                  int countryId) =>
-        new CountryRiskConfiguration(Guid.NewGuid(), name, percentage, isActive, countryId);
+    public static CountryRiskConfiguration Create(string name, decimal percentage, bool isActive, int countryId)
+        => new(new RiskConfigCore(Guid.NewGuid(), name, percentage, isActive), countryId);
 
-    public static CountryRiskConfiguration Rehydrate(Guid id,
-                                                     string name,
-                                                     decimal percentage,
-                                                     bool isActive,
-                                                     int countryId) =>
-        new CountryRiskConfiguration(id, name, percentage, isActive, countryId);
+    public static CountryRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, int countryId)
+        => new(new RiskConfigCore(id, name, percentage, isActive), countryId);
 
-    public override bool IsApplicable(PolicyDraftContext ctx) =>
-        IsActive && ctx.CountryId == CountryId;
+    public bool IsApplicable(PolicyDraftContext ctx)
+        => IsActive && ctx.CountryId == CountryId;
 
-    protected override void ValidateInvariants()
+    private void ValidateInvariants()
     {
-        base.ValidateInvariants();
         if (CountryId <= 0)
             throw new DomainException("Invalid CountryId.");
     }

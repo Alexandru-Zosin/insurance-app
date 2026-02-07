@@ -7,7 +7,7 @@ namespace WebAPI.Extensions;
 
 public static class WebServiceCollectionExtensions
 {
-    public static IServiceCollection AddWeb(this IServiceCollection services)
+    public static IServiceCollection AddWebControllersAndServices(this IServiceCollection services)
     {
         services.AddControllers();
 

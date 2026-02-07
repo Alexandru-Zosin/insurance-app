@@ -221,14 +221,14 @@ CREATE TABLE core.PremiumRules
     CountyId int NULL,
     CountryId int NULL,
     BuildingType varchar(20) NULL,
-    RiskCategoryId int NULL,
+    ZoneRiskCategoryCode varchar(50) NULL, /* e.g. FloodZone, EarthquakeZone */
 
     CONSTRAINT PK_PremiumRules PRIMARY KEY CLUSTERED (PremiumRuleId),
     CONSTRAINT UQ_PremiumRules_PremiumRuleKey UNIQUE (PremiumRuleKey),
 
     CONSTRAINT CK_PremiumRules_RuleKind CHECK
     (
-        RuleKind IN ('Fee', 'RiskCity', 'RiskCounty', 'RiskCountry', 'RiskBuildingType', 'RiskTag')
+        RuleKind IN ('Fee', 'RiskCity', 'RiskCounty', 'RiskCountry', 'RiskBuildingType', 'RiskZoneCategory')
     ),
     CONSTRAINT CK_PremiumRules_Name_NotBlank CHECK (LEN(LTRIM(RTRIM(Name))) > 0),
     CONSTRAINT CK_PremiumRules_Percentage_0_1 CHECK (Percentage >= 0.0 AND Percentage <= 1.0),
@@ -260,15 +260,15 @@ CREATE TABLE core.PremiumRules
     ),
     CONSTRAINT CK_PremiumRules_RiskTag_RequiresRiskCategory CHECK
     (
-        (RuleKind <> 'RiskTag') OR (RiskCategoryId IS NOT NULL)
+        (RuleKind <> 'RiskZoneCategory') OR (ZoneRiskCategoryCode IS NOT NULL AND LEN(LTRIM(RTRIM(ZoneRiskCategoryCode))) > 0)
     ),
 
     /* FKs (nullable columns allowed) */
     CONSTRAINT FK_PremiumRules_City FOREIGN KEY (CityId) REFERENCES core.City(CityId),
     CONSTRAINT FK_PremiumRules_County FOREIGN KEY (CountyId) REFERENCES core.County(CountyId),
     CONSTRAINT FK_PremiumRules_Country FOREIGN KEY (CountryId) REFERENCES core.Country(CountryId),
-    CONSTRAINT FK_PremiumRules_RiskCategory FOREIGN KEY (RiskCategoryId) REFERENCES core.RiskCategory(RiskCategoryId)
-);
+    CONSTRAINT FK_PremiumRules_ZoneRiskCategoryCode FOREIGN KEY (ZoneRiskCategoryCode) REFERENCES core.RiskCategory(Code)
+)
 GO
 
 /* Policy

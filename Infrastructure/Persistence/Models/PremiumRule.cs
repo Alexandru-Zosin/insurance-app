@@ -31,7 +31,7 @@ public partial class PremiumRule
 
     public string? BuildingType { get; set; }
 
-    public int? RiskCategoryId { get; set; }
+    public string? ZoneRiskCategoryCode { get; set; }
 
     public virtual City? City { get; set; }
 
@@ -39,5 +39,5 @@ public partial class PremiumRule
 
     public virtual County? County { get; set; }
 
-    public virtual RiskCategory? RiskCategory { get; set; }
+    public virtual RiskCategory? ZoneRiskCategoryCodeNavigation { get; set; }
 }

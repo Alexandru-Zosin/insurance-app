@@ -1,37 +1,32 @@
-﻿using Domain.Configurations;
-using Domain.Policies;
-using Domain.Shared;
+﻿using Domain.Policies;
 
-public sealed class ZoneRiskConfiguration
-        : RiskFactorConfiguration<ZoneRiskConfiguration>
+namespace Domain.Configurations;
+
+public sealed class ZoneRiskConfiguration : IRiskConfiguration
 {
-    public RiskTag Tag { get; }
+    private readonly RiskConfigCore _core;
 
-    private ZoneRiskConfiguration(Guid id, string name,
-                                  decimal pct, bool active, RiskTag tag)
-        : base(id, name, pct, active)
+    public RiskConfigCore Core => _core;
+
+    public Guid Id => _core.Id;
+    public string Name => _core.Name;
+    public decimal Percentage => _core.Percentage;
+    public bool IsActive => _core.IsActive;
+
+    public ZoneRiskCategory Category { get; }
+
+    private ZoneRiskConfiguration(RiskConfigCore core, ZoneRiskCategory category)
     {
-        Tag = tag;
-        ValidateInvariants();
+        _core = core;
+        Category = category;
     }
 
-    public static ZoneRiskConfiguration Create(string name,
-                                               decimal pct,
-                                               bool active,
-                                               RiskTag tag) =>
-        new(Guid.NewGuid(), name, pct, active, tag);
+    public static ZoneRiskConfiguration Create(string name, decimal pct, bool active, ZoneRiskCategory category)
+        => new(new RiskConfigCore(Guid.NewGuid(), name, pct, active), category);
 
-    public static ZoneRiskConfiguration Rehydrate(Guid id, string name,
-                                                  decimal pct,
-                                                  bool active,
-                                                  RiskTag tag) =>
-        new(id, name, pct, active, tag);
+    public static ZoneRiskConfiguration Rehydrate(Guid id, string name, decimal pct, bool active, ZoneRiskCategory category)
+        => new(new RiskConfigCore(id, name, pct, active), category);
 
-    public override bool IsApplicable(PolicyDraftContext ctx) =>
-        IsActive && ctx.BuildingRiskTags.Contains(Tag);
-
-    protected override void ValidateInvariants()
-    {
-        base.ValidateInvariants();
-    }
+    public bool IsApplicable(PolicyDraftContext ctx)
+        => IsActive && ctx.BuildingZoneRiskCategories.Contains(Category);
 }

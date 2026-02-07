@@ -38,7 +38,7 @@ public abstract class ApiController : ControllerBase
         Result<T> result,
         string location)
     {
-        if (result.IsSuccess)
+       if (result.IsSuccess)
             return Created(location, result.Value);
 
         return MapError(result.ErrorType, result.ErrorMessage);

@@ -1,4 +1,5 @@
 ﻿using Domain.Buildings;
+using Domain.Configurations;
 using Domain.Shared;
 
 namespace Domain.Policies;
@@ -10,7 +11,7 @@ public sealed record PolicyDraftContext(
     int? CountyId,
     int? CityId,
     BuildingType BuildingType,
-    IReadOnlyCollection<RiskTag> BuildingRiskTags,
+    IReadOnlyCollection<ZoneRiskCategory> BuildingZoneRiskCategories,
     Money BasePremium,
     DateOnly DraftDate
 );

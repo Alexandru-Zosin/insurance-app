@@ -17,8 +17,7 @@ public sealed class PolicyService(
     IBuildingRepository _buildings,
     IBrokerRepository _brokers,
     ICurrencyRepository _currencies,
-    IFeeConfigurationRepository _fees,
-    IRiskFactorRepository _riskFactors,
+    IPremiumRuleQuery _premiumRules,
     ICityRepository _cities,
     ICountyRepository _counties,
     ICountryRepository _countries,
@@ -51,11 +50,8 @@ public sealed class PolicyService(
 
         var basePremium = request.Policy.BasePremium.ToDomain();
         var tenure = request.Policy.Tenure.ToDomain();
-        
-        var feeConfigs = await _fees.GetActiveAsync(ct);
-        //var riskConfigs = await _riskFactors.GetActiveAsync(ct);
-        IEnumerable<IPremiumRule> rules = feeConfigs.Cast<IPremiumRule>();
-                                                  //.Concat(riskConfigs.Cast<IPremiumRule>());
+
+        var premiumRules = await _premiumRules.GetActiveAsync(ct);
 
         var draftContext = new PolicyDraftContext
         (
@@ -65,13 +61,13 @@ public sealed class PolicyService(
             county.Id,
             city.Id,
             building.BuildingType,
-            building.RiskTags,
+            building.ZoneRiskCategories,
             basePremium,
             DateOnly.FromDateTime(DateTime.UtcNow)
         );
 
         var finalPremium = _premiumCalculatorService.CalculateFinalPremium(
-            draftContext, rules);
+            draftContext, premiumRules);
 
         var draft = Policy.CreateDraft(
             client.Id,

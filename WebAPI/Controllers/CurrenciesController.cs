@@ -29,7 +29,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
             $"/api/admin/currencies/{result.Value!.Currency.Code}");
     }
 
-    [HttpPut("{currencyCode:string}")]
+    [HttpPut("{currencyCode}")]
     public async Task<ActionResult<UpdateCurrencyResponse>> Update(
         [FromBody] UpdateCurrencyRequest request,
         CancellationToken ct)
@@ -39,7 +39,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
         return FromResult(result);
     }
 
-    [HttpPut("{currencyCode:string}/status")]
+    [HttpPut("{currencyCode}/status")]
     public async Task<ActionResult<SetCurrencyStatusResponse>> SetStatus(
         [FromBody] SetCurrencyStatusRequest request,
         CancellationToken ct)

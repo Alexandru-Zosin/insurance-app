@@ -1,10 +1,11 @@
 ﻿using Domain.Common;
+using Domain.Configurations;
 using Domain.Shared;
 namespace Domain.Buildings;
 
 public class Building
 {
-    private HashSet<RiskTag> _riskTags = [];
+    private HashSet<ZoneRiskCategory> _zoneRiskCategories = [];
 
     public Guid Id { get; }
     public Guid OwnerClientId { get; }
@@ -14,7 +15,7 @@ public class Building
     public BuildingType BuildingType { get; }
     public int SurfaceArea { get; private set; }
     public Money InsuredValue { get; private set;  }
-    public IReadOnlyCollection<RiskTag> RiskTags => _riskTags;
+    public IReadOnlyCollection<ZoneRiskCategory> ZoneRiskCategories => _zoneRiskCategories;
 
     private Building(
         Guid id,
@@ -47,7 +48,7 @@ public class Building
         BuildingType type,
         int surfaceArea,
         Money insuredValue,
-        IEnumerable<RiskCategory> riskCategories
+        IEnumerable<ZoneRiskCategory> zoneRiskCategories
  )
     {
         var b = new Building(
@@ -60,8 +61,8 @@ public class Building
                 surfaceArea,
                 insuredValue);
 
-        foreach (var c in riskCategories.Distinct())
-            b._riskTags.Add(new RiskTag(c));
+        foreach (var c in zoneRiskCategories.Distinct())
+            b._zoneRiskCategories.Add(c);
 
         return b;
     }
@@ -75,7 +76,7 @@ public class Building
         BuildingType type,
         int surfaceArea,
         Money insuredValue,
-        IEnumerable<RiskTag> riskTags)
+        IEnumerable<ZoneRiskCategory> zoneRiskCategories)
     {
         var b = new Building(
             id,
@@ -87,21 +88,21 @@ public class Building
             surfaceArea,
             insuredValue);
 
-        foreach (var tag in riskTags)
+        foreach (var tag in zoneRiskCategories)
             b.AddRisk(tag);
 
         return b;
     }
 
-    public Building AddRisk(RiskTag tag)
+    public Building AddRisk(ZoneRiskCategory tag)
     {
-        _riskTags.Add(tag);
+        _zoneRiskCategories.Add(tag);
         return this;
     }
 
-    public Building RemoveRisk(RiskTag tag)
+    public Building RemoveRisk(ZoneRiskCategory tag)
     {
-        _riskTags.Remove(tag);
+        _zoneRiskCategories.Remove(tag);
         return this;
     }
 

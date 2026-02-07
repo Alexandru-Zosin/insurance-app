@@ -47,20 +47,19 @@ public sealed class BuildingCoreDtoValidator : AbstractValidator<BuildingCoreDto
             RuleFor(x => x.InsuredValue).SetValidator(new MoneyDtoValidator());
         });
 
-        RuleFor(x => x.RiskTags)
+        RuleFor(x => x.ZoneRiskCategories)
             .NotNull()
-            .WithMessage("RiskTags is required.")
+            .WithMessage("ZoneRiskCategories is required.")
             .Must(list => list.Count <= BuildingValidationConstants.RiskTagsMaxCount)
-            .WithMessage($"RiskTags must contain at most {BuildingValidationConstants.RiskTagsMaxCount} items.");
+            .WithMessage($"ZoneRiskCategories must contain at most {BuildingValidationConstants.RiskTagsMaxCount} items.")
+            .Must(list => list.Distinct().Count() == list.Count)
+            .WithMessage("ZoneRiskCategories must not contain duplicates.");
 
-        When(x => x.RiskTags is not null, () =>
+        When(x => x.ZoneRiskCategories is not null, () =>
         {
-            RuleForEach(x => x.RiskTags)
-                .NotNull()
-                .WithMessage("RiskTags contains a null element.");
-
-            RuleForEach(x => x.RiskTags)
-                .SetValidator(new RiskTagDtoValidator());
+            RuleForEach(x => x.ZoneRiskCategories)
+                .IsInEnum()
+                .WithMessage("ZoneRiskCategories contains an invalid value.");
         });
     }
 }
