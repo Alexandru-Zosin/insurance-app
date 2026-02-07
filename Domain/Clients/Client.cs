@@ -67,13 +67,13 @@ public sealed class Client
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid Client Name.");
+            throw new DomainException(ClientConstants.InvalidNameMsg);
     }
 
     private static void ValidateContactInfo(ContactInfo contactInfo)
     {
         if (contactInfo is null)
-            throw new DomainException("Invalid ContactInfo.");
+            throw new DomainException(ClientConstants.InvalidContactInfoMsg);
     }
 
     private void ValidateInvariants()

@@ -86,27 +86,28 @@ public class Broker
     public static void ValidateCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
-            throw new DomainException("Invalid Broker Code.");
+            throw new DomainException(BrokerConstants.InvalidCodeMsg);
     }
 
     public static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid Broker Name.");
+            throw new DomainException(BrokerConstants.InvalidNameMsg);
     }
 
     public static void ValidateContactInfo(ContactInfo contactInfo)
     {
         if (contactInfo == null)
-            throw new DomainException("Invalid Contact Info (missing).");
+            throw new DomainException(BrokerConstants.InvalidContactInfoMissingMsg);
     }
 
     public static void ValidateCommissionPercentage(decimal? commissionPercentage)
     {
         if (commissionPercentage != null)
         {
-            if (commissionPercentage < 0.0m || commissionPercentage > 1.0m)
-                throw new DomainException("Invalid Comission percentage.");
+            if (commissionPercentage < BrokerConstants.CommissionMin 
+                || commissionPercentage > BrokerConstants.CommissionMax)
+                throw new DomainException(BrokerConstants.InvalidCommissionPercentageMsg);
         }
     }
 

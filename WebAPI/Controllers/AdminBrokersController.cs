@@ -46,10 +46,11 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
 
     [HttpPut("{brokerId:guid}")]
     public async Task<ActionResult<UpdateBrokerResponse>> Update(
+        [FromRoute] Guid brokerId,
         [FromBody] UpdateBrokerRequest request,
         CancellationToken ct)
     {
-        var result = await BrokerService.UpdateBrokerAsync(request, ct);
+        var result = await BrokerService.UpdateBrokerAsync(brokerId, request, ct);
 
         return FromResult(result);
     }

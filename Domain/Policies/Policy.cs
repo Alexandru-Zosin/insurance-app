@@ -147,16 +147,16 @@ public sealed class Policy
     private void EnsureFinalPremiumSettable(Money finalPremium)
     {
         if (Status != PolicyStatus.Draft)
-            throw new DomainException("Final premium can only be set in Draft status.");
+            throw new DomainException(PolicyConstants.FinalPremiumOnlyInDraftMsg);
 
         if (finalPremium is null)
-            throw new DomainException("Invalid final premium.");
+            throw new DomainException(PolicyConstants.InvalidFinalPremiumMsg);
 
         if (finalPremium.CurrencyCode != CurrencyCode)
-            throw new DomainException("Final premium currency must match policy currency.");
+            throw new DomainException(PolicyConstants.FinalPremiumCurrencyMustMatchPolicyCurrencyMsg);
 
-        if (finalPremium.Amount < 0m)
-            throw new DomainException("Final premium must be non-negative.");
+        if (finalPremium.Amount < PolicyConstants.MoneyNonNegativeMin)
+            throw new DomainException(PolicyConstants.FinalPremiumMustBeNonNegativeMsg);
     }
 
 
@@ -165,60 +165,60 @@ public sealed class Policy
         var today = DateOnly.FromDateTime(DateTime.Now);
 
         if (Status != PolicyStatus.Draft)
-            throw new DomainException("Only Draft policies can be activated.");
+            throw new DomainException(PolicyConstants.OnlyDraftPoliciesCanBeActivatedMsg);
 
         if (Tenure.StartDate < today)
-            throw new DomainException("Policy start date cannot be in the past.");
+            throw new DomainException(PolicyConstants.PolicyStartDateCannotBeInThePastMsg);
     }
 
     private void EnsureCancellable(string reason)
     {
         if (Status != PolicyStatus.Active)
-            throw new DomainException("Only Active policies can be cancelled.");
+            throw new DomainException(PolicyConstants.OnlyActivePoliciesCanBeCancelledMsg);
 
         if (string.IsNullOrWhiteSpace(reason))
-            throw new DomainException("Cancellation reason is required.");
+            throw new DomainException(PolicyConstants.CancellationReasonRequiredMsg);
     }
-    
+
     private void ValidateReferences()
     {
         if (ClientId == Guid.Empty)
-            throw new DomainException("Invalid Client Id.");
+            throw new DomainException(PolicyConstants.InvalidClientIdMsg);
 
         if (BuildingId == Guid.Empty)
-            throw new DomainException("Invalid Building Id.");
+            throw new DomainException(PolicyConstants.InvalidBuildingIdMsg);
 
         if (BrokerId == Guid.Empty)
-            throw new DomainException("Invalid Broker Id.");
+            throw new DomainException(PolicyConstants.InvalidBrokerIdMsg);
     }
     private void ValidateCoreValues()
     {
         if (Tenure is null)
-            throw new DomainException("Invalid Policy Period.");
+            throw new DomainException(PolicyConstants.InvalidPolicyPeriodMsg);
 
         if (BasePremium is null)
-            throw new DomainException("Invalid Base Premium.");
+            throw new DomainException(PolicyConstants.InvalidBasePremiumMsg);
 
         if (FinalPremium is null)
-            throw new DomainException("Invalid Final Premium.");
+            throw new DomainException(PolicyConstants.InvalidFinalPremiumInvariantMsg);
 
         if (CreationDate == default)
-            throw new DomainException("Invalid Creation Date.");
+            throw new DomainException(PolicyConstants.InvalidCreationDateMsg);
     }
 
     private void ValidateCurrencies()
     {
         if (string.IsNullOrWhiteSpace(CurrencyCode))
-            throw new DomainException("Invalid Currency.");
+            throw new DomainException(PolicyConstants.InvalidCurrencyMsg);
 
-         if (BasePremium.CurrencyCode != CurrencyCode)
-            throw new DomainException("Base premium currency must match policy currency.");
+        if (BasePremium.CurrencyCode != CurrencyCode)
+            throw new DomainException(PolicyConstants.BasePremiumCurrencyMustMatchPolicyCurrencyMsg);
 
         if (FinalPremium.CurrencyCode != CurrencyCode)
-            throw new DomainException("Final premium currency must match policy currency.");
+            throw new DomainException(PolicyConstants.FinalPremiumCurrencyMustMatchPolicyCurrencyInvariantMsg);
 
         if (BasePremium.CurrencyCode != FinalPremium.CurrencyCode)
-            throw new DomainException("Base premium currency must match final premium currency.");
+            throw new DomainException(PolicyConstants.BasePremiumCurrencyMustMatchFinalPremiumCurrencyMsg);
     }
 
     private void ValidateInvariants()

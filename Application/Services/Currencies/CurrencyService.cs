@@ -36,10 +36,11 @@ public sealed class CurrencyService(
     }
 
     public async Task<Result<UpdateCurrencyResponse>> UpdateCurrencyAsync(
+        string requestCurrencyCode,
         UpdateCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
         if (currency == null)
             return Result<UpdateCurrencyResponse>.Fail(
                 ErrorType.NotFound, "Currency not found");
@@ -54,10 +55,11 @@ public sealed class CurrencyService(
     }
 
     public async Task<Result<SetCurrencyStatusResponse>> SetCurrencyStatusAsync(
+        string requestCurrencyCode,
         SetCurrencyStatusRequest request,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
         if (currency == null)
             return Result<SetCurrencyStatusResponse>.Fail(
                 ErrorType.NotFound, "Currency not found");

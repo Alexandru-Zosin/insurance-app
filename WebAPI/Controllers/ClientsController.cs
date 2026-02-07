@@ -49,11 +49,11 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
 
     [HttpPut("{clientId:guid}")]
     public async Task<ActionResult<UpdateClientResponse>> UpdateClient(
+        [FromQuery] Guid clientId,
         [FromBody] UpdateClientRequest request,
         CancellationToken ct)
     {
-        var result = await ClientService.UpdateClientAsync(
-            request, ct);
+        var result = await ClientService.UpdateClientAsync(clientId, request, ct);
 
         return FromResult(result);
     }

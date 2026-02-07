@@ -51,22 +51,24 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
             $"/api/brokers/policies/{result.Value!.Policy.Id}");
     }
 
-    [HttpPost("policies/{policyId:guid}/activate")]
+    [HttpPost("policies/{policyNumber:guid}/activate")]
     public async Task<ActionResult<ActivatePolicyResponse>> Activate(
+        [FromRoute] Guid policyNumber,
         [FromBody] ActivatePolicyRequest request,
         CancellationToken ct)
     {
-        var result = await PolicyService.ActivatePolicyAsync(request, ct);
+        var result = await PolicyService.ActivatePolicyAsync(policyNumber, request, ct);
 
         return FromResult(result);
     }
 
-    [HttpPost("policies/{policyId:guid}/cancel")]
+    [HttpPost("policies/{policyNumber:guid}/cancel")]
     public async Task<ActionResult<CancelPolicyResponse>> Cancel(
+        [FromRoute] Guid policyNumber,
         [FromBody] CancelPolicyRequest request,
         CancellationToken ct)
     {
-        var result = await PolicyService.CancelPolicyAsync(request, ct);
+        var result = await PolicyService.CancelPolicyAsync(policyNumber, request, ct);
 
         return FromResult(result);
     }

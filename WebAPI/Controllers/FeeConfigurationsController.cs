@@ -30,20 +30,22 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
 
     [HttpPut("{feeConfigId:guid}")]
     public async Task<ActionResult<UpdateFeeConfigurationResponse>> Update(
+        [FromRoute] Guid feeConfigId,
         [FromBody] UpdateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.UpdateFeeConfigAsync(request, ct);
+        var result = await FeeConfigService.UpdateFeeConfigAsync(feeConfigId, request, ct);
 
         return FromResult(result);
     }
 
     [HttpPut("{feeConfigId:guid}/status")]
     public async Task<ActionResult<SetFeeConfigStatusResponse>> SetStatus(
+        [FromRoute] Guid feeConfigId,
         [FromBody] SetFeeConfigStatusRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigStatusAsync(request, ct);
+        var result = await FeeConfigService.SetFeeConfigStatusAsync(feeConfigId, request, ct);
 
         return FromResult(result);
     }

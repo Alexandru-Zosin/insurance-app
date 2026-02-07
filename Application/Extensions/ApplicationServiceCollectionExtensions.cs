@@ -4,6 +4,8 @@ using Application.Services.Clients;
 using Application.Services.Currencies;
 using Application.Services.Geography;
 using Application.Services.Policies;
+using Application.Services.Risks;
+using Domain.Configurations;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +23,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<IGeographyService, GeographyService>();
         services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
+        services.AddScoped<IRiskConfigurationService, RiskConfigurationService>();
         services.AddScoped<IPolicyService, PolicyService>();
 
         // Domain services

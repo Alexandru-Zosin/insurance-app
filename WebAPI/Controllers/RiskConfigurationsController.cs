@@ -74,13 +74,13 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
             $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
 
-    [HttpPut("{riskFactorId:guid}")]
+    [HttpPut("{riskConfigurationId:guid}")]
     public async Task<ActionResult<UpdateRiskConfigurationResponse>> UpdateCore(
-        [FromRoute] Guid riskFactorId,
+        [FromRoute] Guid riskConfigurationId,
         [FromBody] UpdateRiskConfigurationRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.UpdateCoreAsync(riskFactorId, request, ct);
+        var result = await RiskService.UpdateCoreAsync(riskConfigurationId, request, ct);
         return FromResult(result);
     }
 }

@@ -10,9 +10,5 @@ public sealed class ActivatePolicyRequestValidator : AbstractValidator<ActivateP
         RuleFor(x => x.BrokerId)
             .NotEmpty()
             .WithMessage("BrokerId is required.");
-
-        RuleFor(x => x.PolicyNumber)
-            .NotEmpty()
-            .WithMessage("PolicyNumber is required.");
     }
 }

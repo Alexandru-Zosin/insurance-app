@@ -31,20 +31,22 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
 
     [HttpPut("{currencyCode}")]
     public async Task<ActionResult<UpdateCurrencyResponse>> Update(
+        [FromRoute] string currencyCode,
         [FromBody] UpdateCurrencyRequest request,
         CancellationToken ct)
     {
-        var result = await CurrencyService.UpdateCurrencyAsync(request, ct);
+        var result = await CurrencyService.UpdateCurrencyAsync(currencyCode, request, ct);
 
         return FromResult(result);
     }
 
     [HttpPut("{currencyCode}/status")]
     public async Task<ActionResult<SetCurrencyStatusResponse>> SetStatus(
+        [FromRoute] string currencyCode,
         [FromBody] SetCurrencyStatusRequest request,
         CancellationToken ct)
     {
-        var result = await CurrencyService.SetCurrencyStatusAsync(request, ct);
+        var result = await CurrencyService.SetCurrencyStatusAsync(currencyCode, request, ct);
 
         return FromResult(result);
     }

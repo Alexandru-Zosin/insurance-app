@@ -12,10 +12,6 @@ public sealed class CancelPolicyRequestValidator : AbstractValidator<CancelPolic
             .NotEmpty()
             .WithMessage("BrokerId is required.");
 
-        RuleFor(x => x.PolicyNumber)
-            .NotEmpty()
-            .WithMessage("PolicyNumber is required.");
-
         RuleFor(x => x.CancellationEffectiveDate)
             .NotEmpty()
             .WithMessage("CancellationEffectiveDate is required.");

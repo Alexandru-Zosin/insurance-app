@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
+using WebAPI.Swagger;
 using WebAPI.Validators.Buildings;
 
 namespace WebAPI.Extensions;
@@ -9,7 +11,11 @@ public static class WebServiceCollectionExtensions
 {
     public static IServiceCollection AddWebControllersAndServices(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers()
+                .AddJsonOptions(o =>
+                {
+                    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<RegisterBuildingRequestValidator>();
@@ -25,6 +31,8 @@ public static class WebServiceCollectionExtensions
             });
 
             cfg.CustomSchemaIds(type => type.FullName);
+
+            cfg.SchemaFilter<StringEnumSchemaFilter>();
         });
 
         return services;

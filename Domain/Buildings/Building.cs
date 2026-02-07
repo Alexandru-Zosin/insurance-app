@@ -130,31 +130,31 @@ public class Building
     private static void ValidateAddress(Address address)
     {
         if (address is null)
-            throw new DomainException("Invalid address.");
+            throw new DomainException(BuildingConstants.InvalidAddressMsg);
     }
 
     private static void ValidateCity(int cityId)
     {
         if (cityId <= 0)
-            throw new DomainException("Invalid City Id.");
+            throw new DomainException(BuildingConstants.InvalidCityIdMsg);
     }
 
     private static void ValidateSurfaceArea(int surfaceArea)
     {
         if (surfaceArea <= 0)
-            throw new DomainException("Surface area must be positive.");
+            throw new DomainException(BuildingConstants.SurfaceAreaMustBePositiveMsg);
     }
 
     private void ValidateInsuredValue(Money insuredValue)
     {
         if (insuredValue is null)
-            throw new DomainException("Invalid insured value.");
+            throw new DomainException(BuildingConstants.InvalidInsuredValueMsg);
     }
 
     private static void ValidateConstructionYear(int year)
     {
-        if (year < 1600 || year > DateTime.UtcNow.Year)
-            throw new DomainException("Invalid construction year.");
+        if (year < BuildingConstants.ConstructionYearMin || year > DateTime.UtcNow.Year)
+            throw new DomainException(BuildingConstants.InvalidConstructionYearMsg);
     }
 
     private void ValidateInvariants()

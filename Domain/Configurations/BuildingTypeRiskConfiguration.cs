@@ -18,7 +18,7 @@ public sealed class BuildingTypeRiskConfiguration : IRiskConfiguration
 
     private BuildingTypeRiskConfiguration(RiskConfigCore core, BuildingType buildingType)
     {
-        _core = core ?? throw new ArgumentNullException(nameof(core));
+        _core = core;
         BuildingType = buildingType;
     }
 

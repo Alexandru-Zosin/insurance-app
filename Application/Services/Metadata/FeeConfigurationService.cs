@@ -27,10 +27,11 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<UpdateFeeConfigurationResponse>> UpdateFeeConfigAsync(
+        Guid requestFeeConfigId,
         UpdateFeeConfigurationRequest request,
         CancellationToken ct = default)
     {
-        var fee = await _fees.GetByIdAsync(request.FeeConfigId, ct);
+        var fee = await _fees.GetByIdAsync(requestFeeConfigId, ct);
         if (fee == null)
             return Result<UpdateFeeConfigurationResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");
@@ -46,10 +47,11 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<SetFeeConfigStatusResponse>> SetFeeConfigStatusAsync(
+        Guid requestFeeConfigId,
         SetFeeConfigStatusRequest request,
         CancellationToken ct = default)
     {
-        var fee = await _fees.GetByIdAsync(request.FeeConfigId, ct);
+        var fee = await _fees.GetByIdAsync(requestFeeConfigId, ct);
         if (fee == null)
             return Result<SetFeeConfigStatusResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");

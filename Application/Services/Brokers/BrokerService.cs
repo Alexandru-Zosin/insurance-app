@@ -37,10 +37,11 @@ public sealed class BrokerService(
     }
 
     public async Task<Result<UpdateBrokerResponse>> UpdateBrokerAsync(
+        Guid requestBrokerId,
         UpdateBrokerRequest request,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokers.GetByIdAsync(requestBrokerId, ct);
         if (broker == null)
             return Result<UpdateBrokerResponse>.Fail(ErrorType.NotFound, "Broker not found");
 

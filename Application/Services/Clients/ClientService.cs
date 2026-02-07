@@ -87,10 +87,11 @@ public sealed class ClientService(
         return Result<SearchClientsResponse>.Ok(response);
     }
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
+        Guid requestClientId,
         UpdateClientRequest request,
         CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clients.GetByIdAsync(requestClientId, ct);
         if (client == null)
         {
             return Result<UpdateClientResponse>.Fail(

@@ -11,6 +11,6 @@ namespace Application.Services.Risks
         Task<Result<CreateRiskConfigurationResponse>> CreateCountyAsync(CreateCountyRiskRequest request, CancellationToken ct = default);
         Task<Result<CreateRiskConfigurationResponse>> CreateZoneCategoryAsync(CreateZoneCategoryRiskRequest request, CancellationToken ct = default);
         Task<Result<ListRiskConfigurationsResponse>> ListAsync(CancellationToken ct = default);
-        Task<Result<UpdateRiskConfigurationResponse>> UpdateCoreAsync(Guid id, UpdateRiskConfigurationRequest request, CancellationToken ct = default);
+        Task<Result<UpdateRiskConfigurationResponse>> UpdateCoreAsync(Guid riskConfigurationId, UpdateRiskConfigurationRequest request, CancellationToken ct = default);
     }
 }

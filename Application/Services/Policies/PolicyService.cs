@@ -98,10 +98,11 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<ActivatePolicyResponse>> ActivatePolicyAsync(
+        Guid policyNumber,
         ActivatePolicyRequest request,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(policyNumber, ct);
         if (policy == null)
             return Result<ActivatePolicyResponse>.Fail(ErrorType.NotFound, "Policy not found");
 
@@ -115,10 +116,11 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<CancelPolicyResponse>> CancelPolicyAsync(
+        Guid policyNumber,
         CancelPolicyRequest request,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(policyNumber, ct);
         if (policy == null)
             return Result<CancelPolicyResponse>.Fail(ErrorType.NotFound, "Policy not found");
 
