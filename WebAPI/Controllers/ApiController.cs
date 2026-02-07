@@ -1,7 +1,7 @@
 ﻿using Application.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApi.Controllers;
+namespace WebAPI.Controllers;
 
 [ApiController]
 public abstract class ApiController : ControllerBase
@@ -38,7 +38,7 @@ public abstract class ApiController : ControllerBase
         Result<T> result,
         string location)
     {
-        if (result.IsSuccess)
+       if (result.IsSuccess)
             return Created(location, result.Value);
 
         return MapError(result.ErrorType, result.ErrorMessage);

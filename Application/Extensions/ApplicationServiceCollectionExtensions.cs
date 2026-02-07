@@ -1,19 +1,30 @@
-﻿using Application.Common;
+﻿using Application.Services.Brokers;
 using Application.Services.Buildings;
 using Application.Services.Clients;
+using Application.Services.Currencies;
 using Application.Services.Geography;
+using Application.Services.Policies;
+using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WebApi.Extensions;
+namespace Application.Extensions;
 
 public static class ApplicationServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(
+    public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
+        // Application services
+        services.AddScoped<IBrokerService, BrokerService>();
         services.AddScoped<IBuildingService, BuildingService>();
         services.AddScoped<IClientService, ClientService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<IGeographyService, GeographyService>();
+        services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
+        services.AddScoped<IPolicyService, PolicyService>();
+
+        // Domain services
+        services.AddScoped<IPremiumCalculatorService, PremiumCalculatorService>();
 
         return services;
     }

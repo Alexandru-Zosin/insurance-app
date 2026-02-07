@@ -1,11 +1,12 @@
-using WebApi.Extensions;
+using Application.Extensions;
 using WebAPI.Extensions;
+using Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddWeb(); // Controllers + web concerns
-builder.Services.AddApplication(); // Application usecases
-builder.Services.AddInfrastructure(builder.Configuration); // (EF + repos)
+builder.Services.AddWebControllersAndServices(); 
+builder.Services.AddApplicationServices();
+builder.Services.AddPersistenceServices(builder.Configuration);
 
 var app = builder.Build();
 

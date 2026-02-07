@@ -69,7 +69,7 @@ public sealed class BuildingService(
             request.Building.BuildingType,
             request.Building.SurfaceArea,
             money,
-            request.Building.RiskTags.Select(t => t.Category));
+            request.Building.ZoneRiskCategories);
 
         await _buildings.AddAsync(building, ct);
         await _uow.SaveChangesAsync(ct);

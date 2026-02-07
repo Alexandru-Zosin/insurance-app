@@ -1,4 +1,5 @@
 ﻿using Domain.Buildings;
+using Domain.Configurations;
 
 namespace Application.Services.Shared.DTOs.BuildingDTOs;
 
@@ -10,7 +11,7 @@ public sealed record BuildingCoreDto(
  BuildingType BuildingType,
  int SurfaceArea,
  MoneyDto InsuredValue,
- IReadOnlyList<RiskTagDto> RiskTags)
+ IReadOnlyList<ZoneRiskCategory> ZoneRiskCategories)
 {
     public static BuildingCoreDto From(Building e) =>
         new(
@@ -21,6 +22,6 @@ public sealed record BuildingCoreDto(
             e.BuildingType,
             e.SurfaceArea,
             MoneyDto.From(e.InsuredValue),
-            e.RiskTags.Select(RiskTagDto.From).ToArray()
+            e.ZoneRiskCategories.ToArray()
         );
 }

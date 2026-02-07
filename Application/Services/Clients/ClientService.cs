@@ -5,7 +5,6 @@ using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
 using Domain.Clients;
-using System.Linq;
 
 namespace Application.Services.Clients;
 
@@ -22,7 +21,7 @@ public sealed class ClientService(
     {
         var identifier = request.Client.IdentificationNumber.ToDomain();
         var contact = request.Client.ContactInfo.ToDomain();
-        var address = request.Client.Address.ToDomain();
+        var address = request.Client.Address?.ToDomain();
 
         var client = Client.Create(
             request.Client.Type,
@@ -76,12 +75,12 @@ public sealed class ClientService(
     public async Task<Result<SearchClientsResponse>> SearchClientsAsync(
         SearchClientsRequest request, CancellationToken ct = default)
     {
-        var page = request.PageRequest;
+        var pageRequest = request.PageRequest;
 
         var searchResult = await _clients.SearchAsync(
             request.Identifier,
             request.Name,
-            page,
+            pageRequest,
             ct);
 
         var response = new SearchClientsResponse(searchResult.Select(ClientListItemDto.From).ToArray());
@@ -98,7 +97,7 @@ public sealed class ClientService(
                 ErrorType.NotFound, "Client not found");
         }
 
-        var newAddress = request.ClientInfo.Address.ToDomain();
+        var newAddress = request.ClientInfo.Address?.ToDomain();
         var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
 
         var updatedClient = client.UpdateName(request.ClientInfo.Name)

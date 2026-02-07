@@ -1,40 +1,59 @@
-﻿using Domain.Geography;
-using Application.Repositories;
+﻿using Application.Repositories;
+using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfCountry = Infrastructure.Persistence.Models.Country;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountryRepository : ICountryRepository
+public sealed class CountryRepository(InsuranceDbContext _db) : ICountryRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public CountryRepository(InsuranceDbContext db)
+    public async Task AddAsync(Country aggregate, CancellationToken ct = default)
     {
-        _db = db;
+        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+
+        var ef = ToEfModel(aggregate);
+
+        _db.Countries.Add(ef);
+        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<Country>> GetAllAsync(
-        CancellationToken cancellationToken)
+    public async Task<Country?> GetByIdAsync(int countryId, CancellationToken cancellationToken = default)
     {
-        return await _db.Countries
-            .AsNoTracking()
-            .Select(c => new Country(c.CountryId, c.Name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-    }
+        if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 
-    public async Task<Country?> GetByIdAsync(
-        int countryId,
-        CancellationToken cancellationToken)
-    {
         var ef = await _db.Countries
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.CountryId == countryId,
-                cancellationToken)
+            .SingleOrDefaultAsync(c => c.CountryId == countryId, cancellationToken)
             .ConfigureAwait(false);
 
-        return ef == null ? null : new Country(ef.CountryId, ef.Name);
+        return ef is null ? null : ToDomain(ef);
+    }
+
+    public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var rows = await _db.Countries
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return rows.Select(ToDomain).ToList();
+    }
+
+    private static EfCountry ToEfModel(Country domain)
+    {
+        return new EfCountry
+        {
+            CountryId = domain.Id,
+            Name = domain.Name
+        };
+    }
+
+    private static Country ToDomain(EfCountry ef)
+    {
+        return Country.Create(
+            id: ef.CountryId,
+            name: ef.Name);
     }
 }

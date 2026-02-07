@@ -1,7 +1,6 @@
 ﻿using Application.Services.Clients.DTOs;
 using Application.Services.Clients;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Controllers;
 using Application.Common;
 
 namespace WebAPI.Controllers;

@@ -7,25 +7,39 @@ public partial class Policy
 {
     public int PolicyId { get; set; }
 
-    public Guid PolicyKey { get; set; }
+    public Guid PolicyNumber { get; set; }
 
-    public int ClientId { get; set; }
+    public Guid ClientKey { get; set; }
 
-    public int BuildingId { get; set; }
+    public Guid BuildingKey { get; set; }
 
-    public int BrokerId { get; set; }
+    public Guid BrokerKey { get; set; }
 
-    public decimal PremiumAmount { get; set; }
-
-    public string PremiumCurrency { get; set; } = null!;
+    public string Status { get; set; } = null!;
 
     public DateOnly StartDate { get; set; }
 
     public DateOnly EndDate { get; set; }
 
-    public virtual Broker Broker { get; set; } = null!;
+    public decimal BasePremiumAmount { get; set; }
 
-    public virtual Building Building { get; set; } = null!;
+    public decimal FinalPremiumAmount { get; set; }
 
-    public virtual Client Client { get; set; } = null!;
+    public string CurrencyCode { get; set; } = null!;
+
+    public DateOnly CreationDate { get; set; }
+
+    public DateOnly? LastUpdateDate { get; set; }
+
+    public string? CancellationReason { get; set; }
+
+    public DateOnly? CancellationEffectiveDate { get; set; }
+
+    public virtual Broker BrokerKeyNavigation { get; set; } = null!;
+
+    public virtual Building BuildingKeyNavigation { get; set; } = null!;
+
+    public virtual Client ClientKeyNavigation { get; set; } = null!;
+
+    public virtual Currency CurrencyCodeNavigation { get; set; } = null!;
 }

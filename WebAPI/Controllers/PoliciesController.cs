@@ -3,7 +3,6 @@ using Application.Services.Policies;
 using Application.Services.Policies.DTOs;
 using Domain.Policies;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Controllers;
 
 namespace WebAPI.Controllers;
 
@@ -29,7 +28,6 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         return FromResult(result);
     }
 
-
     [HttpGet("policies/{policyId:guid}")]
     public async Task<ActionResult<GetPolicyDetailsResponse>> Get(
         Guid policyId,
@@ -50,7 +48,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
 
         return FromCreated(
             result,
-            $"/api/brokers/policies/{result.Value!.PolicyId}");
+            $"/api/brokers/policies/{result.Value!.Policy.Id}");
     }
 
     [HttpPost("policies/{policyId:guid}/activate")]

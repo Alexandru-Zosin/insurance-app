@@ -1,32 +1,23 @@
 ﻿using Application.Services.Clients.DTOs;
 using FluentValidation;
 
-public sealed class UpdateClientRequestValidator
-    : AbstractValidator<UpdateClientRequest>
+namespace WebAPI.Validators.Clients;
+
+public sealed class UpdateClientRequestValidator : AbstractValidator<UpdateClientRequest>
 {
     public UpdateClientRequestValidator()
     {
         RuleFor(x => x.ClientId)
-            .NotEmpty();
-
-        RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(100);
+            .WithMessage("ClientId is required.");
 
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress();
+        RuleFor(x => x.ClientInfo)
+            .NotNull()
+            .WithMessage("ClientInfo is required.");
 
-        RuleFor(x => x.Phone)
-            .NotEmpty()
-            .MaximumLength(50);
-
-        RuleFor(x => x.Street)
-            .NotEmpty()
-            .MaximumLength(150);
-
-        RuleFor(x => x.Number)
-            .NotEmpty()
-            .MaximumLength(20);
+        When(x => x.ClientInfo is not null, () =>
+        {
+            RuleFor(x => x.ClientInfo).SetValidator(new ClientCoreDtoValidator());
+        });
     }
 }

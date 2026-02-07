@@ -15,6 +15,6 @@ public interface IPolicyRepository
     Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId,
         CancellationToken cancellationToken);
     Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria criteria,
-                                            PageRequest page,
+                                            PageRequest pageRequest,
                                             CancellationToken ct = default);
 }

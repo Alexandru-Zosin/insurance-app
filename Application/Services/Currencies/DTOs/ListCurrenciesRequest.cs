@@ -2,5 +2,5 @@
 
 namespace Application.Services.Currencies.DTOs
 {
-    public sealed record ListCurrenciesRequest(PageRequest Page);
+    public sealed record ListCurrenciesRequest();
 }
