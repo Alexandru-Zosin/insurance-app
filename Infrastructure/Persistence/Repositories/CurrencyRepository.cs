@@ -8,14 +8,13 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class CurrencyRepository(InsuranceDbContext _db) : ICurrencyRepository
 {
-    public async Task AddAsync(Currency aggregate, CancellationToken ct = default)
+    public void Add(Currency aggregate, CancellationToken ct = default)
     {
         if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
 
         var ef = ToEfModel(aggregate);
 
         _db.Currencies.Add(ef);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(Currency aggregate, CancellationToken ct = default)
@@ -31,8 +30,6 @@ public sealed class CurrencyRepository(InsuranceDbContext _db) : ICurrencyReposi
             throw new InvalidOperationException("Currency not found.");
 
         UpdateEfModel(ef, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<Currency?> GetByCodeAsync(string code, CancellationToken ct = default)

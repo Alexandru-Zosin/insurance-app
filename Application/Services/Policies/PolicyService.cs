@@ -5,7 +5,6 @@ using Application.Services.Shared.DTOs.BrokerDTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
-using Domain.Configurations;
 using Domain.Policies;
 using Domain.Services;
 
@@ -80,7 +79,7 @@ public sealed class PolicyService(
             DateOnly.FromDateTime(DateTime.Now)
             );
 
-        await _policies.AddAsync(draft, ct);
+        _policies.Add(draft, ct);
 
         try
         {

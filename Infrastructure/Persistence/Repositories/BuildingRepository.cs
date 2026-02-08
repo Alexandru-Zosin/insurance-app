@@ -17,7 +17,6 @@ public sealed class BuildingRepository(InsuranceDbContext _db) : IBuildingReposi
         var ef = await ToEfModelAsync(building, cancellationToken).ConfigureAwait(false);
 
         _db.Buildings.Add(ef);
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
@@ -60,8 +59,6 @@ public sealed class BuildingRepository(InsuranceDbContext _db) : IBuildingReposi
             throw new InvalidOperationException("Building not found.");
 
         await UpdateEfModelAsync(ef, building, cancellationToken).ConfigureAwait(false);
-
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<EfBuilding> ToEfModelAsync(Building domain, CancellationToken ct)

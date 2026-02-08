@@ -10,20 +10,14 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
 {
-    public async Task AddAsync(Client client, CancellationToken ct = default)
+    public void Add(Client client, CancellationToken ct = default)
     {
-        if (client is null) throw new ArgumentNullException(nameof(client));
-
         var ef = ToEfModel(client);
-
         _db.Clients.Add(ef);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
-        if (clientId == Guid.Empty) throw new ArgumentException("Client id is required.", nameof(clientId));
-
         var ef = await _db.Clients
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct)
@@ -34,10 +28,6 @@ public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
 
     public async Task<IReadOnlyList<Client>> SearchAsync(string? identifier, string? name, PageRequest pageRequest, CancellationToken ct = default)
     {
-        if (pageRequest is null) throw new ArgumentNullException(nameof(pageRequest));
-        if (pageRequest.PageNumber <= 0) throw new ArgumentOutOfRangeException(nameof(pageRequest.PageNumber));
-        if (pageRequest.PageSize <= 0) throw new ArgumentOutOfRangeException(nameof(pageRequest.PageSize));
-
         var q = _db.Clients.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(identifier))
@@ -67,8 +57,6 @@ public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
 
     public async Task UpdateAsync(Client client, CancellationToken ct = default)
     {
-        if (client is null) throw new ArgumentNullException(nameof(client));
-
         var ef = await _db.Clients
             .SingleOrDefaultAsync(x => x.ClientKey == client.Id, ct)
             .ConfigureAwait(false);
@@ -77,8 +65,6 @@ public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
             throw new InvalidOperationException("Client not found.");
 
         UpdateEfModel(ef, client);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     private static EfClient ToEfModel(Client domain)

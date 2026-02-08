@@ -8,14 +8,13 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class CityRepository(InsuranceDbContext _db) : ICityRepository
 {
-    public async Task AddAsync(City aggregate, CancellationToken ct = default)
+    public void Add(City aggregate, CancellationToken ct = default)
     {
         if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
 
         var ef = ToEfModel(aggregate);
 
         _db.Cities.Add(ef);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<City?> GetByIdAsync(int cityId, CancellationToken cancellationToken = default)

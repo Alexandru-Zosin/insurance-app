@@ -21,7 +21,7 @@ public sealed class BrokerService(
             request.Broker.IsActive,
             request.Broker.CommissionPercentage);
 
-        await _brokers.AddAsync(broker, ct);
+        _brokers.Add(broker, ct);
 
         try
         {
@@ -45,9 +45,13 @@ public sealed class BrokerService(
         if (broker == null)
             return Result<UpdateBrokerResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
-        broker.UpdateName(request.Broker.Name)
-              .UpdateContactInfo(request.Broker.ContactInfo.ToDomain())
-              .UpdateCommissionPercentage(request.Broker.CommissionPercentage);
+        var newName = request.Broker.Name;
+        var newContactInfo = request.Broker.ContactInfo.ToDomain();
+        var newCommissionPercentage = request.Broker.CommissionPercentage;
+
+        broker.UpdateName(newName)
+              .UpdateContactInfo(newContactInfo)
+              .UpdateCommissionPercentage(newCommissionPercentage);
 
         await _brokers.UpdateAsync(broker, ct);
         await _uow.SaveChangesAsync(ct);

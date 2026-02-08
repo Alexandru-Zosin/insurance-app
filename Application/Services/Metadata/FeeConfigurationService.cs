@@ -19,7 +19,7 @@ public sealed class FeeConfigurationService(
             request.FeeConfig.ValidityPeriod.ToDomain(),
             request.FeeConfig.IsActive);
 
-        await _fees.AddAsync(fee, ct);
+        _fees.Add(fee, ct);
         await _uow.SaveChangesAsync(ct);
        
         var response = new CreateFeeConfigurationResponse(FeeConfigurationDetailedDto.From(fee));

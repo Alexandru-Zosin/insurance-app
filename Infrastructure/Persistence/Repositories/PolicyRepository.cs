@@ -11,14 +11,12 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class PolicyRepository(InsuranceDbContext _db) : IPolicyRepository
 {
-    public async Task AddAsync(Policy policy, CancellationToken cancellationToken)
+    public void Add(Policy policy, CancellationToken cancellationToken)
     {
         if (policy is null) throw new ArgumentNullException(nameof(policy));
 
         var ef = ToEfModel(policy);
-
         _db.Policies.Add(ef);
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(Policy aggregate, CancellationToken ct = default)
@@ -33,8 +31,6 @@ public sealed class PolicyRepository(InsuranceDbContext _db) : IPolicyRepository
             throw new InvalidOperationException("Policy not found.");
 
         UpdateEfModel(ef, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<Policy?> GetByIdAsync(Guid policyId, CancellationToken cancellationToken)

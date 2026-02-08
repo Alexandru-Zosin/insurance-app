@@ -10,7 +10,7 @@ public sealed class RiskConfigurationRepository(
     InsuranceDbContext _db,
     IRiskConfigurationMapperRegistry _registry) : IRiskConfigurationRepository
 {
-    public async Task AddAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
+    public void Add(IRiskConfiguration aggregate, CancellationToken ct = default)
     {
         if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
 
@@ -18,7 +18,6 @@ public sealed class RiskConfigurationRepository(
         var row = mapper.ToEfModel(aggregate);
 
         _db.PremiumRules.Add(row);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
@@ -34,8 +33,6 @@ public sealed class RiskConfigurationRepository(
 
         var mapper = _registry.ResolveForAggregate(aggregate);
         mapper.UpdateEfModel(row, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<IRiskConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)

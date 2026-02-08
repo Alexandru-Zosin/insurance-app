@@ -1,6 +1,7 @@
 USE InsuranceDb;
 GO
 
+
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 

@@ -88,10 +88,11 @@ public sealed class BuildingService(
                 "Building not found");
         }
 
-        var money = request.BuildingInfo.InsuredValue.ToDomain();
-        
-        building.UpdateSurfaceArea(request.BuildingInfo.SurfaceArea)
-                .UpdateInsuredValue(money);
+        var newSurfaceArea = request.BuildingInfo.SurfaceArea;
+        var newInsuredValue = request.BuildingInfo.InsuredValue.ToDomain();
+
+        building.UpdateSurfaceArea(newSurfaceArea)
+                .UpdateInsuredValue(newInsuredValue);
 
         await _buildings.UpdateAsync(building, ct);
         await _uow.SaveChangesAsync(ct);

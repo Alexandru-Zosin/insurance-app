@@ -17,6 +17,8 @@ IF OBJECT_ID('core.Client', 'U') IS NOT NULL DROP TABLE core.Client;
 IF OBJECT_ID('core.City', 'U') IS NOT NULL DROP TABLE core.City;
 IF OBJECT_ID('core.County', 'U') IS NOT NULL DROP TABLE core.County;
 IF OBJECT_ID('core.Country', 'U') IS NOT NULL DROP TABLE core.Country;
+
+IF OBJECT_ID('core.AuditLog', 'U') IS NOT NULL  DROP TABLE core.AuditLog;
 GO
 
 /* Geography */
@@ -323,6 +325,26 @@ CREATE TABLE core.Policy
 );
 GO
 
+CREATE TABLE core.AuditLog
+(
+    Id UNIQUEIDENTIFIER NOT NULL
+        CONSTRAINT PK_core_AuditLog PRIMARY KEY,
+
+    EntityType NVARCHAR(128) NOT NULL,         -- e.g. 'Client'
+    EntityId UNIQUEIDENTIFIER NOT NULL,        -- e.g. Client.Id (Guid)
+
+    Action NVARCHAR(128) NOT NULL,             -- e.g. 'ChangeIdentificationNumber'
+
+    OldValue NVARCHAR(512) NULL,
+    NewValue NVARCHAR(512) NULL,
+
+    PerformedBy NVARCHAR(256) NOT NULL,        -- user id / email / subject id
+    PerformedAtUtc DATETIME2(7) NOT NULL
+        CONSTRAINT DF_core_AuditLog_PerformedAtUtc DEFAULT (SYSUTCDATETIME())
+);
+GO
+
+
 /* Indexes (keep existing intent; adjust to surrogate keys + add fast lookups on GUID keys) */
 
 /* Geography FK indexes (not automatic in SQL Server) */
@@ -348,4 +370,14 @@ GO
 
 /* PremiumRules access paths */
 CREATE INDEX IX_PremiumRules_RuleKind_Active ON core.PremiumRules(RuleKind, IsActive);
+GO
+
+/* AuditLogs */
+CREATE INDEX IX_core_AuditLog_Entity_PerformedAtUtc
+ON core.AuditLog (EntityType, EntityId, PerformedAtUtc DESC);
+GO
+
+-- 2) Filter by action quickly (optional but common)
+CREATE INDEX IX_core_AuditLog_Action_PerformedAtUtc
+ON core.AuditLog (Action, PerformedAtUtc DESC);
 GO

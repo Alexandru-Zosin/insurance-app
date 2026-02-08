@@ -8,11 +8,10 @@ namespace Infrastructure.Persistence.Repositories.FeeConfigurationRepository;
 
 public sealed class FeeConfigurationRepository(InsuranceDbContext _db) : IFeeConfigurationRepository
 {
-    public async Task AddAsync(FeeConfiguration aggregate, CancellationToken ct = default)
+    public void Add(FeeConfiguration aggregate, CancellationToken ct = default)
     {
         var row = FeeConfigurationMapper.ToEfModel(aggregate);
         _db.Set<PremiumRule>().Add(row);
-        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<FeeConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -44,8 +43,6 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext _db) : IFeeCon
             throw new InvalidOperationException($"FeeConfiguration '{aggregate.Id}' was not found.");
 
         FeeConfigurationMapper.UpdateEfModel(row, aggregate);
-
-        await _db.SaveChangesAsync(ct);
     }
 
     public async Task DeactivateAsync(Guid id, CancellationToken ct = default)
@@ -57,6 +54,5 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext _db) : IFeeCon
             return;
 
         row.IsActive = false;
-        await _db.SaveChangesAsync(ct);
     }
 }

@@ -30,7 +30,7 @@ public sealed class ClientService(
             contact,
             address);
 
-        await _clients.AddAsync(client, ct);
+        _clients.Add(client, ct);
 
         try
         {
@@ -43,8 +43,8 @@ public sealed class ClientService(
                 "Identification number already exists.");
         }
 
-        return Result<CreateClientResponse>.Ok(
-            new CreateClientResponse(client.Id));
+        var response = new CreateClientResponse(client.Id);
+        return Result<CreateClientResponse>.Ok(response);
     }
 
     public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(
@@ -68,7 +68,6 @@ public sealed class ClientService(
                     buildings.Select(BuildingListItemDto.From).ToArray(),
                     policies.Select(PolicyListItemDto.From).ToArray()
                 ));
-
         return Result<GetClientDetailsResponse>.Ok(response);
     }
 
@@ -93,22 +92,34 @@ public sealed class ClientService(
     {
         var client = await _clients.GetByIdAsync(requestClientId, ct);
         if (client == null)
-        {
-            return Result<UpdateClientResponse>.Fail(
-                ErrorType.NotFound, "Client not found");
-        }
+            return Result<UpdateClientResponse>.Fail(ErrorType.NotFound, "Client not found");
 
+        var newName = request.ClientInfo.Name;
         var newAddress = request.ClientInfo.Address?.ToDomain();
         var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
+        var newIdentificationNumber = request.ClientInfo.IdentificationNumber.ToDomain();
 
-        var updatedClient = client.UpdateName(request.ClientInfo.Name)
-                              .UpdateContactInfo(newContactInfo)
-                              .UpdateAddress(newAddress);
+        var originalIdentificationNumber = client.Identifier;
+        if (originalIdentificationNumber != newIdentificationNumber)
+        {
+            _uow.EnqueueAudit(new AuditEntry(
+                EntityType: nameof(Client),
+                EntityId: client.Id,
+                Action: "ChangeIdentificationNumber",
+                OldValue: originalIdentificationNumber.Value,
+                NewValue: newIdentificationNumber.Value,
+                PerformedBy: request.PerformedByBrokerId,
+                PerformedAtUtc: DateTime.UtcNow));
+        }
+
+        var updatedClient = client.UpdateName(newName)
+                                  .UpdateContactInfo(newContactInfo)
+                                  .UpdateAddress(newAddress);
 
         await _clients.UpdateAsync(updatedClient, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return Result<UpdateClientResponse>.Ok(
-            new UpdateClientResponse(true));
+        var response = new UpdateClientResponse(true);
+        return Result<UpdateClientResponse>.Ok(response);
     }
 }

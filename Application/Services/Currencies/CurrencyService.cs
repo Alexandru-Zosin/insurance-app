@@ -20,7 +20,7 @@ public sealed class CurrencyService(
             request.Currency.ExchangeRateToBase,
             request.Currency.IsActive);
 
-        await _currencies.AddAsync(currency, ct);
+        _currencies.Add(currency, ct);
 
         try
         {
@@ -42,10 +42,10 @@ public sealed class CurrencyService(
     {
         var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
         if (currency == null)
-            return Result<UpdateCurrencyResponse>.Fail(
-                ErrorType.NotFound, "Currency not found");
+            return Result<UpdateCurrencyResponse>.Fail(ErrorType.NotFound, "Currency not found");
 
-        currency.UpdateExchangeRateToBase(request.Currency.ExchangeRateToBase);
+        var newExchangeRateToBase = request.Currency.ExchangeRateToBase;
+        currency.UpdateExchangeRateToBase(newExchangeRateToBase);
 
         await _currencies.UpdateAsync(currency, ct);
         await _uow.SaveChangesAsync(ct);

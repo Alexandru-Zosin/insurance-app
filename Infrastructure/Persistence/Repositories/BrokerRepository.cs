@@ -10,30 +10,22 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class BrokerRepository(InsuranceDbContext _db) : IBrokerRepository
 {
-    public async Task AddAsync(Broker broker, CancellationToken cancellationToken = default)
+    public void Add(Broker broker, CancellationToken cancellationToken = default)
     {
         if (broker is null) throw new ArgumentNullException(nameof(broker));
 
         var ef = ToEfModel(broker);
 
         _db.Brokers.Add(ef);
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(Broker broker, CancellationToken cancellationToken = default)
     {
-        if (broker is null) throw new ArgumentNullException(nameof(broker));
-
         var ef = await _db.Brokers
             .SingleOrDefaultAsync(b => b.BrokerKey == broker.Id, cancellationToken)
             .ConfigureAwait(false);
-
-        if (ef is null)
-            throw new InvalidOperationException("Broker not found.");
-
-        UpdateEfModel(ef, broker);
-
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        
+        UpdateEfModel(ef!, broker);
     }
 
     public async Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken cancellationToken = default)
