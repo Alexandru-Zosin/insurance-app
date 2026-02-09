@@ -6,7 +6,7 @@ using Domain.Policies;
 
 public interface IPolicyRepository
 {
-    Task AddAsync(Policy policy, CancellationToken cancellationToken);
+    void Add(Policy policy, CancellationToken cancellationToken);
     Task UpdateAsync(Policy aggregate, CancellationToken ct = default);
     Task<Policy?> GetByIdAsync(Guid policyId,
         CancellationToken cancellationToken);

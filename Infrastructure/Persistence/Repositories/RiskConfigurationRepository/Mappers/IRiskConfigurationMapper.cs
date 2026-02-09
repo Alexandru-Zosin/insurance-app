@@ -5,9 +5,9 @@ namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Ma
 
 public interface IRiskConfigurationMapper
 {
-    bool CanMaterialize(PremiumRule row);
-    IRiskConfiguration ToDomain(PremiumRule row);
+    bool CanMap(PremiumRule row);
+    IRiskConfiguration MapToDomain(PremiumRule row);
     bool CanPersist(IRiskConfiguration aggregate);
-    PremiumRule ToEfModel(IRiskConfiguration aggregate);
-    void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate);
+    PremiumRule MapToEf(IRiskConfiguration aggregate);
+    void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate);
 }

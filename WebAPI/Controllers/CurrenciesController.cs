@@ -1,5 +1,4 @@
-﻿using Application.Common;
-using Application.Services.Currencies;
+﻿using Application.Services.Currencies;
 using Application.Services.Currencies.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,8 +8,7 @@ namespace WebAPI.Controllers;
 public sealed class CurrenciesController(ICurrencyService CurrencyService) : ApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ListCurrenciesResponse>> List(
-        CancellationToken ct = default)
+    public async Task<ActionResult<ListCurrenciesResponse>> ListCurrenciesAsync(CancellationToken ct = default)
     {
         var result = await CurrencyService.ListCurrenciesAsync(ct);
 
@@ -18,33 +16,42 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
     }
 
     [HttpPost]
-    public async Task<ActionResult<AddCurrencyResponse>> Add(
+    public async Task<ActionResult<AddCurrencyResponse>> AddCurrencyAsync(
         [FromBody] AddCurrencyRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var result = await CurrencyService.AddCurrencyAsync(request, ct);
 
-        return FromCreated(
-            result,
-            $"/api/admin/currencies/{result.Value!.Currency.Code}");
+        return FromCreated(result, $"/api/admin/currencies/{result.Value!.Currency.Code}");
     }
 
     [HttpPut("{currencyCode}")]
-    public async Task<ActionResult<UpdateCurrencyResponse>> Update(
+    public async Task<ActionResult<UpdateCurrencyResponse>> UpdateCurrencyAsync(
+        [FromRoute] string currencyCode,
         [FromBody] UpdateCurrencyRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
-        var result = await CurrencyService.UpdateCurrencyAsync(request, ct);
+        var result = await CurrencyService.UpdateCurrencyAsync(currencyCode, request, ct);
 
         return FromResult(result);
     }
 
-    [HttpPut("{currencyCode}/status")]
-    public async Task<ActionResult<SetCurrencyStatusResponse>> SetStatus(
-        [FromBody] SetCurrencyStatusRequest request,
-        CancellationToken ct)
+    [HttpPost("{currencyCode}/activate")]
+    public async Task<ActionResult<SetCurrencyStatusResponse>> ActivateCurrencyAsync(
+    [FromRoute] string currencyCode,
+    CancellationToken ct = default)
     {
-        var result = await CurrencyService.SetCurrencyStatusAsync(request, ct);
+        var result = await CurrencyService.SetCurrencyStatusAsync(currencyCode, true, ct);
+
+        return FromResult(result);
+    }
+
+    [HttpPost("{currencyCode}/deactivate")]
+    public async Task<ActionResult<SetCurrencyStatusResponse>> DeactivateCurrencyAsync(
+        [FromRoute] string currencyCode,
+        CancellationToken ct = default)
+    {
+        var result = await CurrencyService.SetCurrencyStatusAsync(currencyCode, false, ct);
 
         return FromResult(result);
     }

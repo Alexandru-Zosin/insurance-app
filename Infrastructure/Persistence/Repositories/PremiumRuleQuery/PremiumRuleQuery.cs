@@ -8,31 +8,31 @@ namespace Infrastructure.Persistence.Queries;
 
 public sealed class PremiumRuleQuery : IPremiumRuleQuery
 {
-    private readonly InsuranceDbContext _db;
-    private readonly IPremiumRuleMapperRegistry _registry;
+    private readonly InsuranceDbContext _dbContext;
+    private readonly IPremiumRuleMapperRegistry _ruleMapperRegistry;
 
     public PremiumRuleQuery(InsuranceDbContext db, IPremiumRuleMapperRegistry registry)
     {
-        _db = db;
-        _registry = registry;
+        _dbContext = db;
+        _ruleMapperRegistry = registry;
     }
 
     public async Task<IReadOnlyList<IPremiumRule>> GetActiveAsync(CancellationToken ct = default)
     {
-        var rows = await _db.PremiumRules
+        var activeRuleRows = await _dbContext.PremiumRules
             .AsNoTracking()
             .Where(r => r.IsActive)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-        var result = new List<IPremiumRule>(rows.Count);
+        var rules = new List<IPremiumRule>(activeRuleRows.Count);
 
-        foreach (var row in rows)
+        foreach (var ruleRow in activeRuleRows)
         {
-            var mapper = _registry.ResolveForRow(row);
-            result.Add(mapper.ToDomain(row));
+            var ruleMapper = _ruleMapperRegistry.ResolveMapperForRow(ruleRow);
+            rules.Add(ruleMapper.MapToDomain(ruleRow));
         }
 
-        return result;
+        return rules;
     }
 }

@@ -30,8 +30,6 @@ public sealed class BrokerCoreDtoValidator : AbstractValidator<BrokerCoreDto>
             RuleFor(x => x.ContactInfo).SetValidator(new ContactInfoDtoValidator());
         });
 
-        // IsActive is bool; no formatting validation needed.
-
         RuleFor(x => x.CommissionPercentage)
             .InclusiveBetween(0.0m, 1.0m)
             .WithMessage("CommissionPercentage must be between 0.0 and 1.0.")

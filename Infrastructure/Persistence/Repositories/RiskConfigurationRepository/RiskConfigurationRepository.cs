@@ -10,15 +10,14 @@ public sealed class RiskConfigurationRepository(
     InsuranceDbContext _db,
     IRiskConfigurationMapperRegistry _registry) : IRiskConfigurationRepository
 {
-    public async Task AddAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
+    public void Add(IRiskConfiguration aggregate, CancellationToken ct = default)
     {
         if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
 
         var mapper = _registry.ResolveForAggregate(aggregate);
-        var row = mapper.ToEfModel(aggregate);
+        var row = mapper.MapToEf(aggregate);
 
         _db.PremiumRules.Add(row);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     public async Task UpdateAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
@@ -33,9 +32,7 @@ public sealed class RiskConfigurationRepository(
             throw new InvalidOperationException("Risk factor not found.");
 
         var mapper = _registry.ResolveForAggregate(aggregate);
-        mapper.UpdateEfModel(row, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        mapper.MapOntoEf(row, aggregate);
     }
 
     public async Task<IRiskConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -48,10 +45,10 @@ public sealed class RiskConfigurationRepository(
         if (row is null)
             return null;
 
-        if (!_registry.TryResolveForRow(row, out var mapper))
+        if (!_registry.TryResolveMapperForRow(row, out var mapper))
             return null; // not a risk row (e.g., fee) or unsupported kind
 
-        return mapper.ToDomain(row);
+        return mapper.MapToDomain(row);
     }
 
     public async Task<IReadOnlyList<IRiskConfiguration>> ListAsync(CancellationToken ct = default)
@@ -65,10 +62,10 @@ public sealed class RiskConfigurationRepository(
 
         foreach (var row in rows)
         {
-            if (!_registry.TryResolveForRow(row, out var mapper))
+            if (!_registry.TryResolveMapperForRow(row, out var mapper))
                 continue; // skip non-risk rows
 
-            result.Add(mapper.ToDomain(row));
+            result.Add(mapper.MapToDomain(row));
         }
 
         return result;

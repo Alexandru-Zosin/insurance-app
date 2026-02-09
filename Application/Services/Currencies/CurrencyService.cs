@@ -20,7 +20,7 @@ public sealed class CurrencyService(
             request.Currency.ExchangeRateToBase,
             request.Currency.IsActive);
 
-        await _currencies.AddAsync(currency, ct);
+        _currencies.Add(currency, ct);
 
         try
         {
@@ -36,15 +36,16 @@ public sealed class CurrencyService(
     }
 
     public async Task<Result<UpdateCurrencyResponse>> UpdateCurrencyAsync(
+        string requestCurrencyCode,
         UpdateCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
         if (currency == null)
-            return Result<UpdateCurrencyResponse>.Fail(
-                ErrorType.NotFound, "Currency not found");
+            return Result<UpdateCurrencyResponse>.Fail(ErrorType.NotFound, "Currency not found");
 
-        currency.UpdateExchangeRateToBase(request.Currency.ExchangeRateToBase);
+        var newExchangeRateToBase = request.Currency.ExchangeRateToBase;
+        currency.UpdateExchangeRateToBase(newExchangeRateToBase);
 
         await _currencies.UpdateAsync(currency, ct);
         await _uow.SaveChangesAsync(ct);
@@ -54,15 +55,16 @@ public sealed class CurrencyService(
     }
 
     public async Task<Result<SetCurrencyStatusResponse>> SetCurrencyStatusAsync(
-        SetCurrencyStatusRequest request,
+        string requestCurrencyCode,
+        bool requestIsActive,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
         if (currency == null)
             return Result<SetCurrencyStatusResponse>.Fail(
                 ErrorType.NotFound, "Currency not found");
 
-        if (request.Active)
+        if (requestIsActive)
             currency.Activate();
         else
             currency.Deactivate();
@@ -74,8 +76,7 @@ public sealed class CurrencyService(
             new SetCurrencyStatusResponse(CurrencyDto.From(currency)));
     }
 
-    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(
-        CancellationToken ct = default)
+    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(CancellationToken ct = default)
     {
         var list = await _currencies.ListAsync(ct);
         var response = new ListCurrenciesResponse(list.Select(CurrencyDto.From).ToList());

@@ -35,12 +35,12 @@ public sealed class Client
     }
 
     public static Client Rehydrate(
-    Guid id,
-    ClientType type,
-    string name,
-    IdentificationNumber identifier,
-    ContactInfo contactInfo,
-    Address? address)
+        Guid id,
+        ClientType type,
+        string name,
+        IdentificationNumber identifier,
+        ContactInfo contactInfo,
+        Address? address)
     {
         return new Client(id, type, name, identifier, contactInfo, address);
     }
@@ -67,13 +67,13 @@ public sealed class Client
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid Client Name.");
+            throw new DomainException(ClientConstants.InvalidNameMsg);
     }
 
     private static void ValidateContactInfo(ContactInfo contactInfo)
     {
         if (contactInfo is null)
-            throw new DomainException("Invalid ContactInfo.");
+            throw new DomainException(ClientConstants.InvalidContactInfoMsg);
     }
 
     private void ValidateInvariants()

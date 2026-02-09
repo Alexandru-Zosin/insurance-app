@@ -23,7 +23,7 @@ public sealed class RiskConfigurationService(
     {
         var risk = CountryRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CountryId);
 
-        await _risks.AddAsync(risk, ct);
+        _risks.Add(risk, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
@@ -34,7 +34,7 @@ public sealed class RiskConfigurationService(
     {
         var risk = CountyRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CountyId);
 
-        await _risks.AddAsync(risk, ct);
+        _risks.Add(risk, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
@@ -45,7 +45,7 @@ public sealed class RiskConfigurationService(
     {
         var risk = CityRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CityId);
 
-        await _risks.AddAsync(risk, ct);
+        _risks.Add(risk, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
@@ -56,7 +56,7 @@ public sealed class RiskConfigurationService(
     {
         var risk = BuildingTypeRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.BuildingType);
 
-        await _risks.AddAsync(risk, ct);
+        _risks.Add(risk, ct);
         await _uow.SaveChangesAsync(ct);
 
         return Result<CreateRiskConfigurationResponse>.Ok(new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk)));
@@ -66,7 +66,7 @@ public sealed class RiskConfigurationService(
     {
         var risk = ZoneRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.Category);
 
-        await _risks.AddAsync(risk, ct);
+        _risks.Add(risk, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));

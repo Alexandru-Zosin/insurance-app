@@ -36,6 +36,6 @@ public sealed class CountyRiskConfiguration : IRiskConfiguration
     private void ValidateInvariants()
     {
         if (CountyId <= 0)
-            throw new DomainException("Invalid CountyId.");
+            throw new DomainException(RiskConfigurationConstants.InvalidCountyIdMsg);
     }
 }

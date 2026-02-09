@@ -2,7 +2,5 @@
 
 namespace Application.Services.Metadata.DTOs
 {
-    public sealed record UpdateRiskConfigurationRequest(
-    Guid Id,
-    RiskConfigurationCoreDto Core);
+    public sealed record UpdateRiskConfigurationRequest(RiskConfigurationCoreDto Core);
 }

@@ -5,7 +5,6 @@ using Application.Services.Shared.DTOs.BrokerDTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
-using Domain.Configurations;
 using Domain.Policies;
 using Domain.Services;
 
@@ -48,8 +47,8 @@ public sealed class PolicyService(
         var county = await _counties.GetByIdAsync(city!.CountyId, ct);
         var country = await _countries.GetByIdAsync(county!.CountryId, ct);
 
-        var basePremium = request.Policy.BasePremium.ToDomain();
-        var tenure = request.Policy.Tenure.ToDomain();
+        var basePremium = request.Policy.BasePremium.MapToDomain();
+        var tenure = request.Policy.Tenure.MapToDomain();
 
         var premiumRules = await _premiumRules.GetActiveAsync(ct);
 
@@ -80,7 +79,7 @@ public sealed class PolicyService(
             DateOnly.FromDateTime(DateTime.Now)
             );
 
-        await _policies.AddAsync(draft, ct);
+        _policies.Add(draft, ct);
 
         try
         {
@@ -88,9 +87,7 @@ public sealed class PolicyService(
         }
         catch (UniqueConstraintViolationException)
         {
-            return Result<CreateDraftPolicyResponse>.Fail(
-                ErrorType.Conflict,
-                "Duplicate policy number");
+            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.Conflict, "Duplicate policy number");
         }
 
         var response = new CreateDraftPolicyResponse(PolicyListItemDto.From(draft));
@@ -98,10 +95,10 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<ActivatePolicyResponse>> ActivatePolicyAsync(
-        ActivatePolicyRequest request,
+        Guid policyNumber,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(policyNumber, ct);
         if (policy == null)
             return Result<ActivatePolicyResponse>.Fail(ErrorType.NotFound, "Policy not found");
 
@@ -115,10 +112,11 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<CancelPolicyResponse>> CancelPolicyAsync(
+        Guid policyNumber,
         CancelPolicyRequest request,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(policyNumber, ct);
         if (policy == null)
             return Result<CancelPolicyResponse>.Fail(ErrorType.NotFound, "Policy not found");
 
@@ -132,10 +130,10 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<GetPolicyDetailsResponse>> GetPolicyDetailsAsync(
-        GetPolicyDetailsRequest request,
+        Guid requestPolicyNumber,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(requestPolicyNumber, ct);
         if (policy == null)
             return Result<GetPolicyDetailsResponse>.Fail(ErrorType.NotFound, "Policy not found");
 

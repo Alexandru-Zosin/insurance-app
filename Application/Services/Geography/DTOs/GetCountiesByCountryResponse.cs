@@ -2,5 +2,4 @@
 
 namespace Application.Services.Geography.DTOs;
 
-public sealed record GetCountiesByCountryResponse(
-        IReadOnlyList<CountyListItemDto> Counties);
+public sealed record GetCountiesByCountryResponse(IReadOnlyList<CountyListItemDto> Counties);

@@ -12,6 +12,8 @@ public partial class InsuranceDbContext : DbContext
     {
     }
 
+    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+
     public virtual DbSet<Broker> Brokers { get; set; }
 
     public virtual DbSet<Building> Buildings { get; set; }
@@ -34,6 +36,24 @@ public partial class InsuranceDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_core_AuditLog");
+
+            entity.ToTable("AuditLog", "core");
+
+            entity.HasIndex(e => new { e.Action, e.PerformedAtUtc }, "IX_core_AuditLog_Action_PerformedAtUtc").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.PerformedAtUtc }, "IX_core_AuditLog_Entity_PerformedAtUtc").IsDescending(false, false, true);
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Action).HasMaxLength(128);
+            entity.Property(e => e.EntityType).HasMaxLength(128);
+            entity.Property(e => e.NewValue).HasMaxLength(512);
+            entity.Property(e => e.OldValue).HasMaxLength(512);
+            entity.Property(e => e.PerformedAtUtc).HasDefaultValueSql("(sysutcdatetime())");
+        });
+
         modelBuilder.Entity<Broker>(entity =>
         {
             entity.ToTable("Broker", "core");

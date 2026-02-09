@@ -7,10 +7,10 @@ public sealed class ZoneRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskZoneCategory";
 
-    public bool CanMaterialize(PremiumRule row)
+    public bool CanMap(PremiumRule row)
         => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule row)
     {
         if (string.IsNullOrWhiteSpace(row.ZoneRiskCategoryCode))
             throw new InvalidOperationException("RiskZoneCategory requires ZoneRiskCategoryCode.");
@@ -28,7 +28,7 @@ public sealed class ZoneRiskConfigurationMapper : IRiskConfigurationMapper
     public bool CanPersist(IRiskConfiguration aggregate)
         => aggregate is ZoneRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration aggregate)
     {
         var a = (ZoneRiskConfiguration)aggregate;
 
@@ -43,7 +43,7 @@ public sealed class ZoneRiskConfigurationMapper : IRiskConfigurationMapper
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
     {
         var a = (ZoneRiskConfiguration)aggregate;
 

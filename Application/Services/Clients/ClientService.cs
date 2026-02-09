@@ -19,9 +19,9 @@ public sealed class ClientService(
         CreateClientRequest request,
         CancellationToken ct = default)
     {
-        var identifier = request.Client.IdentificationNumber.ToDomain();
-        var contact = request.Client.ContactInfo.ToDomain();
-        var address = request.Client.Address?.ToDomain();
+        var identifier = request.Client.IdentificationNumber.MapToDomain();
+        var contact = request.Client.ContactInfo.MapToDomain();
+        var address = request.Client.Address?.MapToDomain();
 
         var client = Client.Create(
             request.Client.Type,
@@ -30,7 +30,7 @@ public sealed class ClientService(
             contact,
             address);
 
-        await _clients.AddAsync(client, ct);
+        _clients.Add(client, ct);
 
         try
         {
@@ -43,15 +43,13 @@ public sealed class ClientService(
                 "Identification number already exists.");
         }
 
-        return Result<CreateClientResponse>.Ok(
-            new CreateClientResponse(client.Id));
+        var response = new CreateClientResponse(client.Id);
+        return Result<CreateClientResponse>.Ok(response);
     }
 
-    public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(
-        GetClientDetailsRequest request,
-        CancellationToken ct = default)
+    public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(Guid requestClientId, CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clients.GetByIdAsync(requestClientId, ct);
         if (client == null)
         {
             return Result<GetClientDetailsResponse>.Fail(
@@ -59,8 +57,8 @@ public sealed class ClientService(
                 "Client not found");
         }
 
-        var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
-        var policies = await _policies.GetByClientIdAsync(request.ClientId, ct);
+        var buildings = await _buildings.GetByClientIdAsync(requestClientId, ct);
+        var policies = await _policies.GetByClientIdAsync(requestClientId, ct);
 
         var response = new GetClientDetailsResponse(
             ClientDetailedDto.From(
@@ -68,7 +66,6 @@ public sealed class ClientService(
                     buildings.Select(BuildingListItemDto.From).ToArray(),
                     policies.Select(PolicyListItemDto.From).ToArray()
                 ));
-
         return Result<GetClientDetailsResponse>.Ok(response);
     }
 
@@ -87,27 +84,40 @@ public sealed class ClientService(
         return Result<SearchClientsResponse>.Ok(response);
     }
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
+        Guid requestClientId,
         UpdateClientRequest request,
         CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clients.GetByIdAsync(requestClientId, ct);
         if (client == null)
+            return Result<UpdateClientResponse>.Fail(ErrorType.NotFound, "Client not found");
+
+        var newName = request.ClientInfo.Name;
+        var newAddress = request.ClientInfo.Address?.MapToDomain();
+        var newContactInfo = request.ClientInfo.ContactInfo.MapToDomain();
+        var newIdentificationNumber = request.ClientInfo.IdentificationNumber.MapToDomain();
+
+        var originalIdentificationNumber = client.Identifier;
+        if (originalIdentificationNumber != newIdentificationNumber)
         {
-            return Result<UpdateClientResponse>.Fail(
-                ErrorType.NotFound, "Client not found");
+            _uow.EnqueueAudit(new AuditEntry(
+                EntityType: nameof(Client),
+                EntityId: client.Id,
+                Action: "ChangeIdentificationNumber",
+                OldValue: originalIdentificationNumber.Value,
+                NewValue: newIdentificationNumber.Value,
+                PerformedBy: request.PerformedByBrokerId,
+                PerformedAtUtc: DateTime.UtcNow));
         }
 
-        var newAddress = request.ClientInfo.Address?.ToDomain();
-        var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
-
-        var updatedClient = client.UpdateName(request.ClientInfo.Name)
-                              .UpdateContactInfo(newContactInfo)
-                              .UpdateAddress(newAddress);
+        var updatedClient = client.UpdateName(newName)
+                                  .UpdateContactInfo(newContactInfo)
+                                  .UpdateAddress(newAddress);
 
         await _clients.UpdateAsync(updatedClient, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return Result<UpdateClientResponse>.Ok(
-            new UpdateClientResponse(true));
+        var response = new UpdateClientResponse(true);
+        return Result<UpdateClientResponse>.Ok(response);
     }
 }

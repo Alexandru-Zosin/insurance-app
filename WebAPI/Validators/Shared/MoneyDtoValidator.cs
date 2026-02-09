@@ -14,9 +14,9 @@ public sealed class MoneyDtoValidator : AbstractValidator<MoneyDto>
 
         RuleFor(x => x.CurrencyCode)
             .NotEmpty().WithMessage("CurrencyCode is required.")
-            .Length(SharedVoValidationConstants.CurrencyCodeLength)
-            .WithMessage($"CurrencyCode must be exactly {SharedVoValidationConstants.CurrencyCodeLength} characters.")
-            .Matches(SharedVoValidationConstants.CurrencyCodeRegex)
+            .Length(CurrencyValidationConstants.CodeLength)
+            .WithMessage($"CurrencyCode must be exactly {CurrencyValidationConstants.CodeLength} characters.")
+            .Matches(CurrencyValidationConstants.CurrencyCodeRegex)
             .WithMessage("CurrencyCode format is invalid. Use ISO-like 3-letter uppercase code.");
     }
 }

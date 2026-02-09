@@ -16,10 +16,10 @@ public sealed class FeeConfigurationService(
             request.FeeConfig.Name,
             request.FeeConfig.Type,
             request.FeeConfig.Percentage,
-            request.FeeConfig.ValidityPeriod.ToDomain(),
+            request.FeeConfig.ValidityPeriod.MapToDomain(),
             request.FeeConfig.IsActive);
 
-        await _fees.AddAsync(fee, ct);
+        _fees.Add(fee, ct);
         await _uow.SaveChangesAsync(ct);
        
         var response = new CreateFeeConfigurationResponse(FeeConfigurationDetailedDto.From(fee));
@@ -27,10 +27,11 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<UpdateFeeConfigurationResponse>> UpdateFeeConfigAsync(
+        Guid requestFeeConfigId,
         UpdateFeeConfigurationRequest request,
         CancellationToken ct = default)
     {
-        var fee = await _fees.GetByIdAsync(request.FeeConfigId, ct);
+        var fee = await _fees.GetByIdAsync(requestFeeConfigId, ct);
         if (fee == null)
             return Result<UpdateFeeConfigurationResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");
@@ -46,15 +47,16 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<SetFeeConfigStatusResponse>> SetFeeConfigStatusAsync(
-        SetFeeConfigStatusRequest request,
+        Guid requestFeeConfigId,
+        bool requestIsActive,
         CancellationToken ct = default)
     {
-        var fee = await _fees.GetByIdAsync(request.FeeConfigId, ct);
+        var fee = await _fees.GetByIdAsync(requestFeeConfigId, ct);
         if (fee == null)
             return Result<SetFeeConfigStatusResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");
 
-        if (request.Active)
+        if (requestIsActive)
             fee.Activate();
         else
             fee.Deactivate();
@@ -80,7 +82,6 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<ListFeeConfigurationsResponse>> ListFeeConfigsAsync(
-        ListFeeConfigurationsRequest request,
         CancellationToken ct = default)
     {
         var list = await _fees.ListAsync(ct);

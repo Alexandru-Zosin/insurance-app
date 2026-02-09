@@ -10,5 +10,5 @@ public sealed record CurrencyDto(
 {
     public static CurrencyDto From(Currency c) => new(c.Code, c.Name, c.ExchangeRateToBase, c.IsActive);
 
-    public Currency ToDomain() => Currency.Create(Code, Name, ExchangeRateToBase, IsActive);
+    public Currency MapToDomain() => Currency.Create(Code, Name, ExchangeRateToBase, IsActive);
 }

@@ -4,7 +4,7 @@ namespace Application.Repositories;
 
 public interface IBrokerRepository
 {
-    Task AddAsync(Broker broker, CancellationToken cancellationToken = default);
+    void Add(Broker broker, CancellationToken cancellationToken = default);
     Task UpdateAsync(Broker broker, CancellationToken cancellationToken = default);
     Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken cancellationToken = default);
     Task<Broker?> GetByCodeAsync(string code, CancellationToken ct = default);

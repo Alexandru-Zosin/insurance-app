@@ -7,10 +7,10 @@ public sealed class CountyRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "CountyRisk";
 
-    public bool CanMaterialize(PremiumRule row)
+    public bool CanMap(PremiumRule row)
         => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule row)
     {
         if (row.CountyId is null)
             throw new InvalidOperationException("CountyRisk requires CountyId.");
@@ -26,7 +26,7 @@ public sealed class CountyRiskConfigurationMapper : IRiskConfigurationMapper
     public bool CanPersist(IRiskConfiguration aggregate)
         => aggregate is CountyRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration aggregate)
     {
         var a = (CountyRiskConfiguration)aggregate;
 
@@ -41,7 +41,7 @@ public sealed class CountyRiskConfigurationMapper : IRiskConfigurationMapper
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
     {
         var a = (CountyRiskConfiguration)aggregate;
 

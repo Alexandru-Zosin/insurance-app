@@ -5,5 +5,5 @@ public sealed record IdentificationNumberDto(string Value)
 {
     public static IdentificationNumberDto From(IdentificationNumber v) => new(v.Value);
     
-    public IdentificationNumber ToDomain() => IdentificationNumber.Create(Value);
+    public IdentificationNumber MapToDomain() => IdentificationNumber.Create(Value);
 }

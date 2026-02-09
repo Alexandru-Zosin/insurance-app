@@ -7,10 +7,10 @@ public sealed class CityRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskCity";
 
-    public bool CanMaterialize(PremiumRule row)
+    public bool CanMap(PremiumRule row)
         => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule row)
     {
         if (row.CityId is null)
             throw new InvalidOperationException("RiskCity requires CityId.");
@@ -26,7 +26,7 @@ public sealed class CityRiskConfigurationMapper : IRiskConfigurationMapper
     public bool CanPersist(IRiskConfiguration aggregate)
         => aggregate is CityRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration aggregate)
     {
         var a = (CityRiskConfiguration)aggregate;
 
@@ -41,7 +41,7 @@ public sealed class CityRiskConfigurationMapper : IRiskConfigurationMapper
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
     {
         var a = (CityRiskConfiguration)aggregate;
 

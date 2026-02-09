@@ -9,170 +9,162 @@ using EfPolicy = Infrastructure.Persistence.Models.Policy;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class PolicyRepository(InsuranceDbContext _db) : IPolicyRepository
+public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRepository
 {
-    public async Task AddAsync(Policy policy, CancellationToken cancellationToken)
+    public void Add(Policy policyToAdd, CancellationToken ct)
     {
-        if (policy is null) throw new ArgumentNullException(nameof(policy));
+        if (policyToAdd is null) throw new ArgumentNullException(nameof(policyToAdd));
 
-        var ef = ToEfModel(policy);
-
-        _db.Policies.Add(ef);
-        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        var policyRow = MapToEf(policyToAdd);
+        _dbContext.Policies.Add(policyRow);
     }
 
-    public async Task UpdateAsync(Policy aggregate, CancellationToken ct = default)
+    public async Task UpdateAsync(Policy updatedPolicy, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (updatedPolicy is null) throw new ArgumentNullException(nameof(updatedPolicy));
 
-        var ef = await _db.Policies
-            .SingleOrDefaultAsync(x => x.PolicyNumber == aggregate.Number, ct)
-            .ConfigureAwait(false);
+        var existingPolicyRow = await _dbContext.Policies
+            .SingleOrDefaultAsync(x => x.PolicyNumber == updatedPolicy.Number, ct);
 
-        if (ef is null)
+        if (existingPolicyRow is null)
             throw new InvalidOperationException("Policy not found.");
 
-        UpdateEfModel(ef, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        MapOntoEf(existingPolicyRow, updatedPolicy);
     }
 
-    public async Task<Policy?> GetByIdAsync(Guid policyId, CancellationToken cancellationToken)
+    public async Task<Policy?> GetByIdAsync(Guid policyNumber, CancellationToken ct)
     {
-        if (policyId == Guid.Empty) throw new ArgumentException("Policy id is required.", nameof(policyId));
+        if (policyNumber == Guid.Empty) 
+            throw new ArgumentException("Policy id is required.", nameof(policyNumber));
 
-        var ef = await _db.Policies
+        var policyRow = await _dbContext.Policies
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.PolicyNumber == policyId, cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(x => x.PolicyNumber == policyNumber, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return policyRow is null ? null : MapToDomain(policyRow);
     }
 
-    public async Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId, CancellationToken ct)
     {
         if (clientId == Guid.Empty) throw new ArgumentException("Client id is required.", nameof(clientId));
 
-        var rows = await _db.Policies
+        var policyRows = await _dbContext.Policies
             .AsNoTracking()
             .Where(x => x.ClientKey == clientId)
             .OrderByDescending(x => x.CreationDate)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return policyRows.Select(MapToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId, CancellationToken ct)
     {
         if (buildingId == Guid.Empty) throw new ArgumentException("Building id is required.", nameof(buildingId));
 
-        var rows = await _db.Policies
+        var rows = await _dbContext.Policies
             .AsNoTracking()
             .Where(x => x.BuildingKey == buildingId)
             .OrderByDescending(x => x.CreationDate)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return rows.Select(MapToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria criteria, PageRequest pageRequest, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria filter, PageRequest page, CancellationToken ct = default)
     {
-        if (criteria is null) throw new ArgumentNullException(nameof(criteria));
-        if (pageRequest is null) throw new ArgumentNullException(nameof(pageRequest));
+        if (filter is null) throw new ArgumentNullException(nameof(filter));
+        if (page is null) throw new ArgumentNullException(nameof(page));
 
-        var q = _db.Policies.AsNoTracking().AsQueryable();
+        var query = _dbContext.Policies.AsNoTracking().AsQueryable();
 
-        if (criteria.ClientId is { } clientId && clientId != Guid.Empty)
-            q = q.Where(x => x.ClientKey == clientId);
+        if (filter.ClientId is Guid clientId && clientId != Guid.Empty)
+            query = query.Where(x => x.ClientKey == clientId);
 
-        if (criteria.BrokerId is { } brokerId && brokerId != Guid.Empty)
-            q = q.Where(x => x.BrokerKey == brokerId);
+        if (filter.BrokerId is Guid brokerId && brokerId != Guid.Empty)
+            query = query.Where(x => x.BrokerKey == brokerId);
 
-        if (criteria.Status is { } status)
-            q = q.Where(x => x.Status == status.ToString());
+        if (filter.Status is PolicyStatus status)
+            query = query.Where(x => x.Status == status.ToString());
 
-        if (criteria.StartDate is { } start)
-            q = q.Where(x => x.StartDate >= start);
+        if (filter.StartDate is DateOnly startDate)
+            query = query.Where(x => x.StartDate >= startDate);
 
-        if (criteria.EndDate is { } end)
-            q = q.Where(x => x.EndDate <= end);
+        if (filter.EndDate is DateOnly endDate)
+            query = query.Where(x => x.EndDate <= endDate);
 
-        var skip = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
+        var offset = (page.PageNumber - 1) * page.PageSize;
 
-        var rows = await q
+        var policyRows = await query
             .OrderByDescending(x => x.CreationDate)
             .ThenByDescending(x => x.PolicyId)
-            .Skip(skip)
-            .Take(pageRequest.PageSize)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .Skip(offset)
+            .Take(page.PageSize)
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return policyRows.Select(MapToDomain).ToList();
     }
 
 
-    private static EfPolicy ToEfModel(Policy domain)
+    private static EfPolicy MapToEf(Policy policy)
     {
         return new EfPolicy
         {
-            PolicyNumber = domain.Number,
-            ClientKey = domain.ClientId,
-            BuildingKey = domain.BuildingId,
-            BrokerKey = domain.BrokerId,
-            Status = domain.Status.ToString(),
-            StartDate = domain.Tenure.StartDate,
-            EndDate = domain.Tenure.EndDate,
-            BasePremiumAmount = domain.BasePremium.Amount,
-            FinalPremiumAmount = domain.FinalPremium.Amount,
-            CurrencyCode = domain.CurrencyCode,
-            CreationDate = domain.CreationDate,
-            LastUpdateDate = domain.LastUpdateDate,
-            CancellationReason = domain.CancellationReason,
-            CancellationEffectiveDate = domain.CancellationEffectiveDate
+            PolicyNumber = policy.Number,
+            ClientKey = policy.ClientId,
+            BuildingKey = policy.BuildingId,
+            BrokerKey = policy.BrokerId,
+            Status = policy.Status.ToString(),
+            StartDate = policy.Tenure.StartDate,
+            EndDate = policy.Tenure.EndDate,
+            BasePremiumAmount = policy.BasePremium.Amount,
+            FinalPremiumAmount = policy.FinalPremium.Amount,
+            CurrencyCode = policy.CurrencyCode,
+            CreationDate = policy.CreationDate,
+            LastUpdateDate = policy.LastUpdateDate,
+            CancellationReason = policy.CancellationReason,
+            CancellationEffectiveDate = policy.CancellationEffectiveDate
         };
     }
 
-    private static void UpdateEfModel(EfPolicy ef, Policy domain)
+    private static void MapOntoEf(EfPolicy policyRow, Policy policy)
     {
-        ef.ClientKey = domain.ClientId;
-        ef.BuildingKey = domain.BuildingId;
-        ef.BrokerKey = domain.BrokerId;
-        ef.Status = domain.Status.ToString();
-        ef.StartDate = domain.Tenure.StartDate;
-        ef.EndDate = domain.Tenure.EndDate;
-        ef.BasePremiumAmount = domain.BasePremium.Amount;
-        ef.FinalPremiumAmount = domain.FinalPremium.Amount;
-        ef.CurrencyCode = domain.CurrencyCode;
-        ef.LastUpdateDate = domain.LastUpdateDate;
-        ef.CancellationReason = domain.CancellationReason;
-        ef.CancellationEffectiveDate = domain.CancellationEffectiveDate;
+        policyRow.ClientKey = policy.ClientId;
+        policyRow.BuildingKey = policy.BuildingId;
+        policyRow.BrokerKey = policy.BrokerId;
+        policyRow.Status = policy.Status.ToString();
+        policyRow.StartDate = policy.Tenure.StartDate;
+        policyRow.EndDate = policy.Tenure.EndDate;
+        policyRow.BasePremiumAmount = policy.BasePremium.Amount;
+        policyRow.FinalPremiumAmount = policy.FinalPremium.Amount;
+        policyRow.CurrencyCode = policy.CurrencyCode;
+        policyRow.LastUpdateDate = policy.LastUpdateDate;
+        policyRow.CancellationReason = policy.CancellationReason;
+        policyRow.CancellationEffectiveDate = policy.CancellationEffectiveDate;
     }
 
-    private static Policy ToDomain(EfPolicy ef)
+    private static Policy MapToDomain(EfPolicy policyRow)
     {
         return Policy.Rehydrate(
-            number: ef.PolicyNumber,
-            clientId: ef.ClientKey,
-            buildingId: ef.BuildingKey,
-            brokerId: ef.BrokerKey,
-            tenure: ValidityPeriod.Create(ef.StartDate, ef.EndDate),
-            basePremium: Money.Create(ef.BasePremiumAmount, ef.CurrencyCode),
-            currencyCode: ef.CurrencyCode,
-            finalPremium: Money.Create(ef.FinalPremiumAmount, ef.CurrencyCode),
-            status: ParseStatus(ef.Status),
-            creationDate: ef.CreationDate,
-            lastUpdateDate: ef.LastUpdateDate,
-            cancellationReason: ef.CancellationReason,
-            cancellationEffectiveDate: ef.CancellationEffectiveDate);
+            number: policyRow.PolicyNumber,
+            clientId: policyRow.ClientKey,
+            buildingId: policyRow.BuildingKey,
+            brokerId: policyRow.BrokerKey,
+            tenure: ValidityPeriod.Create(policyRow.StartDate, policyRow.EndDate),
+            basePremium: Money.Create(policyRow.BasePremiumAmount, policyRow.CurrencyCode),
+            currencyCode: policyRow.CurrencyCode,
+            finalPremium: Money.Create(policyRow.FinalPremiumAmount, policyRow.CurrencyCode),
+            status: ParseStatus(policyRow.Status),
+            creationDate: policyRow.CreationDate,
+            lastUpdateDate: policyRow.LastUpdateDate,
+            cancellationReason: policyRow.CancellationReason,
+            cancellationEffectiveDate: policyRow.CancellationEffectiveDate);
     }
 
-    private static PolicyStatus ParseStatus(string value)
+    private static PolicyStatus ParseStatus(string statusValue)
     {
-        if (Enum.TryParse<PolicyStatus>(value, ignoreCase: true, out var parsed))
-            return parsed;
+        if (Enum.TryParse<PolicyStatus>(statusValue, ignoreCase: true, out var policyStatus))
+            return policyStatus;
 
-        throw new InvalidOperationException($"Unknown policy status '{value}'.");
+        throw new InvalidOperationException($"Unknown policy status '{statusValue}'.");
     }
 }

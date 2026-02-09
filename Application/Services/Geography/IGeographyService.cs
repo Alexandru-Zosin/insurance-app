@@ -5,8 +5,8 @@ namespace Application.Services.Geography
 {
     public interface IGeographyService
     {
-        Task<Result<GetCitiesByCountyResponse>> GetCitiesByCountyAsync(GetCitiesByCountyRequest request, CancellationToken ct = default);
-        Task<Result<GetCountiesByCountryResponse>> GetCountiesByCountryAsync(GetCountiesByCountryRequest request, CancellationToken ct = default);
-        Task<Result<GetCountriesResponse>> GetCountriesAsync(GetCountriesRequest _, CancellationToken ct = default);
+        Task<Result<GetCitiesByCountyResponse>> GetCitiesByCountyAsync(int countyId, CancellationToken ct = default);
+        Task<Result<GetCountiesByCountryResponse>> GetCountiesByCountryAsync(int countryId, CancellationToken ct = default);
+        Task<Result<GetCountriesResponse>> GetCountriesAsync(CancellationToken ct = default);
     }
 }

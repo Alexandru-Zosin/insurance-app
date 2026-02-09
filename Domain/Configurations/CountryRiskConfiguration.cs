@@ -18,7 +18,7 @@ public sealed class CountryRiskConfiguration : IRiskConfiguration
 
     private CountryRiskConfiguration(RiskConfigCore core, int countryId)
     {
-        _core = core ?? throw new ArgumentNullException(nameof(core));
+        _core = core;
         CountryId = countryId;
 
         ValidateInvariants();
@@ -36,6 +36,6 @@ public sealed class CountryRiskConfiguration : IRiskConfiguration
     private void ValidateInvariants()
     {
         if (CountryId <= 0)
-            throw new DomainException("Invalid CountryId.");
+            throw new DomainException(RiskConfigurationConstants.InvalidCountryIdMsg);
     }
 }

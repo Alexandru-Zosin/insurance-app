@@ -89,19 +89,20 @@ public sealed class FeeConfiguration : IPremiumRule
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid fee configuration name.");
+            throw new DomainException(FeeConfigurationConstants.InvalidNameMsg);
     }
 
     private static void ValidatePercentage(decimal percentage)
     {
-        if (percentage < 0.0m || percentage > 1.0m)
-            throw new DomainException("Invalid fee configuration percentage.");
+        if (percentage < FeeConfigurationConstants.PercentageMin ||
+            percentage > FeeConfigurationConstants.PercentageMax)
+            throw new DomainException(FeeConfigurationConstants.InvalidPercentageMsg);
     }
 
     private static void ValidateValidity(ValidityPeriod validityPeriod)
     {
         if (validityPeriod is null)
-            throw new DomainException("Invalid validity period for fee configuration.");
+            throw new DomainException(FeeConfigurationConstants.InvalidValidityPeriodMsg);
     }
 
     private void ValidateInvariants()
