@@ -65,8 +65,7 @@ public sealed class PolicyService(
             DateOnly.FromDateTime(DateTime.UtcNow)
         );
 
-        var finalPremium = _premiumCalculatorService.CalculateFinalPremium(
-            draftContext, premiumRules);
+        var finalPremium = _premiumCalculatorService.CalculateFinalPremium(draftContext, premiumRules);
 
         var draft = Policy.CreateDraft(
             client.Id,

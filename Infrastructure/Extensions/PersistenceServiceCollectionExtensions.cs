@@ -6,6 +6,7 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Repositories.PremiumRuleQuery;
 using Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Mappers;
+using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.MappersRegistry;
 using Infrastructure.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

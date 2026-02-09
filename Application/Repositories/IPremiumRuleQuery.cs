@@ -4,6 +4,5 @@ namespace Application.Repositories;
 
 public interface IPremiumRuleQuery
 {
-    Task<IReadOnlyList<IPremiumRule>> GetActiveAsync(
-        CancellationToken ct = default);
+    Task<IReadOnlyList<IPremiumRule>> GetActiveAsync(CancellationToken ct = default);
 }

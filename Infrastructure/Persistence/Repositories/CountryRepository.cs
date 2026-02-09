@@ -17,23 +17,23 @@ public sealed class CountryRepository(InsuranceDbContext _dbContext) : ICountryR
         _dbContext.Countries.Add(countryRow);
     }
 
-    public async Task<Country?> GetByIdAsync(int countryId, CancellationToken cancellationToken = default)
+    public async Task<Country?> GetByIdAsync(int countryId, CancellationToken ct = default)
     {
         if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 
         var countryRow = await _dbContext.Countries
             .AsNoTracking()
-            .SingleOrDefaultAsync(c => c.CountryId == countryId, cancellationToken);
+            .SingleOrDefaultAsync(c => c.CountryId == countryId, ct);
 
         return countryRow is null ? null : MapToDomain(countryRow);
     }
 
-    public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken ct = default)
     {
         var countryRows = await _dbContext.Countries
             .AsNoTracking()
             .OrderBy(c => c.Name)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         return countryRows.Select(MapToDomain).ToList();
     }

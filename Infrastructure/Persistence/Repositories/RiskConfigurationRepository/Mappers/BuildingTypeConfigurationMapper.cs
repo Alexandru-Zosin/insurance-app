@@ -1,5 +1,5 @@
-﻿using Domain.Configurations;
-using Domain.Buildings;
+﻿using Domain.Buildings;
+using Domain.Configurations;
 using Infrastructure.Persistence.Models;
 
 namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Mappers;
@@ -8,52 +8,52 @@ public sealed class BuildingTypeRiskConfigurationMapper : IRiskConfigurationMapp
 {
     private const string Kind = "RiskBuildingType";
 
-    public bool CanMap(PremiumRule row)
-        => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
+    public bool CanMapToDomain(PremiumRule premiumRuleRow)
+        => string.Equals(premiumRuleRow.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration MapToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule premiumRuleRow)
     {
-        if (string.IsNullOrWhiteSpace(row.BuildingType))
+        if (string.IsNullOrWhiteSpace(premiumRuleRow.BuildingType))
             throw new InvalidOperationException("RiskBuildingType requires BuildingType.");
 
-        var bt = Enum.Parse<BuildingType>(row.BuildingType, ignoreCase: true);
+        var rowBuildingType = Enum.Parse<BuildingType>(premiumRuleRow.BuildingType, ignoreCase: true);
 
         return BuildingTypeRiskConfiguration.Rehydrate(
-            id: row.PremiumRuleKey,
-            name: row.Name,
-            percentage: row.Percentage,
-            isActive: row.IsActive,
-            buildingType: bt);
+            id: premiumRuleRow.PremiumRuleKey,
+            name: premiumRuleRow.Name,
+            percentage: premiumRuleRow.Percentage,
+            isActive: premiumRuleRow.IsActive,
+            buildingType: rowBuildingType);
     }
 
-    public bool CanPersist(IRiskConfiguration aggregate)
-        => aggregate is BuildingTypeRiskConfiguration;
+    public bool CanMapToEf(IRiskConfiguration riskConfiguration)
+        => riskConfiguration is BuildingTypeRiskConfiguration;
 
-    public PremiumRule MapToEf(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration riskConfiguration)
     {
-        var a = (BuildingTypeRiskConfiguration)aggregate;
+        var buildingTypeRiskConfiguration = (BuildingTypeRiskConfiguration)riskConfiguration;
 
         return new PremiumRule
         {
-            PremiumRuleKey = a.Id,
+            PremiumRuleKey = buildingTypeRiskConfiguration.Id,
             RuleKind = Kind,
-            Name = a.Name,
-            Percentage = a.Percentage,
-            IsActive = a.IsActive,
-            BuildingType = a.BuildingType.ToString()
+            Name = buildingTypeRiskConfiguration.Name,
+            Percentage = buildingTypeRiskConfiguration.Percentage,
+            IsActive = buildingTypeRiskConfiguration.IsActive,
+            BuildingType = buildingTypeRiskConfiguration.BuildingType.ToString()
         };
     }
 
-    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration riskConfiguration)
     {
-        var a = (BuildingTypeRiskConfiguration)aggregate;
+        var buildingTypeRiskConfiguration = (BuildingTypeRiskConfiguration)riskConfiguration;
 
         if (!string.Equals(row.RuleKind, Kind, StringComparison.Ordinal))
             throw new InvalidOperationException($"Expected RuleKind '{Kind}'.");
 
-        row.Name = a.Name;
-        row.Percentage = a.Percentage;
-        row.IsActive = a.IsActive;
-        row.BuildingType = a.BuildingType.ToString();
+        row.Name = buildingTypeRiskConfiguration.Name;
+        row.Percentage = buildingTypeRiskConfiguration.Percentage;
+        row.IsActive = buildingTypeRiskConfiguration.IsActive;
+        row.BuildingType = buildingTypeRiskConfiguration.BuildingType.ToString();
     }
 }

@@ -7,50 +7,52 @@ public sealed class CountyRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "CountyRisk";
 
-    public bool CanMap(PremiumRule row)
-        => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
+    public bool CanMapToDomain(PremiumRule premiumRuleRow)
+        => string.Equals(premiumRuleRow.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration MapToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule premiumRuleRow)
     {
-        if (row.CountyId is null)
+        if (premiumRuleRow.CountyId is null)
             throw new InvalidOperationException("CountyRisk requires CountyId.");
 
+        var premiumRuleRowCountyId = premiumRuleRow.CountyId.Value;
+
         return CountyRiskConfiguration.Rehydrate(
-            id: row.PremiumRuleKey,
-            name: row.Name,
-            percentage: row.Percentage,
-            isActive: row.IsActive,
-            countyId: row.CountyId.Value);
+            id: premiumRuleRow.PremiumRuleKey,
+            name: premiumRuleRow.Name,
+            percentage: premiumRuleRow.Percentage,
+            isActive: premiumRuleRow.IsActive,
+            countyId: premiumRuleRowCountyId);
     }
 
-    public bool CanPersist(IRiskConfiguration aggregate)
-        => aggregate is CountyRiskConfiguration;
+    public bool CanMapToEf(IRiskConfiguration riskConfiguration)
+        => riskConfiguration is CountyRiskConfiguration;
 
-    public PremiumRule MapToEf(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration riskConfiguration)
     {
-        var a = (CountyRiskConfiguration)aggregate;
+        var countyRiskConfiguration = (CountyRiskConfiguration)riskConfiguration;
 
         return new PremiumRule
         {
-            PremiumRuleKey = a.Id,
+            PremiumRuleKey = countyRiskConfiguration.Id,
             RuleKind = Kind,
-            Name = a.Name,
-            Percentage = a.Percentage,
-            IsActive = a.IsActive,
-            CountyId = a.CountyId,
+            Name = countyRiskConfiguration.Name,
+            Percentage = countyRiskConfiguration.Percentage,
+            IsActive = countyRiskConfiguration.IsActive,
+            CountyId = countyRiskConfiguration.CountyId
         };
     }
 
-    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration riskConfiguration)
     {
-        var a = (CountyRiskConfiguration)aggregate;
+        var countyRiskConfiguration = (CountyRiskConfiguration)riskConfiguration;
 
         if (!string.Equals(row.RuleKind, Kind, StringComparison.Ordinal))
             throw new InvalidOperationException($"Expected RuleKind '{Kind}'.");
 
-        row.Name = a.Name;
-        row.Percentage = a.Percentage;
-        row.IsActive = a.IsActive;
-        row.CountyId = a.CountyId;
+        row.Name = countyRiskConfiguration.Name;
+        row.Percentage = countyRiskConfiguration.Percentage;
+        row.IsActive = countyRiskConfiguration.IsActive;
+        row.CountyId = countyRiskConfiguration.CountyId;
     }
 }
