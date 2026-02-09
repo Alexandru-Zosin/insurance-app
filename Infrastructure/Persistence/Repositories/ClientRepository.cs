@@ -25,7 +25,7 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
         return clientRow is null ? null : MapToDomain(clientRow);
     }
 
-    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest pageRequest, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
     {
         var query = _dbContext.Clients.AsNoTracking().AsQueryable();
 
@@ -41,13 +41,11 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
             query = query.Where(x => x.Name.Contains(nameValue));
         }
 
-        var offset = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
-
         var clientRows = await query
             .OrderBy(x => x.Name)
             .ThenBy(x => x.IdentificationNumber)
-            .Skip(offset)
-            .Take(pageRequest.PageSize)
+            .Skip(page.Offset)
+            .Take(page.Take)
             .ToListAsync(ct);
 
         return clientRows.Select(MapToDomain).ToList();

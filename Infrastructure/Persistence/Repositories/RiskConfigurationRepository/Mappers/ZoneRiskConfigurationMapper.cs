@@ -7,52 +7,54 @@ public sealed class ZoneRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskZoneCategory";
 
-    public bool CanMap(PremiumRule row)
-        => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
+    public bool CanMapToDomain(PremiumRule premiumRuleRow)
+        => string.Equals(premiumRuleRow.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration MapToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule premiumRuleRow)
     {
-        if (string.IsNullOrWhiteSpace(row.ZoneRiskCategoryCode))
+        if (string.IsNullOrWhiteSpace(premiumRuleRow.ZoneRiskCategoryCode))
             throw new InvalidOperationException("RiskZoneCategory requires ZoneRiskCategoryCode.");
 
-        var category = Enum.Parse<ZoneRiskCategory>(row.ZoneRiskCategoryCode, ignoreCase: true);
+        var premiumRuleRowZoneRiskCategory = Enum.Parse<ZoneRiskCategory>(
+            premiumRuleRow.ZoneRiskCategoryCode,
+            ignoreCase: true);
 
         return ZoneRiskConfiguration.Rehydrate(
-            id: row.PremiumRuleKey,
-            name: row.Name,
-            pct: row.Percentage,
-            active: row.IsActive,
-            category: category);
+            id: premiumRuleRow.PremiumRuleKey,
+            name: premiumRuleRow.Name,
+            pct: premiumRuleRow.Percentage,
+            active: premiumRuleRow.IsActive,
+            category: premiumRuleRowZoneRiskCategory);
     }
 
-    public bool CanPersist(IRiskConfiguration aggregate)
-        => aggregate is ZoneRiskConfiguration;
+    public bool CanMapToEf(IRiskConfiguration riskConfiguration)
+        => riskConfiguration is ZoneRiskConfiguration;
 
-    public PremiumRule MapToEf(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration riskConfiguration)
     {
-        var a = (ZoneRiskConfiguration)aggregate;
+        var zoneRiskConfiguration = (ZoneRiskConfiguration)riskConfiguration;
 
         return new PremiumRule
         {
-            PremiumRuleKey = a.Id,
+            PremiumRuleKey = zoneRiskConfiguration.Id,
             RuleKind = Kind,
-            Name = a.Name,
-            Percentage = a.Percentage,
-            IsActive = a.IsActive,
-            ZoneRiskCategoryCode = a.Category.ToString()
+            Name = zoneRiskConfiguration.Name,
+            Percentage = zoneRiskConfiguration.Percentage,
+            IsActive = zoneRiskConfiguration.IsActive,
+            ZoneRiskCategoryCode = zoneRiskConfiguration.Category.ToString()
         };
     }
 
-    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration riskConfiguration)
     {
-        var a = (ZoneRiskConfiguration)aggregate;
+        var zoneRiskConfiguration = (ZoneRiskConfiguration)riskConfiguration;
 
         if (!string.Equals(row.RuleKind, Kind, StringComparison.Ordinal))
             throw new InvalidOperationException($"Expected RuleKind '{Kind}'.");
 
-        row.Name = a.Name;
-        row.Percentage = a.Percentage;
-        row.IsActive = a.IsActive;
-        row.ZoneRiskCategoryCode = a.Category.ToString();
+        row.Name = zoneRiskConfiguration.Name;
+        row.Percentage = zoneRiskConfiguration.Percentage;
+        row.IsActive = zoneRiskConfiguration.IsActive;
+        row.ZoneRiskCategoryCode = zoneRiskConfiguration.Category.ToString();
     }
 }

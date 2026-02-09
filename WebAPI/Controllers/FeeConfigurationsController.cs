@@ -9,7 +9,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
     [HttpGet]
     public async Task<ActionResult<ListFeeConfigurationsResponse>> ListFeeConfigurationsAsync(CancellationToken ct = default)
     {
-        var result = await FeeConfigService.ListFeeConfigsAsync(ct);
+        var result = await FeeConfigService.ListFeeConfigurationsAsync(ct);
 
         return FromResult(result);
     }
@@ -19,7 +19,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromBody] CreateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.CreateFeeConfigAsync(request, ct);
+        var result = await FeeConfigService.CreateFeeConfigurationAsync(request, ct);
         
         return FromCreated(result, $"/api/admin/fees/{result.Value!.FeeConfig.Id}");
     }
@@ -30,7 +30,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromBody] UpdateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.UpdateFeeConfigAsync(feeConfigId, request, ct);
+        var result = await FeeConfigService.UpdateFeeConfigurationAsync(feeConfigId, request, ct);
 
         return FromResult(result);
     }
@@ -40,7 +40,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromRoute] Guid feeConfigId,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigStatusAsync(feeConfigId, true, ct);
+        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, true, ct);
 
         return FromResult(result);
     }
@@ -50,7 +50,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromRoute] Guid feeConfigId,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigStatusAsync(feeConfigId, false, ct);
+        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, false, ct);
 
         return FromResult(result);
     }

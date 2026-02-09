@@ -30,12 +30,11 @@ public sealed class CountryRiskConfiguration : IRiskConfiguration
     public static CountryRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, int countryId)
         => new(new RiskConfigCore(id, name, percentage, isActive), countryId);
 
-    public bool IsApplicable(PolicyDraftContext ctx)
-        => IsActive && ctx.CountryId == CountryId;
-
     private void ValidateInvariants()
     {
         if (CountryId <= 0)
             throw new DomainException(RiskConfigurationConstants.InvalidCountryIdMsg);
     }
+    public bool IsApplicable(PolicyDraftContext ctx)
+        => IsActive && ctx.CountryId == CountryId;
 }

@@ -6,45 +6,37 @@ using Application.Services.Shared.DTOs.GeographyDTOs;
 namespace Application.Services.Geography;
 
 public sealed class GeographyService(
-    ICityRepository _cities,
-    ICountyRepository _counties,
-    ICountryRepository _countries
+    ICityRepository _cityRepository,
+    ICountyRepository _countyRepository,
+    ICountryRepository _countryRepositories
     ) : IGeographyService
 {
     public async Task<Result<GetCitiesByCountyResponse>> GetCitiesByCountyAsync(
-        int requestCountyId,
+        int countyId,
         CancellationToken ct = default)
     {
-        var cities = await _cities.GetByCountyIdAsync(requestCountyId, ct);
+        var countyCities = await _cityRepository.GetByCountyIdAsync(countyId, ct);
 
-        var response = new GetCitiesByCountyResponse(cities.Select(CityListItemDto.From).ToList());
+        var response = new GetCitiesByCountyResponse(countyCities.Select(CityListItemDto.From).ToList());
         return Result<GetCitiesByCountyResponse>.Ok(response);
     }
 
     public async Task<Result<GetCountiesByCountryResponse>> GetCountiesByCountryAsync(
-        int requestCountryId,
+        int countryId,
         CancellationToken ct = default)
     {
-        var country = await _countries.GetByIdAsync(requestCountryId, ct);
+        var countryCounties = await _countyRepository.GetByCountryIdAsync(countryId, ct);
 
-        if (country == null)
-        {
-            return Result<GetCountiesByCountryResponse>.Fail(
-                ErrorType.NotFound,
-                "Country not found");
-        }
-
-        var counties = await _counties.GetByCountryIdAsync(requestCountryId, ct);
-
-        var response = new GetCountiesByCountryResponse(counties.Select(CountyListItemDto.From).ToList());
+        var response = new GetCountiesByCountryResponse(countryCounties
+            .Select(CountyListItemDto.From).ToList());
         return Result<GetCountiesByCountryResponse>.Ok(response);
     }
 
     public async Task<Result<GetCountriesResponse>> GetCountriesAsync(CancellationToken ct = default)
     {
-        var countries = await _countries.GetAllAsync(ct);
+        var allCountries = await _countryRepositories.GetAllAsync(ct);
 
-        var response = new GetCountriesResponse(countries.Select(CountryListItemDto.From).ToList());
+        var response = new GetCountriesResponse(allCountries.Select(CountryListItemDto.From).ToList());
         return Result<GetCountriesResponse>.Ok(response);
     }
 

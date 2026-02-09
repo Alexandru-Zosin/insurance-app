@@ -7,50 +7,52 @@ public sealed class CountryRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskCountry";
 
-    public bool CanMap(PremiumRule row)
-        => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
+    public bool CanMapToDomain(PremiumRule premiumRuleRow)
+        => string.Equals(premiumRuleRow.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration MapToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule premiumRuleRow)
     {
-        if (row.CountryId is null)
+        if (premiumRuleRow.CountryId is null)
             throw new InvalidOperationException("RiskCountry requires CountryId.");
 
+        var premiumRuleRowCountryId = premiumRuleRow.CountryId.Value;
+
         return CountryRiskConfiguration.Rehydrate(
-            id: row.PremiumRuleKey,
-            name: row.Name,
-            percentage: row.Percentage,
-            isActive: row.IsActive,
-            countryId: row.CountryId.Value);
+            id: premiumRuleRow.PremiumRuleKey,
+            name: premiumRuleRow.Name,
+            percentage: premiumRuleRow.Percentage,
+            isActive: premiumRuleRow.IsActive,
+            countryId: premiumRuleRowCountryId);
     }
 
-    public bool CanPersist(IRiskConfiguration aggregate)
-        => aggregate is CountryRiskConfiguration;
+    public bool CanMapToEf(IRiskConfiguration riskConfiguration)
+        => riskConfiguration is CountryRiskConfiguration;
 
-    public PremiumRule MapToEf(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration riskConfiguration)
     {
-        var a = (CountryRiskConfiguration)aggregate;
+        var countryRiskConfiguration = (CountryRiskConfiguration)riskConfiguration;
 
         return new PremiumRule
         {
-            PremiumRuleKey = a.Id,
+            PremiumRuleKey = countryRiskConfiguration.Id,
             RuleKind = Kind,
-            Name = a.Name,
-            Percentage = a.Percentage,
-            IsActive = a.IsActive,
-            CountryId = a.CountryId
+            Name = countryRiskConfiguration.Name,
+            Percentage = countryRiskConfiguration.Percentage,
+            IsActive = countryRiskConfiguration.IsActive,
+            CountryId = countryRiskConfiguration.CountryId
         };
     }
 
-    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration riskConfiguration)
     {
-        var a = (CountryRiskConfiguration)aggregate;
+        var countryRiskConfiguration = (CountryRiskConfiguration)riskConfiguration;
 
         if (!string.Equals(row.RuleKind, Kind, StringComparison.Ordinal))
             throw new InvalidOperationException($"Expected RuleKind '{Kind}'.");
 
-        row.Name = a.Name;
-        row.Percentage = a.Percentage;
-        row.IsActive = a.IsActive;
-        row.CountryId = a.CountryId;
+        row.Name = countryRiskConfiguration.Name;
+        row.Percentage = countryRiskConfiguration.Percentage;
+        row.IsActive = countryRiskConfiguration.IsActive;
+        row.CountryId = countryRiskConfiguration.CountryId;
     }
 }

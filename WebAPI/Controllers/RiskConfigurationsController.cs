@@ -10,7 +10,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
     [HttpGet]
     public async Task<ActionResult<ListRiskConfigurationsResponse>> ListRiskConfigurationsAsync(CancellationToken ct = default)
     {
-        var result = await RiskService.ListAsync(ct);
+        var result = await RiskService.ListRiskConfigurationsAsync(ct);
         return FromResult(result);
     }
 
@@ -19,7 +19,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] CreateCountryRiskRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.CreateCountryAsync(request, ct);
+        var result = await RiskService.CreateCountryRiskConfigurationAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
@@ -29,7 +29,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] CreateCountyRiskRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.CreateCountyAsync(request, ct);
+        var result = await RiskService.CreateCountyRiskConfigurationAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
@@ -39,7 +39,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] CreateCityRiskRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.CreateCityAsync(request, ct);
+        var result = await RiskService.CreateCityRiskConfigurationAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
@@ -49,7 +49,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] CreateBuildingTypeRiskRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.CreateBuildingTypeAsync(request, ct);
+        var result = await RiskService.CreateBuildingTypeRiskConfigurationAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
@@ -59,7 +59,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] CreateZoneCategoryRiskRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.CreateZoneCategoryAsync(request, ct);
+        var result = await RiskService.CreateZoneCategoryRiskConfigurationAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/risk-factors/{result.Value!.RiskConfiguration.Id}");
     }
@@ -70,7 +70,7 @@ public sealed class RiskConfigurationsController(IRiskConfigurationService RiskS
         [FromBody] UpdateRiskConfigurationRequest request,
         CancellationToken ct = default)
     {
-        var result = await RiskService.UpdateCoreAsync(riskConfigurationId, request, ct);
+        var result = await RiskService.UpdateRiskConfigurationAsync(riskConfigurationId, request, ct);
         return FromResult(result);
     }
 }

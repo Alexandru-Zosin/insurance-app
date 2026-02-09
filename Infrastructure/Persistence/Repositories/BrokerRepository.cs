@@ -48,14 +48,12 @@ public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRep
 
     public async Task<IReadOnlyList<Broker>> ListAsync(PageRequest page, CancellationToken ct = default)
     {
-        var offset = (page.PageNumber - 1) * page.PageSize;
-
         var brokerRows = await _dbContext.Brokers
             .AsNoTracking()
             .OrderBy(b => b.Name)
             .ThenBy(b => b.Code)
-            .Skip(offset)
-            .Take(page.PageSize)
+            .Skip(page.Offset)
+            .Take(page.Take)
             .ToListAsync(ct);
 
         return brokerRows.Select(MapMapToDomain).ToList();

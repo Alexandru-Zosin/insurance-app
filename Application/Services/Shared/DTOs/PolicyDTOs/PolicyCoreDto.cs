@@ -1,5 +1,4 @@
-﻿using Application.Services.Shared.DTOs.CurrencyDTOs;
-using Domain.Policies;
+﻿using Domain.Policies;
 namespace Application.Services.Shared.DTOs.PolicyDTOs;
 
 public sealed record PolicyCoreDto(

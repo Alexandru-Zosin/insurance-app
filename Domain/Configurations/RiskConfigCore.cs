@@ -47,13 +47,14 @@ public sealed class RiskConfigCore
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid risk factor configuration name.");
+            throw new DomainException(RiskConfigurationConstants.InvalidNameMsg);
     }
 
     private static void ValidatePercentage(decimal percentage)
     {
-        if (percentage < 0.0m || percentage > 1.0m)
-            throw new DomainException("Invalid risk factor configuration percentage.");
+        if (percentage < RiskConfigurationConstants.PercentageMin || 
+            percentage > RiskConfigurationConstants.PercentageMax)
+            throw new DomainException(RiskConfigurationConstants.InvalidPercentageMsg);
     }
 
     private void ValidateInvariants()
