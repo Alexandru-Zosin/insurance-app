@@ -33,7 +33,7 @@ public sealed class RiskConfigurationMapperRegistry : IRiskConfigurationMapperRe
     }
 
     public bool TryResolveMapperForPremiumRuleRow(PremiumRule premiumRuleRow,
-        out IRiskConfigurationMapper? resolvedRiskMapper)
+        out IRiskConfigurationMapper resolvedRiskMapper)
     {
         foreach (var mapper in _riskConfigurationMappers)
         {
@@ -44,7 +44,7 @@ public sealed class RiskConfigurationMapperRegistry : IRiskConfigurationMapperRe
             }
         }
 
-        resolvedRiskMapper = null;
+        resolvedRiskMapper = null!;
         return false;
     }
 }

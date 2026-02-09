@@ -92,13 +92,11 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
         if (filter.EndDate is DateOnly endDate)
             query = query.Where(x => x.EndDate <= endDate);
 
-        var offset = (page.PageNumber - 1) * page.PageSize;
-
         var policyRows = await query
             .OrderByDescending(x => x.CreationDate)
             .ThenByDescending(x => x.PolicyId)
-            .Skip(offset)
-            .Take(page.PageSize)
+            .Skip(page.Offset)
+            .Take(page.Take)
             .ToListAsync(ct);
 
         return policyRows.Select(MapToDomain).ToList();
