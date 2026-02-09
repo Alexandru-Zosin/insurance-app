@@ -1,76 +1,71 @@
 ﻿using Application.Repositories;
 using Domain.Configurations;
 using Infrastructure.Persistence.Data;
-using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Mappers;
+using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.MappersRegistry;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 
-public sealed class RiskConfigurationRepository(
-    InsuranceDbContext _db,
-    IRiskConfigurationMapperRegistry _registry) : IRiskConfigurationRepository
+public sealed class RiskConfigurationRepository(InsuranceDbContext _dbContext,
+    IRiskConfigurationMapperRegistry _riskMapperRegistry) : IRiskConfigurationRepository
 {
-    public async Task AddAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
+    public void Add(IRiskConfiguration riskConfigurationToAdd, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (riskConfigurationToAdd is null) throw new ArgumentNullException(nameof(riskConfigurationToAdd));
 
-        var mapper = _registry.ResolveForAggregate(aggregate);
-        var row = mapper.ToEfModel(aggregate);
+        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(riskConfigurationToAdd);
+        var premiumRuleRow = resolvedRiskMapper.MapToEf(riskConfigurationToAdd);
 
-        _db.PremiumRules.Add(row);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        _dbContext.PremiumRules.Add(premiumRuleRow);
     }
 
-    public async Task UpdateAsync(IRiskConfiguration aggregate, CancellationToken ct = default)
+    public async Task UpdateAsync(IRiskConfiguration updatedRiskConfiguration, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (updatedRiskConfiguration is null)
+            throw new ArgumentNullException(nameof(updatedRiskConfiguration));
 
-        var row = await _db.PremiumRules
-            .SingleOrDefaultAsync(r => r.PremiumRuleKey == aggregate.Core.Id, ct)
-            .ConfigureAwait(false);
+        var existingPremiumRuleRow = await _dbContext.PremiumRules
+            .SingleOrDefaultAsync(r => r.PremiumRuleKey == updatedRiskConfiguration.Core.Id, ct);
 
-        if (row is null)
+        if (existingPremiumRuleRow is null)
             throw new InvalidOperationException("Risk factor not found.");
 
-        var mapper = _registry.ResolveForAggregate(aggregate);
-        mapper.UpdateEfModel(row, aggregate);
+        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(updatedRiskConfiguration);
 
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        resolvedRiskMapper.MapOntoEf(existingPremiumRuleRow, updatedRiskConfiguration);
     }
 
     public async Task<IRiskConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var row = await _db.PremiumRules
+        var premiumRuleRow = await _dbContext.PremiumRules
             .AsNoTracking()
-            .SingleOrDefaultAsync(r => r.PremiumRuleKey == id, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(r => r.PremiumRuleKey == id, ct);
 
-        if (row is null)
+        if (premiumRuleRow is null)
             return null;
 
-        if (!_registry.TryResolveForRow(row, out var mapper))
-            return null; // not a risk row (e.g., fee) or unsupported kind
+        if (!_riskMapperRegistry.TryResolveMapperForPremiumRuleRow(premiumRuleRow, out var resolvedRiskMapper))
+            return null;
 
-        return mapper.ToDomain(row);
+        return resolvedRiskMapper.MapToDomain(premiumRuleRow);
     }
 
     public async Task<IReadOnlyList<IRiskConfiguration>> ListAsync(CancellationToken ct = default)
     {
-        var rows = await _db.PremiumRules
+        var premiumRuleRows = await _dbContext.PremiumRules
             .AsNoTracking()
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        var result = new List<IRiskConfiguration>();
+        var riskConfigurations = new List<IRiskConfiguration>();
 
-        foreach (var row in rows)
+        foreach (var premiumRuleRow in premiumRuleRows)
         {
-            if (!_registry.TryResolveForRow(row, out var mapper))
-                continue; // skip non-risk rows
+            if (!_riskMapperRegistry.TryResolveMapperForPremiumRuleRow(premiumRuleRow, out var resolvedRiskMapper))
+                continue;
 
-            result.Add(mapper.ToDomain(row));
+            riskConfigurations.Add(resolvedRiskMapper.MapToDomain(premiumRuleRow));
         }
 
-        return result;
+        return riskConfigurations;
     }
 }

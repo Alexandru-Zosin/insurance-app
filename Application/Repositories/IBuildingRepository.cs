@@ -3,8 +3,8 @@ namespace Application.Repositories;
 
 public interface IBuildingRepository
 {
-    Task AddAsync(Building building, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default);
-    Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken cancellationToken = default);
-    Task UpdateAsync(Building building, CancellationToken cancellationToken = default);
+    Task AddAsync(Building building, CancellationToken ct = default);
+    Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid clientId, CancellationToken ct = default);
+    Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken ct = default);
+    Task UpdateAsync(Building building, CancellationToken ct = default);
 }

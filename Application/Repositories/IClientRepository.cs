@@ -4,7 +4,7 @@ namespace Application.Repositories;
 
 public interface IClientRepository
 {
-    Task AddAsync(Client client, CancellationToken ct = default);
+    void Add(Client client, CancellationToken ct = default);
     Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default);
     Task<IReadOnlyList<Client>> SearchAsync(string? identifier, string? name,
         PageRequest pageRequest, CancellationToken ct = default);

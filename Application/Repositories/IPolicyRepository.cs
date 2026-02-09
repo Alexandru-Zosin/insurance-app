@@ -6,15 +6,11 @@ using Domain.Policies;
 
 public interface IPolicyRepository
 {
-    Task AddAsync(Policy policy, CancellationToken cancellationToken);
-    Task UpdateAsync(Policy aggregate, CancellationToken ct = default);
-    Task<Policy?> GetByIdAsync(Guid policyId,
-        CancellationToken cancellationToken);
-    Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId,
-        CancellationToken cancellationToken);
-    Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId,
-        CancellationToken cancellationToken);
-    Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria criteria,
-                                            PageRequest pageRequest,
+    void Add(Policy policy, CancellationToken ct = default);
+    Task UpdateAsync(Policy policy, CancellationToken ct = default);
+    Task<Policy?> GetByIdAsync(Guid policyId, CancellationToken ct = default);
+    Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId, CancellationToken ct = default);
+    Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId, CancellationToken ct = default);
+    Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria criteria, PageRequest pageRequest,
                                             CancellationToken ct = default);
 }

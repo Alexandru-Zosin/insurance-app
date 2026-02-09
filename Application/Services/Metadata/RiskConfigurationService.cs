@@ -7,85 +7,110 @@ using Domain.Configurations;
 namespace Application.Services.Risks;
 
 public sealed class RiskConfigurationService(
-    IRiskConfigurationRepository _risks,
+    IRiskConfigurationRepository _riskConfigurationRepository,
     IUnitOfWork _uow) : IRiskConfigurationService
 {
-    public async Task<Result<ListRiskConfigurationsResponse>> ListAsync(CancellationToken ct = default)
+    public async Task<Result<CreateRiskConfigurationResponse>> CreateBuildingTypeRiskConfigurationAsync(CreateBuildingTypeRiskRequest request, CancellationToken ct = default)
     {
-        var list = await _risks.ListAsync(ct);
+        var newRiskConfiguration = BuildingTypeRiskConfiguration.Create(
+            request.Name,
+            request.Percentage, 
+            request.IsActive,
+            request.BuildingType);
 
-        var response = new ListRiskConfigurationsResponse(
-            list.Select(RiskConfigurationListItemDto.From).ToArray());
-        return Result<ListRiskConfigurationsResponse>.Ok(response);
-    }
-
-    public async Task<Result<CreateRiskConfigurationResponse>> CreateCountryAsync(CreateCountryRiskRequest request, CancellationToken ct = default)
-    {
-        var risk = CountryRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CountryId);
-
-        await _risks.AddAsync(risk, ct);
+        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
         await _uow.SaveChangesAsync(ct);
 
-        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
+        return Result<CreateRiskConfigurationResponse>.Ok(new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration)));
+    }
+    public async Task<Result<CreateRiskConfigurationResponse>> CreateCountryRiskConfigurationAsync(CreateCountryRiskRequest request, CancellationToken ct = default)
+    {
+        var newRiskConfiguration = CountryRiskConfiguration.Create(
+            request.Name,
+            request.Percentage,
+            request.IsActive,
+            request.CountryId);
+
+        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await _uow.SaveChangesAsync(ct);
+
+        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
     }
 
-    public async Task<Result<CreateRiskConfigurationResponse>> CreateCountyAsync(CreateCountyRiskRequest request, CancellationToken ct = default)
+    public async Task<Result<CreateRiskConfigurationResponse>> CreateCountyRiskConfigurationAsync(CreateCountyRiskRequest request, CancellationToken ct = default)
     {
-        var risk = CountyRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CountyId);
+        var newRiskConfiguration = CountyRiskConfiguration.Create(
+            request.Name,
+            request.Percentage,
+            request.IsActive,
+            request.CountyId);
 
-        await _risks.AddAsync(risk, ct);
+        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
         await _uow.SaveChangesAsync(ct);
 
-        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
+        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
     }
 
-    public async Task<Result<CreateRiskConfigurationResponse>> CreateCityAsync(CreateCityRiskRequest request, CancellationToken ct = default)
+    public async Task<Result<CreateRiskConfigurationResponse>> CreateCityRiskConfigurationAsync(CreateCityRiskRequest request, CancellationToken ct = default)
     {
-        var risk = CityRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.CityId);
+        var newRiskConfiguration = CityRiskConfiguration.Create(
+            request.Name,
+            request.Percentage, 
+            request.IsActive, 
+            request.CityId);
 
-        await _risks.AddAsync(risk, ct);
+        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
         await _uow.SaveChangesAsync(ct);
 
-        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
+        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
+        return Result<CreateRiskConfigurationResponse>.Ok(response);
+    }
+    
+    public async Task<Result<CreateRiskConfigurationResponse>> CreateZoneCategoryRiskConfigurationAsync(CreateZoneCategoryRiskRequest request, CancellationToken ct = default)
+    {
+        var newRiskConfiguration = ZoneRiskConfiguration.Create(
+            request.Name, 
+            request.Percentage, 
+            request.IsActive, 
+            request.Category);
+
+        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await _uow.SaveChangesAsync(ct);
+
+        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
     }
 
-    public async Task<Result<CreateRiskConfigurationResponse>> CreateBuildingTypeAsync(CreateBuildingTypeRiskRequest request, CancellationToken ct = default)
+    public async Task<Result<UpdateRiskConfigurationResponse>> UpdateRiskConfigurationAsync(Guid riskConfigurationId, UpdateRiskConfigurationRequest request, CancellationToken ct = default)
     {
-        var risk = BuildingTypeRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.BuildingType);
-
-        await _risks.AddAsync(risk, ct);
-        await _uow.SaveChangesAsync(ct);
-
-        return Result<CreateRiskConfigurationResponse>.Ok(new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk)));
-    }
-
-    public async Task<Result<CreateRiskConfigurationResponse>> CreateZoneCategoryAsync(CreateZoneCategoryRiskRequest request, CancellationToken ct = default)
-    {
-        var risk = ZoneRiskConfiguration.Create(request.Name, request.Percentage, request.IsActive, request.Category);
-
-        await _risks.AddAsync(risk, ct);
-        await _uow.SaveChangesAsync(ct);
-
-        var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(risk));
-        return Result<CreateRiskConfigurationResponse>.Ok(response);
-    }
-
-    public async Task<Result<UpdateRiskConfigurationResponse>> UpdateCoreAsync(Guid id, UpdateRiskConfigurationRequest request, CancellationToken ct = default)
-    {
-        var existing = await _risks.GetByIdAsync(id, ct);
-        if (existing is null)
+        var riskConfiguration = await _riskConfigurationRepository.GetByIdAsync(riskConfigurationId, ct);
+        if (riskConfiguration is null)
             return Result<UpdateRiskConfigurationResponse>.Fail(ErrorType.NotFound, "Risk factor not found");
 
-        existing.Core.UpdateName(request.Core.Name).UpdatePercentage(request.Core.Percentage);
-        if (request.Core.IsActive) existing.Core.Activate(); else existing.Core.Deactivate();
+        riskConfiguration.Core
+                         .UpdateName(request.Core.Name)
+                         .UpdatePercentage(request.Core.Percentage);
+        
+        if (request.Core.IsActive) 
+            riskConfiguration.Core.Activate(); 
+        else 
+            riskConfiguration.Core.Deactivate();
 
-        await _risks.UpdateAsync(existing, ct);
+        await _riskConfigurationRepository.UpdateAsync(riskConfiguration, ct);
         await _uow.SaveChangesAsync(ct);
 
-        var response = new UpdateRiskConfigurationResponse(RiskConfigurationCoreDto.From(existing));
+        var response = new UpdateRiskConfigurationResponse(RiskConfigurationCoreDto.From(riskConfiguration));
         return Result<UpdateRiskConfigurationResponse>.Ok(response);
+    }
+
+    public async Task<Result<ListRiskConfigurationsResponse>> ListRiskConfigurationsAsync(CancellationToken ct = default)
+    {
+        var riskConfigurations = await _riskConfigurationRepository.ListAsync(ct);
+
+        var response = new ListRiskConfigurationsResponse(
+            riskConfigurations.Select(RiskConfigurationListItemDto.From).ToArray());
+        return Result<ListRiskConfigurationsResponse>.Ok(response);
     }
 }

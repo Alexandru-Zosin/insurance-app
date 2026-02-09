@@ -42,28 +42,28 @@ public sealed class Currency
         return this;
     }
 
-    public void ValidateAggregate()
-    {
-        ValidateCode(Code);
-        ValidateName(Name);
-        ValidateExchangeRateToBase(ExchangeRateToBase);
-    }
-
     private static void ValidateCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
-            throw new DomainException("Invalid code for currency");
+            throw new DomainException(CurrencyConstants.InvalidCodeMsg);
     }
 
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("Invalid name for currency");
+            throw new DomainException(CurrencyConstants.InvalidNameMsg);
     }
 
     private static void ValidateExchangeRateToBase(decimal exchangeRateToBase)
     {
-        if (exchangeRateToBase <= 0m)
-            throw new DomainException("Invalid exchange rate for currency");
+        if (exchangeRateToBase <= CurrencyConstants.ExchangeRateMinExclusive)
+            throw new DomainException(CurrencyConstants.InvalidExchangeRateMsg);
+    }
+
+    public void ValidateAggregate()
+    {
+        ValidateCode(Code);
+        ValidateName(Name);
+        ValidateExchangeRateToBase(ExchangeRateToBase);
     }
 }

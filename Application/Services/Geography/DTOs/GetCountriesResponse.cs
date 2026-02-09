@@ -2,5 +2,4 @@
 
 namespace Application.Services.Geography.DTOs;
 
-public sealed record GetCountriesResponse(
-    IReadOnlyList<CountryListItemDto> Countries);
+public sealed record GetCountriesResponse(IReadOnlyList<CountryListItemDto> Countries);

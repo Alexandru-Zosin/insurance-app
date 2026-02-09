@@ -7,50 +7,52 @@ public sealed class CityRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskCity";
 
-    public bool CanMaterialize(PremiumRule row)
-        => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
+    public bool CanMapToDomain(PremiumRule premiumRuleRow)
+        => string.Equals(premiumRuleRow.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule premiumRuleRow)
     {
-        if (row.CityId is null)
+        if (premiumRuleRow.CityId is null)
             throw new InvalidOperationException("RiskCity requires CityId.");
 
+        var premiumRuleRowCityId = premiumRuleRow.CityId.Value;
+
         return CityRiskConfiguration.Rehydrate(
-            id: row.PremiumRuleKey,
-            name: row.Name,
-            percentage: row.Percentage,
-            isActive: row.IsActive,
-            cityId: row.CityId.Value);
+            id: premiumRuleRow.PremiumRuleKey,
+            name: premiumRuleRow.Name,
+            percentage: premiumRuleRow.Percentage,
+            isActive: premiumRuleRow.IsActive,
+            cityId: premiumRuleRowCityId);
     }
 
-    public bool CanPersist(IRiskConfiguration aggregate)
-        => aggregate is CityRiskConfiguration;
+    public bool CanMapToEf(IRiskConfiguration riskConfiguration)
+        => riskConfiguration is CityRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration riskConfiguration)
     {
-        var a = (CityRiskConfiguration)aggregate;
+        var cityRiskConfiguration = (CityRiskConfiguration)riskConfiguration;
 
         return new PremiumRule
         {
-            PremiumRuleKey = a.Id,
+            PremiumRuleKey = cityRiskConfiguration.Id,
             RuleKind = Kind,
-            Name = a.Name,
-            Percentage = a.Percentage,
-            IsActive = a.IsActive,
-            CityId = a.CityId
+            Name = cityRiskConfiguration.Name,
+            Percentage = cityRiskConfiguration.Percentage,
+            IsActive = cityRiskConfiguration.IsActive,
+            CityId = cityRiskConfiguration.CityId
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration riskConfiguration)
     {
-        var a = (CityRiskConfiguration)aggregate;
+        var cityRiskConfiguration = (CityRiskConfiguration)riskConfiguration;
 
         if (!string.Equals(row.RuleKind, Kind, StringComparison.Ordinal))
             throw new InvalidOperationException($"Expected RuleKind '{Kind}'.");
 
-        row.Name = a.Name;
-        row.Percentage = a.Percentage;
-        row.IsActive = a.IsActive;
-        row.CityId = a.CityId;
+        row.Name = cityRiskConfiguration.Name;
+        row.Percentage = cityRiskConfiguration.Percentage;
+        row.IsActive = cityRiskConfiguration.IsActive;
+        row.CityId = cityRiskConfiguration.CityId;
     }
 }

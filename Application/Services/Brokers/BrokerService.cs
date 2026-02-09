@@ -7,21 +7,21 @@ using Domain.Brokers;
 namespace Application.Services.Brokers;
 
 public sealed class BrokerService(
-    IBrokerRepository _brokers,
+    IBrokerRepository _brokerRepository,
     IUnitOfWork _uow) : IBrokerService
 {
     public async Task<Result<CreateBrokerResponse>> CreateBrokerAsync(
         CreateBrokerRequest request,
         CancellationToken ct = default)
     {
-        var broker = Broker.Create(
+        var newBroker = Broker.Create(
             request.Broker.BrokerCode,
             request.Broker.Name,
-            request.Broker.ContactInfo.ToDomain(),
+            request.Broker.ContactInfo.MapToDomain(),
             request.Broker.IsActive,
             request.Broker.CommissionPercentage);
 
-        await _brokers.AddAsync(broker, ct);
+        _brokerRepository.Add(newBroker, ct);
 
         try
         {
@@ -32,23 +32,28 @@ public sealed class BrokerService(
             return Result<CreateBrokerResponse>.Fail(ErrorType.Conflict, "Broker code already exists");
         }
 
-        var response = new CreateBrokerResponse(BrokerDetailedDto.From(broker));
+        var response = new CreateBrokerResponse(BrokerDetailedDto.From(newBroker));
         return Result<CreateBrokerResponse>.Ok(response);
     }
 
     public async Task<Result<UpdateBrokerResponse>> UpdateBrokerAsync(
+        Guid brokerId,
         UpdateBrokerRequest request,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<UpdateBrokerResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
-        broker.UpdateName(request.Broker.Name)
-              .UpdateContactInfo(request.Broker.ContactInfo.ToDomain())
-              .UpdateCommissionPercentage(request.Broker.CommissionPercentage);
+        var updatedName = request.Broker.Name;
+        var updatedContactInfo = request.Broker.ContactInfo.MapToDomain();
+        var updatedCommissionPercentage = request.Broker.CommissionPercentage;
 
-        await _brokers.UpdateAsync(broker, ct);
+        broker.UpdateName(updatedName)
+              .UpdateContactInfo(updatedContactInfo)
+              .UpdateCommissionPercentage(updatedCommissionPercentage);
+
+        await _brokerRepository.UpdateAsync(broker, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new UpdateBrokerResponse(BrokerDetailedDto.From(broker));
@@ -56,19 +61,20 @@ public sealed class BrokerService(
     }
 
     public async Task<Result<SetBrokerStatusResponse>> SetBrokerStatusAsync(
-        SetBrokerStatusRequest request,
+        Guid brokerId,
+        bool isActive,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<SetBrokerStatusResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
-        if (request.Active)
+        if (isActive)
             broker.Activate();
         else
             broker.Deactivate();
 
-        await _brokers.UpdateAsync(broker, ct);
+        await _brokerRepository.UpdateAsync(broker, ct);
         await _uow.SaveChangesAsync(ct);
 
         var response = new SetBrokerStatusResponse(BrokerDetailedDto.From(broker));
@@ -76,10 +82,10 @@ public sealed class BrokerService(
     }
 
     public async Task<Result<GetBrokerDetailsResponse>> GetBrokerDetailsAsync(
-        GetBrokerDetailsRequest request,
+        Guid brokerId,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<GetBrokerDetailsResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
@@ -91,9 +97,9 @@ public sealed class BrokerService(
         ListBrokersRequest request,
         CancellationToken ct = default)
     {
-        var list = await _brokers.ListAsync(request.Page, ct);
+        var brokersPage = await _brokerRepository.ListAsync(request.Page, ct);
 
-        var response = new ListBrokersResponse(list.Select(BrokerListItemDto.From).ToArray());
+        var response = new ListBrokersResponse(brokersPage.Select(BrokerListItemDto.From).ToArray());
         return Result<ListBrokersResponse>.Ok(response);
     }
 }

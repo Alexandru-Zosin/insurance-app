@@ -7,20 +7,20 @@ using Domain.Currencies;
 namespace Application.Services.Currencies;
 
 public sealed class CurrencyService(
-    ICurrencyRepository _currencies,
+    ICurrencyRepository _currencyRepository,
     IUnitOfWork _uow) : ICurrencyService
 {
     public async Task<Result<AddCurrencyResponse>> AddCurrencyAsync(
         AddCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var currency = Currency.Create(
+        var newCurrency = Currency.Create(
             request.Currency.Code,
             request.Currency.Name,
             request.Currency.ExchangeRateToBase,
             request.Currency.IsActive);
 
-        await _currencies.AddAsync(currency, ct);
+        _currencyRepository.Add(newCurrency, ct);
 
         try
         {
@@ -32,21 +32,22 @@ public sealed class CurrencyService(
                 ErrorType.Conflict, "Currency code already exists");
         }
 
-        return Result<AddCurrencyResponse>.Ok(new AddCurrencyResponse(CurrencyDto.From(currency)));
+        return Result<AddCurrencyResponse>.Ok(new AddCurrencyResponse(CurrencyDto.From(newCurrency)));
     }
 
     public async Task<Result<UpdateCurrencyResponse>> UpdateCurrencyAsync(
+        string currencyCode,
         UpdateCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencyRepository.GetByCodeAsync(currencyCode, ct);
         if (currency == null)
-            return Result<UpdateCurrencyResponse>.Fail(
-                ErrorType.NotFound, "Currency not found");
+            return Result<UpdateCurrencyResponse>.Fail(ErrorType.NotFound, "Currency not found");
 
-        currency.UpdateExchangeRateToBase(request.Currency.ExchangeRateToBase);
+        var updatedExchangeRateToBase = request.Currency.ExchangeRateToBase;
+        currency.UpdateExchangeRateToBase(updatedExchangeRateToBase);
 
-        await _currencies.UpdateAsync(currency, ct);
+        await _currencyRepository.UpdateAsync(currency, ct);
         await _uow.SaveChangesAsync(ct);
 
         return Result<UpdateCurrencyResponse>.Ok(
@@ -54,31 +55,31 @@ public sealed class CurrencyService(
     }
 
     public async Task<Result<SetCurrencyStatusResponse>> SetCurrencyStatusAsync(
-        SetCurrencyStatusRequest request,
+        string currencyCode,
+        bool isActive,
         CancellationToken ct = default)
     {
-        var currency = await _currencies.GetByCodeAsync(request.CurrencyCode, ct);
+        var currency = await _currencyRepository.GetByCodeAsync(currencyCode, ct);
         if (currency == null)
             return Result<SetCurrencyStatusResponse>.Fail(
                 ErrorType.NotFound, "Currency not found");
 
-        if (request.Active)
+        if (isActive)
             currency.Activate();
         else
             currency.Deactivate();
 
-        await _currencies.UpdateAsync(currency, ct);
+        await _currencyRepository.UpdateAsync(currency, ct);
         await _uow.SaveChangesAsync(ct);
 
         return Result<SetCurrencyStatusResponse>.Ok(
             new SetCurrencyStatusResponse(CurrencyDto.From(currency)));
     }
 
-    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(
-        CancellationToken ct = default)
+    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(CancellationToken ct = default)
     {
-        var list = await _currencies.ListAsync(ct);
-        var response = new ListCurrenciesResponse(list.Select(CurrencyDto.From).ToList());
+        var currencies = await _currencyRepository.ListAsync(ct);
+        var response = new ListCurrenciesResponse(currencies.Select(CurrencyDto.From).ToList());
 
         return Result<ListCurrenciesResponse>.Ok(response);
     }

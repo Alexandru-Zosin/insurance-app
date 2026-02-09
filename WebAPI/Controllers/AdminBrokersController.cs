@@ -9,12 +9,12 @@ namespace WebAPI.Controllers;
 public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ListBrokersResponse>> List(
-        [FromQuery] int page = 1,
+    public async Task<ActionResult<ListBrokersResponse>> ListBrokersAsync(
+        [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default)
     {
-        var pagedRequest = new PageRequest(page, pageSize);
+        var pagedRequest = new PageRequest(pageNumber, pageSize);
         var result = await BrokerService.ListBrokersAsync(
             new ListBrokersRequest(pagedRequest), ct);
 
@@ -22,18 +22,17 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
     }
 
     [HttpGet("{brokerId:guid}")]
-    public async Task<ActionResult<GetBrokerDetailsResponse>> GetDetails(
+    public async Task<ActionResult<GetBrokerDetailsResponse>> GetBrokerDetailsAsync(
         Guid brokerId,
         CancellationToken ct)
     {
-        var result = await BrokerService.GetBrokerDetailsAsync(
-            new GetBrokerDetailsRequest(brokerId), ct);
+        var result = await BrokerService.GetBrokerDetailsAsync(brokerId, ct);
 
         return FromResult(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateBrokerResponse>> Create(
+    public async Task<ActionResult<CreateBrokerResponse>> CreateBrokerAsync(
         [FromBody] CreateBrokerRequest request,
         CancellationToken ct)
     {
@@ -45,21 +44,32 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
     }
 
     [HttpPut("{brokerId:guid}")]
-    public async Task<ActionResult<UpdateBrokerResponse>> Update(
+    public async Task<ActionResult<UpdateBrokerResponse>> UpdateBrokerAsync(
+        [FromRoute] Guid brokerId,
         [FromBody] UpdateBrokerRequest request,
         CancellationToken ct)
     {
-        var result = await BrokerService.UpdateBrokerAsync(request, ct);
+        var result = await BrokerService.UpdateBrokerAsync(brokerId, request, ct);
 
         return FromResult(result);
     }
 
-    [HttpPost("{brokerId:guid}/status")]
-    public async Task<ActionResult<SetBrokerStatusResponse>> SetStatus(
-        [FromBody] SetBrokerStatusRequest request,
+    [HttpPost("{brokerId:guid}/activate")]
+    public async Task<ActionResult<SetBrokerStatusResponse>> ActivateBrokerAsync(
+        [FromRoute] Guid brokerId,
         CancellationToken ct)
     {
-        var result = await BrokerService.SetBrokerStatusAsync(request, ct);
+        var result = await BrokerService.SetBrokerStatusAsync(brokerId, true, ct);
+
+        return FromResult(result);
+    }
+
+    [HttpPost("{brokerId:guid}/deactivate")]
+    public async Task<ActionResult<SetBrokerStatusResponse>> DeactivateBrokerAsync(
+        [FromRoute] Guid brokerId,
+        CancellationToken ct)
+    {
+        var result = await BrokerService.SetBrokerStatusAsync(brokerId, false, ct);
 
         return FromResult(result);
     }

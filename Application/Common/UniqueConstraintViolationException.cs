@@ -1,4 +1,6 @@
-﻿namespace Application.Common;
+﻿using System.Net;
+
+namespace Application.Common;
 
 public sealed class UniqueConstraintViolationException : Exception
 {

@@ -2,6 +2,5 @@
 
 namespace Application.Services.Metadata.DTOs
 {
-    public sealed record CreateFeeConfigurationRequest(
-    FeeConfigurationCoreDto FeeConfig);
+    public sealed record CreateFeeConfigurationRequest(FeeConfigurationCoreDto FeeConfig);
 }

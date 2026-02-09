@@ -1,11 +1,10 @@
 ﻿using Application.Common;
 using Application.Repositories;
 using Infrastructure.Persistence.Data;
-using Infrastructure.Persistence.Queries;
 using Infrastructure.Persistence.Repositories;
-using Infrastructure.Persistence.Repositories.FeeConfigurationRepository;
-using Infrastructure.Persistence.Repositories.PremiumRuleQuery;
+using Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Mappers;
+using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.MappersRegistry;
 using Infrastructure.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,13 +31,10 @@ public static class PersistenceServiceCollectionExtensions
         services.AddScoped<ICountyRepository, CountyRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<IPolicyRepository, PolicyRepository>();
-        services.AddScoped<IPremiumRuleQuery, PremiumRuleQuery>();
         services.AddScoped<IFeeConfigurationRepository, FeeConfigurationRepository>();
-        //services.AddScoped<IRiskConfigurationRepository, RiskConfigurationRepository>();
+        services.AddScoped<IRiskConfigurationRepository, RiskConfigurationRepository>();
 
         services.AddScoped<IRiskConfigurationMapperRegistry, RiskConfigurationMapperRegistry>();
-        services.AddScoped<IPremiumRuleMapperRegistry, PremiumRuleMapperRegistry>();
-
         services.AddScoped<IRiskConfigurationMapper, CountryRiskConfigurationMapper>();
         services.AddScoped<IRiskConfigurationMapper, CountyRiskConfigurationMapper>();
         services.AddScoped<IRiskConfigurationMapper, CityRiskConfigurationMapper>();

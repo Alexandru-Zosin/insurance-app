@@ -6,86 +6,81 @@ using EfCurrency = Infrastructure.Persistence.Models.Currency;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CurrencyRepository(InsuranceDbContext _db) : ICurrencyRepository
+public sealed class CurrencyRepository(InsuranceDbContext _dbContext) : ICurrencyRepository
 {
-    public async Task AddAsync(Currency aggregate, CancellationToken ct = default)
+    public void Add(Currency currencyToAdd, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (currencyToAdd is null) throw new ArgumentNullException(nameof(currencyToAdd));
 
-        var ef = ToEfModel(aggregate);
+        var currencyRow = MapToEf(currencyToAdd);
 
-        _db.Currencies.Add(ef);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        _dbContext.Currencies.Add(currencyRow);
     }
 
-    public async Task UpdateAsync(Currency aggregate, CancellationToken ct = default)
+    public async Task UpdateAsync(Currency updatedCurrency, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (updatedCurrency is null) throw new ArgumentNullException(nameof(updatedCurrency));
 
-        var code = NormalizeCode(aggregate.Code);
-        var ef = await _db.Currencies
-            .SingleOrDefaultAsync(x => x.Code == code, ct)
-            .ConfigureAwait(false);
+        var normalizedCode = NormalizeCode(updatedCurrency.Code);
+        var existingCurrencyRow = await _dbContext.Currencies
+            .SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
 
-        if (ef is null)
+        if (existingCurrencyRow is null)
             throw new InvalidOperationException("Currency not found.");
 
-        UpdateEfModel(ef, aggregate);
-
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        MapOntoEf(existingCurrencyRow, updatedCurrency);
     }
 
-    public async Task<Currency?> GetByCodeAsync(string code, CancellationToken ct = default)
+    public async Task<Currency?> GetByCodeAsync(string currencyCode, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("Code is required.", nameof(code));
+        if (string.IsNullOrWhiteSpace(currencyCode)) 
+            throw new ArgumentException("Code is required.", nameof(currencyCode));
 
-        var normalized = NormalizeCode(code);
+        var normalizedCode = NormalizeCode(currencyCode);
 
-        var ef = await _db.Currencies
+        var currencyRow = await _dbContext.Currencies
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Code == normalized, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return currencyRow is null ? null : MapToDomain(currencyRow);
     }
 
     public async Task<IReadOnlyList<Currency>> ListAsync(CancellationToken ct = default)
     {
-        var rows = await _db.Currencies
+        var currencyRows = await _dbContext.Currencies
             .AsNoTracking()
             .OrderBy(x => x.Code)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return currencyRows.Select(MapToDomain).ToList();
     }
 
-    private static string NormalizeCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormalizeCode(string codeInput) => codeInput.Trim().ToUpperInvariant();
 
-    private static EfCurrency ToEfModel(Currency domain)
+    private static EfCurrency MapToEf(Currency currency)
     {
         return new EfCurrency
         {
-            Code = NormalizeCode(domain.Code),
-            Name = domain.Name,
-            ExchangeRateToBase = domain.ExchangeRateToBase,
-            IsActive = domain.IsActive
+            Code = NormalizeCode(currency.Code),
+            Name = currency.Name,
+            ExchangeRateToBase = currency.ExchangeRateToBase,
+            IsActive = currency.IsActive
         };
     }
 
-    private static void UpdateEfModel(EfCurrency ef, Currency domain)
+    private static void MapOntoEf(EfCurrency currencyRow, Currency currency)
     {
-        ef.Name = domain.Name;
-        ef.ExchangeRateToBase = domain.ExchangeRateToBase;
-        ef.IsActive = domain.IsActive;
+        currencyRow.Name = currency.Name;
+        currencyRow.ExchangeRateToBase = currency.ExchangeRateToBase;
+        currencyRow.IsActive = currency.IsActive;
     }
 
-    private static Currency ToDomain(EfCurrency ef)
+    private static Currency MapToDomain(EfCurrency currencyRow)
     {
         return Currency.Create(
-            code: ef.Code,
-            name: ef.Name,
-            exchangeRateToBase: ef.ExchangeRateToBase,
-            isActive: ef.IsActive);
+            code: currencyRow.Code,
+            name: currencyRow.Name,
+            exchangeRateToBase: currencyRow.ExchangeRateToBase,
+            isActive: currencyRow.IsActive);
     }
 }

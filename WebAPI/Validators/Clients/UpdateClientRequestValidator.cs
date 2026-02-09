@@ -7,10 +7,6 @@ public sealed class UpdateClientRequestValidator : AbstractValidator<UpdateClien
 {
     public UpdateClientRequestValidator()
     {
-        RuleFor(x => x.ClientId)
-            .NotEmpty()
-            .WithMessage("ClientId is required.");
-
         RuleFor(x => x.ClientInfo)
             .NotNull()
             .WithMessage("ClientInfo is required.");

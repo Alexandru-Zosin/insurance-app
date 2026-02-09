@@ -5,12 +5,12 @@ namespace Application.Services.Risks
 {
     public interface IRiskConfigurationService
     {
-        Task<Result<CreateRiskConfigurationResponse>> CreateBuildingTypeAsync(CreateBuildingTypeRiskRequest request, CancellationToken ct = default);
-        Task<Result<CreateRiskConfigurationResponse>> CreateCityAsync(CreateCityRiskRequest request, CancellationToken ct = default);
-        Task<Result<CreateRiskConfigurationResponse>> CreateCountryAsync(CreateCountryRiskRequest request, CancellationToken ct = default);
-        Task<Result<CreateRiskConfigurationResponse>> CreateCountyAsync(CreateCountyRiskRequest request, CancellationToken ct = default);
-        Task<Result<CreateRiskConfigurationResponse>> CreateZoneCategoryAsync(CreateZoneCategoryRiskRequest request, CancellationToken ct = default);
-        Task<Result<ListRiskConfigurationsResponse>> ListAsync(CancellationToken ct = default);
-        Task<Result<UpdateRiskConfigurationResponse>> UpdateCoreAsync(Guid id, UpdateRiskConfigurationRequest request, CancellationToken ct = default);
+        Task<Result<CreateRiskConfigurationResponse>> CreateBuildingTypeRiskConfigurationAsync(CreateBuildingTypeRiskRequest request, CancellationToken ct = default);
+        Task<Result<CreateRiskConfigurationResponse>> CreateCityRiskConfigurationAsync(CreateCityRiskRequest request, CancellationToken ct = default);
+        Task<Result<CreateRiskConfigurationResponse>> CreateCountryRiskConfigurationAsync(CreateCountryRiskRequest request, CancellationToken ct = default);
+        Task<Result<CreateRiskConfigurationResponse>> CreateCountyRiskConfigurationAsync(CreateCountyRiskRequest request, CancellationToken ct = default);
+        Task<Result<CreateRiskConfigurationResponse>> CreateZoneCategoryRiskConfigurationAsync(CreateZoneCategoryRiskRequest request, CancellationToken ct = default);
+        Task<Result<ListRiskConfigurationsResponse>> ListRiskConfigurationsAsync(CancellationToken ct = default);
+        Task<Result<UpdateRiskConfigurationResponse>> UpdateRiskConfigurationAsync(Guid riskConfigurationId, UpdateRiskConfigurationRequest request, CancellationToken ct = default);
     }
 }

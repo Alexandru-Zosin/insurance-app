@@ -18,7 +18,7 @@ public sealed class CityRiskConfiguration : IRiskConfiguration
 
     private CityRiskConfiguration(RiskConfigCore core, int cityId)
     {
-        _core = core ?? throw new ArgumentNullException(nameof(core));
+        _core = core;
         CityId = cityId;
 
         ValidateInvariants();
@@ -36,6 +36,6 @@ public sealed class CityRiskConfiguration : IRiskConfiguration
     private void ValidateInvariants()
     {
         if (CityId <= 0)
-            throw new DomainException("Invalid CityId.");
+            throw new DomainException(RiskConfigurationConstants.InvalidCityIdMsg);
     }
 }

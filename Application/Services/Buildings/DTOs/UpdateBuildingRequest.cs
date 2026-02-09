@@ -2,6 +2,4 @@
 
 namespace Application.Services.Buildings.DTOs;
 
-public sealed record UpdateBuildingRequest(
-    Guid BuildingId,
-    BuildingCoreDto BuildingInfo);
+public sealed record UpdateBuildingRequest(BuildingCoreDto BuildingInfo);

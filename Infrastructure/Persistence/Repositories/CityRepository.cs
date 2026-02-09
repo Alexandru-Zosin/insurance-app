@@ -6,59 +6,56 @@ using EfCity = Infrastructure.Persistence.Models.City;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CityRepository(InsuranceDbContext _db) : ICityRepository
+public sealed class CityRepository(InsuranceDbContext _dbContext) : ICityRepository
 {
-    public async Task AddAsync(City aggregate, CancellationToken ct = default)
+    public void Add(City cityToAdd, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (cityToAdd is null) throw new ArgumentNullException(nameof(cityToAdd));
 
-        var ef = ToEfModel(aggregate);
+        var cityRow = MapToEf(cityToAdd);
 
-        _db.Cities.Add(ef);
-        await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        _dbContext.Cities.Add(cityRow);
     }
 
-    public async Task<City?> GetByIdAsync(int cityId, CancellationToken cancellationToken = default)
+    public async Task<City?> GetByIdAsync(int cityId, CancellationToken ct = default)
     {
         if (cityId <= 0) throw new ArgumentOutOfRangeException(nameof(cityId));
 
-        var ef = await _db.Cities
+        var cityRow = await _dbContext.Cities
             .AsNoTracking()
-            .SingleOrDefaultAsync(c => c.CityId == cityId, cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(c => c.CityId == cityId, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return cityRow is null ? null : MapToDomain(cityRow);
     }
 
     public async Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken ct = default)
     {
         if (countyId <= 0) throw new ArgumentOutOfRangeException(nameof(countyId));
 
-        var rows = await _db.Cities
+        var cityRows = await _dbContext.Cities
             .AsNoTracking()
             .Where(c => c.CountyId == countyId)
             .OrderBy(c => c.Name)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return cityRows.Select(MapToDomain).ToList();
     }
 
-    private static EfCity ToEfModel(City domain)
+    private static EfCity MapToEf(City city)
     {
         return new EfCity
         {
-            CityId = domain.Id,
-            CountyId = domain.CountyId,
-            Name = domain.Name
+            CityId = city.Id,
+            CountyId = city.CountyId,
+            Name = city.Name
         };
     }
 
-    private static City ToDomain(EfCity ef)
+    private static City MapToDomain(EfCity cityRow)
     {
         return City.Create(
-            id: ef.CityId,
-            countyId: ef.CountyId,
-            name: ef.Name);
+            id: cityRow.CityId,
+            countyId: cityRow.CountyId,
+            name: cityRow.Name);
     }
 }

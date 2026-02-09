@@ -9,9 +9,9 @@ using Domain.Clients;
 namespace Application.Services.Clients;
 
 public sealed class ClientService(
-    IClientRepository _clients,
-    IBuildingRepository _buildings,
-    IPolicyRepository _policies,
+    IClientRepository _clientRepository,
+    IBuildingRepository _buildingRepository,
+    IPolicyRepository _policyRepository,
     IUnitOfWork _uow
     ) : IClientService
 {
@@ -19,18 +19,18 @@ public sealed class ClientService(
         CreateClientRequest request,
         CancellationToken ct = default)
     {
-        var identifier = request.Client.IdentificationNumber.ToDomain();
-        var contact = request.Client.ContactInfo.ToDomain();
-        var address = request.Client.Address?.ToDomain();
+        var clientIdentifier = request.Client.IdentificationNumber.MapToDomain();
+        var clientContactInfo = request.Client.ContactInfo.MapToDomain();
+        var clientAddress = request.Client.Address?.MapToDomain();
 
-        var client = Client.Create(
+        var newClient = Client.Create(
             request.Client.Type,
             request.Client.Name,
-            identifier,
-            contact,
-            address);
+            clientIdentifier,
+            clientContactInfo,
+            clientAddress);
 
-        await _clients.AddAsync(client, ct);
+        _clientRepository.Add(newClient, ct);
 
         try
         {
@@ -43,15 +43,13 @@ public sealed class ClientService(
                 "Identification number already exists.");
         }
 
-        return Result<CreateClientResponse>.Ok(
-            new CreateClientResponse(client.Id));
+        var response = new CreateClientResponse(newClient.Id);
+        return Result<CreateClientResponse>.Ok(response);
     }
 
-    public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(
-        GetClientDetailsRequest request,
-        CancellationToken ct = default)
+    public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(Guid clientId, CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clientRepository.GetByIdAsync(clientId, ct);
         if (client == null)
         {
             return Result<GetClientDetailsResponse>.Fail(
@@ -59,55 +57,67 @@ public sealed class ClientService(
                 "Client not found");
         }
 
-        var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
-        var policies = await _policies.GetByClientIdAsync(request.ClientId, ct);
+        var clientBuildings = await _buildingRepository.GetByClientIdAsync(clientId, ct);
+        var clientPolicies = await _policyRepository.GetByClientIdAsync(clientId, ct);
 
         var response = new GetClientDetailsResponse(
             ClientDetailedDto.From(
                     client,
-                    buildings.Select(BuildingListItemDto.From).ToArray(),
-                    policies.Select(PolicyListItemDto.From).ToArray()
+                    clientBuildings.Select(BuildingListItemDto.From).ToArray(),
+                    clientPolicies.Select(PolicyListItemDto.From).ToArray()
                 ));
-
         return Result<GetClientDetailsResponse>.Ok(response);
     }
 
     public async Task<Result<SearchClientsResponse>> SearchClientsAsync(
         SearchClientsRequest request, CancellationToken ct = default)
     {
-        var pageRequest = request.PageRequest;
+        var page = request.PageRequest;
 
-        var searchResult = await _clients.SearchAsync(
+        var matchedClients = await _clientRepository.SearchAsync(
             request.Identifier,
             request.Name,
-            pageRequest,
+            page,
             ct);
 
-        var response = new SearchClientsResponse(searchResult.Select(ClientListItemDto.From).ToArray());
+        var response = new SearchClientsResponse(matchedClients.Select(ClientListItemDto.From).ToArray());
         return Result<SearchClientsResponse>.Ok(response);
     }
     public async Task<Result<UpdateClientResponse>> UpdateClientAsync(
+        Guid clientId,
         UpdateClientRequest request,
         CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clientRepository.GetByIdAsync(clientId, ct);
         if (client == null)
+            return Result<UpdateClientResponse>.Fail(ErrorType.NotFound, "Client not found");
+
+        var updatedName = request.ClientInfo.Name;
+        var updatedAddress = request.ClientInfo.Address?.MapToDomain();
+        var updatedContactInfo = request.ClientInfo.ContactInfo.MapToDomain();
+        var updatedIdentificationNumber = request.ClientInfo.IdentificationNumber.MapToDomain();
+
+        var originalIdentificationNumber = client.Identifier;
+        if (originalIdentificationNumber != updatedIdentificationNumber)
         {
-            return Result<UpdateClientResponse>.Fail(
-                ErrorType.NotFound, "Client not found");
+            _uow.EnqueueAudit(new AuditEntry(
+                EntityType: nameof(Client),
+                EntityId: client.Id,
+                Action: "ChangeIdentificationNumber",
+                OldValue: originalIdentificationNumber.Value,
+                NewValue: updatedIdentificationNumber.Value,
+                PerformedBy: request.PerformedByBrokerId,
+                PerformedAtUtc: DateTime.UtcNow));
         }
 
-        var newAddress = request.ClientInfo.Address?.ToDomain();
-        var newContactInfo = request.ClientInfo.ContactInfo.ToDomain();
+        var updatedClient = client.UpdateName(updatedName)
+                                  .UpdateContactInfo(updatedContactInfo)
+                                  .UpdateAddress(updatedAddress);
 
-        var updatedClient = client.UpdateName(request.ClientInfo.Name)
-                              .UpdateContactInfo(newContactInfo)
-                              .UpdateAddress(newAddress);
-
-        await _clients.UpdateAsync(updatedClient, ct);
+        await _clientRepository.UpdateAsync(updatedClient, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return Result<UpdateClientResponse>.Ok(
-            new UpdateClientResponse(true));
+        var response = new UpdateClientResponse(true);
+        return Result<UpdateClientResponse>.Ok(response);
     }
 }

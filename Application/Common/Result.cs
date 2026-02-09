@@ -19,6 +19,11 @@ public sealed class Result
 
 public sealed class Result<T>
 {
+    public bool IsSuccess { get; }
+    public T? Value { get; }
+    public ErrorType ErrorType { get; }
+    public string ErrorMessage { get; }
+
     private Result(bool success, T? value, ErrorType errorType, string message)
     {
         if (success == true && errorType != ErrorType.None ||
@@ -31,11 +36,6 @@ public sealed class Result<T>
         ErrorType = errorType;
         ErrorMessage = message;
     }
-
-    public bool IsSuccess { get; }
-    public T? Value { get; }
-    public ErrorType ErrorType { get; }
-    public string ErrorMessage { get; }
 
     public static Result<T> Ok(T value) => new Result<T>(true, value, ErrorType.None, string.Empty);
     public static Result<T> Fail(ErrorType errorType, string message)

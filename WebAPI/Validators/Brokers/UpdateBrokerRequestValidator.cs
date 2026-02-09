@@ -7,10 +7,6 @@ public sealed class UpdateBrokerRequestValidator : AbstractValidator<UpdateBroke
 {
     public UpdateBrokerRequestValidator()
     {
-        RuleFor(x => x.BrokerId)
-            .NotEmpty()
-            .WithMessage("BrokerId is required.");
-
         RuleFor(x => x.Broker)
             .NotNull()
             .WithMessage("Broker is required.");

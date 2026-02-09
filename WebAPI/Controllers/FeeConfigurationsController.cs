@@ -7,43 +7,50 @@ namespace WebAPI.Controllers;
 public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConfigService) : ApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ListFeeConfigurationsResponse>> List(
-        CancellationToken ct = default)
+    public async Task<ActionResult<ListFeeConfigurationsResponse>> ListFeeConfigurationsAsync(CancellationToken ct = default)
     {
-        var result = await FeeConfigService.ListFeeConfigsAsync(
-            new ListFeeConfigurationsRequest(), ct);
+        var result = await FeeConfigService.ListFeeConfigurationsAsync(ct);
 
         return FromResult(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateFeeConfigurationResponse>> Create(
+    public async Task<ActionResult<CreateFeeConfigurationResponse>> CreateFeeConfigurationAsync(
         [FromBody] CreateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.CreateFeeConfigAsync(request, ct);
+        var result = await FeeConfigService.CreateFeeConfigurationAsync(request, ct);
         
-        return FromCreated(
-            result,
-            $"/api/admin/fees/{result.Value!.FeeConfig.Id}");
+        return FromCreated(result, $"/api/admin/fees/{result.Value!.FeeConfig.Id}");
     }
 
     [HttpPut("{feeConfigId:guid}")]
-    public async Task<ActionResult<UpdateFeeConfigurationResponse>> Update(
+    public async Task<ActionResult<UpdateFeeConfigurationResponse>> UpdateFeeConfigurationAsync(
+        [FromRoute] Guid feeConfigId,
         [FromBody] UpdateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.UpdateFeeConfigAsync(request, ct);
+        var result = await FeeConfigService.UpdateFeeConfigurationAsync(feeConfigId, request, ct);
 
         return FromResult(result);
     }
 
-    [HttpPut("{feeConfigId:guid}/status")]
-    public async Task<ActionResult<SetFeeConfigStatusResponse>> SetStatus(
-        [FromBody] SetFeeConfigStatusRequest request,
+    [HttpPost("{feeConfigId:guid}/activate")]
+    public async Task<ActionResult<SetFeeConfigStatusResponse>> ActivateFeeConfigurationAsync(
+        [FromRoute] Guid feeConfigId,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigStatusAsync(request, ct);
+        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, true, ct);
+
+        return FromResult(result);
+    }
+
+    [HttpPost("{feeConfigId:guid}/deactivate")]
+    public async Task<ActionResult<SetFeeConfigStatusResponse>> DeactivateFeeConfigurationAsync(
+        [FromRoute] Guid feeConfigId,
+        CancellationToken ct)
+    {
+        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, false, ct);
 
         return FromResult(result);
     }
