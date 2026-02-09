@@ -16,13 +16,13 @@ public sealed class BuildingService(
 
 {
     public async Task<Result<GetBuildingDetailsResponse>> GetBuildingDetailsAsync(
-        GetBuildingDetailsRequest request, CancellationToken ct = default)
+        Guid requestBuildingId, CancellationToken ct = default)
     {
-        var building = await _buildings.GetByIdAsync(request.BuildingId, ct);
+        var building = await _buildings.GetByIdAsync(requestBuildingId, ct);
         if (building == null)
             return Result<GetBuildingDetailsResponse>.Fail(ErrorType.None, "Building was not found.");
 
-        var policies = await _policies.GetByBuildingIdAsync(request.BuildingId, ct);
+        var policies = await _policies.GetByBuildingIdAsync(requestBuildingId, ct);
 
         var response = new GetBuildingDetailsResponse(
             BuildingDetailedDto.From(
@@ -31,15 +31,14 @@ public sealed class BuildingService(
         return Result<GetBuildingDetailsResponse>.Ok(response);
     }
 
-    public async Task<Result<GetBuildingsForClientResponse>> GetBuildingsForClientAsync(
-        GetBuildingsForClientRequest request, CancellationToken ct = default)
+    public async Task<Result<GetBuildingsForClientResponse>> GetBuildingsForClientAsync(Guid requestClientId, CancellationToken ct = default)
     {
-        var client = await _clients.GetByIdAsync(request.ClientId, ct);
+        var client = await _clients.GetByIdAsync(requestClientId, ct);
 
         if (client == null)
             return Result<GetBuildingsForClientResponse>.Fail(ErrorType.NotFound, "Client not found.");
 
-        var buildings = await _buildings.GetByClientIdAsync(request.ClientId, ct);
+        var buildings = await _buildings.GetByClientIdAsync(requestClientId, ct);
         var response = new GetBuildingsForClientResponse(
             buildings.Select(BuildingListItemDto.From).ToList());
 
@@ -58,17 +57,17 @@ public sealed class BuildingService(
                 "City not found");
         }
 
-        var address = request.Building.Address.ToDomain();
-        var money = request.Building.InsuredValue.ToDomain();
+        var requestAddress = request.Building.Address.MapToDomain();
+        var requestInsuredValue = request.Building.InsuredValue.MapToDomain();
 
         var building = Building.RegisterForClient(
             request.Building.OwnerClientId,
-            address,
-            city.Id,
+            requestAddress,
+            request.Building.CityId,
             request.Building.ConstructionYear,
             request.Building.BuildingType,
             request.Building.SurfaceArea,
-            money,
+            requestInsuredValue,
             request.Building.ZoneRiskCategories);
 
         await _buildings.AddAsync(building, ct);
@@ -77,10 +76,9 @@ public sealed class BuildingService(
         return Result<RegisterBuildingResponse>.Ok(new RegisterBuildingResponse(building.Id));
     }
 
-    public async Task<Result<UpdateBuildingResponse>> UpdateBuildingAsync(
-        UpdateBuildingRequest request, CancellationToken ct = default)
+    public async Task<Result<UpdateBuildingResponse>> UpdateBuildingAsync(Guid requestBuildingId, UpdateBuildingRequest request, CancellationToken ct = default)
     {
-        var building = await _buildings.GetByIdAsync(request.BuildingId, ct);
+        var building = await _buildings.GetByIdAsync(requestBuildingId, ct);
         if (building == null)
         {
             return Result<UpdateBuildingResponse>.Fail(
@@ -89,7 +87,7 @@ public sealed class BuildingService(
         }
 
         var newSurfaceArea = request.BuildingInfo.SurfaceArea;
-        var newInsuredValue = request.BuildingInfo.InsuredValue.ToDomain();
+        var newInsuredValue = request.BuildingInfo.InsuredValue.MapToDomain();
 
         building.UpdateSurfaceArea(newSurfaceArea)
                 .UpdateInsuredValue(newInsuredValue);

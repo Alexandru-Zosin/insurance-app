@@ -1,5 +1,4 @@
-﻿using WebAPI.Validators.Constants;
-using Application.Services.Brokers.DTOs;
+﻿using Application.Services.Brokers.DTOs;
 using FluentValidation;
 namespace WebAPI.Validators.Brokers;
 

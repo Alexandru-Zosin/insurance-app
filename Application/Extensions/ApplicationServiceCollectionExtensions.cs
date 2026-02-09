@@ -5,7 +5,6 @@ using Application.Services.Currencies;
 using Application.Services.Geography;
 using Application.Services.Policies;
 using Application.Services.Risks;
-using Domain.Configurations;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +15,6 @@ public static class ApplicationServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
-        // Application services
         services.AddScoped<IBrokerService, BrokerService>();
         services.AddScoped<IBuildingService, BuildingService>();
         services.AddScoped<IClientService, ClientService>();
@@ -26,7 +24,6 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IRiskConfigurationService, RiskConfigurationService>();
         services.AddScoped<IPolicyService, PolicyService>();
 
-        // Domain services
         services.AddScoped<IPremiumCalculatorService, PremiumCalculatorService>();
 
         return services;

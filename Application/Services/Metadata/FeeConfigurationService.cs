@@ -16,7 +16,7 @@ public sealed class FeeConfigurationService(
             request.FeeConfig.Name,
             request.FeeConfig.Type,
             request.FeeConfig.Percentage,
-            request.FeeConfig.ValidityPeriod.ToDomain(),
+            request.FeeConfig.ValidityPeriod.MapToDomain(),
             request.FeeConfig.IsActive);
 
         _fees.Add(fee, ct);
@@ -48,7 +48,7 @@ public sealed class FeeConfigurationService(
 
     public async Task<Result<SetFeeConfigStatusResponse>> SetFeeConfigStatusAsync(
         Guid requestFeeConfigId,
-        SetFeeConfigStatusRequest request,
+        bool requestIsActive,
         CancellationToken ct = default)
     {
         var fee = await _fees.GetByIdAsync(requestFeeConfigId, ct);
@@ -56,7 +56,7 @@ public sealed class FeeConfigurationService(
             return Result<SetFeeConfigStatusResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");
 
-        if (request.Active)
+        if (requestIsActive)
             fee.Activate();
         else
             fee.Deactivate();
@@ -82,7 +82,6 @@ public sealed class FeeConfigurationService(
     }
 
     public async Task<Result<ListFeeConfigurationsResponse>> ListFeeConfigsAsync(
-        ListFeeConfigurationsRequest request,
         CancellationToken ct = default)
     {
         var list = await _fees.ListAsync(ct);

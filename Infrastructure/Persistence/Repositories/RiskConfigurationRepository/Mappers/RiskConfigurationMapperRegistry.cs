@@ -14,11 +14,11 @@ public sealed class RiskConfigurationMapperRegistry : IRiskConfigurationMapperRe
             throw new InvalidOperationException("No risk configuration mappers registered.");
     }
 
-    public bool TryResolveForRow(PremiumRule row, out IRiskConfigurationMapper mapper)
+    public bool TryResolveMapperForRow(PremiumRule row, out IRiskConfigurationMapper mapper)
     {
         foreach (var m in _mappers)
         {
-            if (m.CanMaterialize(row))
+            if (m.CanMap(row))
             {
                 mapper = m;
                 return true;
@@ -29,9 +29,9 @@ public sealed class RiskConfigurationMapperRegistry : IRiskConfigurationMapperRe
         return false;
     }
 
-    public IRiskConfigurationMapper ResolveForRow(PremiumRule row)
+    public IRiskConfigurationMapper ResolveMapperForRow(PremiumRule row)
     {
-        if (TryResolveForRow(row, out var mapper))
+        if (TryResolveMapperForRow(row, out var mapper))
             return mapper;
 
         throw new NotSupportedException($"Unsupported RuleKind '{row.RuleKind}'.");

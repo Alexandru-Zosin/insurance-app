@@ -35,12 +35,12 @@ public sealed class Client
     }
 
     public static Client Rehydrate(
-    Guid id,
-    ClientType type,
-    string name,
-    IdentificationNumber identifier,
-    ContactInfo contactInfo,
-    Address? address)
+        Guid id,
+        ClientType type,
+        string name,
+        IdentificationNumber identifier,
+        ContactInfo contactInfo,
+        Address? address)
     {
         return new Client(id, type, name, identifier, contactInfo, address);
     }

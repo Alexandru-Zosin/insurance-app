@@ -7,10 +7,6 @@ public sealed class UpdateBuildingRequestValidator : AbstractValidator<UpdateBui
 {
     public UpdateBuildingRequestValidator()
     {
-        RuleFor(x => x.BuildingId)
-            .NotEmpty()
-            .WithMessage("BuildingId is required.");
-
         RuleFor(x => x.BuildingInfo)
             .NotNull()
             .WithMessage("BuildingInfo is required.");

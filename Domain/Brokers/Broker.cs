@@ -48,8 +48,6 @@ public class Broker
             commissionPercentage);
     }
 
-    public bool IsActiveForPolicyWork() => IsActive;
-
     public Broker Activate()
     {
         IsActive = true;

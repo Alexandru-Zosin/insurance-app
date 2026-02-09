@@ -10,7 +10,7 @@ namespace WebAPI.Controllers;
 public sealed class PoliciesController(IPolicyService PolicyService) : ApiController 
 {
     [HttpGet("policies")]
-    public async Task<ActionResult<ListPoliciesResponse>> List(
+    public async Task<ActionResult<ListPoliciesResponse>> ListPoliciesAsync(
         [FromQuery] Guid? clientId,
         [FromQuery] Guid? brokerId,
         [FromQuery] PolicyStatus? status,
@@ -28,45 +28,41 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         return FromResult(result);
     }
 
-    [HttpGet("policies/{policyId:guid}")]
-    public async Task<ActionResult<GetPolicyDetailsResponse>> Get(
-        Guid policyId,
-        CancellationToken ct)
+    [HttpGet("policies/{policyNumber:guid}")]
+    public async Task<ActionResult<GetPolicyDetailsResponse>> GetPolicyDetailsAsync(
+        [FromRoute] Guid policyNumber,
+        CancellationToken ct = default)
     {
-        var result = await PolicyService.GetPolicyDetailsAsync(
-            new GetPolicyDetailsRequest(policyId), ct);
+        var result = await PolicyService.GetPolicyDetailsAsync(policyNumber, ct);
 
         return FromResult(result);
     }
 
     [HttpPost("policies")]
-    public async Task<ActionResult<CreateDraftPolicyResponse>> CreateDraft(
+    public async Task<ActionResult<CreateDraftPolicyResponse>> CreateDraftPolicyAsync(
         [FromBody] CreateDraftPolicyRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var result = await PolicyService.CreateDraftPolicyAsync(request, ct);
 
-        return FromCreated(
-            result,
-            $"/api/brokers/policies/{result.Value!.Policy.Id}");
+        return FromCreated(result, $"/api/brokers/policies/{result.Value!.Policy.Id}");
     }
 
     [HttpPost("policies/{policyNumber:guid}/activate")]
-    public async Task<ActionResult<ActivatePolicyResponse>> Activate(
+    public async Task<ActionResult<ActivatePolicyResponse>> ActivatePolicyAsync(
         [FromRoute] Guid policyNumber,
-        [FromBody] ActivatePolicyRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
-        var result = await PolicyService.ActivatePolicyAsync(policyNumber, request, ct);
+        var result = await PolicyService.ActivatePolicyAsync(policyNumber, ct);
 
         return FromResult(result);
     }
 
     [HttpPost("policies/{policyNumber:guid}/cancel")]
-    public async Task<ActionResult<CancelPolicyResponse>> Cancel(
+    public async Task<ActionResult<CancelPolicyResponse>> CancelPolicyAsync(
         [FromRoute] Guid policyNumber,
         [FromBody] CancelPolicyRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var result = await PolicyService.CancelPolicyAsync(policyNumber, request, ct);
 

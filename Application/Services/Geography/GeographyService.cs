@@ -12,25 +12,20 @@ public sealed class GeographyService(
     ) : IGeographyService
 {
     public async Task<Result<GetCitiesByCountyResponse>> GetCitiesByCountyAsync(
-        GetCitiesByCountyRequest request,
+        int requestCountyId,
         CancellationToken ct = default)
     {
-        var cities = await _cities.GetByCountyIdAsync(
-            request.CountyId,
-            ct);
+        var cities = await _cities.GetByCountyIdAsync(requestCountyId, ct);
 
-        return Result<GetCitiesByCountyResponse>.Ok(
-           new GetCitiesByCountyResponse(
-               cities.Select(CityListItemDto.From).ToList()));
+        var response = new GetCitiesByCountyResponse(cities.Select(CityListItemDto.From).ToList());
+        return Result<GetCitiesByCountyResponse>.Ok(response);
     }
 
     public async Task<Result<GetCountiesByCountryResponse>> GetCountiesByCountryAsync(
-        GetCountiesByCountryRequest request,
+        int requestCountryId,
         CancellationToken ct = default)
     {
-        var country = await _countries.GetByIdAsync(
-            request.CountryId,
-            ct);
+        var country = await _countries.GetByIdAsync(requestCountryId, ct);
 
         if (country == null)
         {
@@ -39,24 +34,18 @@ public sealed class GeographyService(
                 "Country not found");
         }
 
-        var counties = await _counties.GetByCountryIdAsync(
-            request.CountryId,
-            ct);
+        var counties = await _counties.GetByCountryIdAsync(requestCountryId, ct);
 
-        return Result<GetCountiesByCountryResponse>.Ok(
-            new GetCountiesByCountryResponse(
-                counties.Select(CountyListItemDto.From).ToList()));
+        var response = new GetCountiesByCountryResponse(counties.Select(CountyListItemDto.From).ToList());
+        return Result<GetCountiesByCountryResponse>.Ok(response);
     }
 
-    public async Task<Result<GetCountriesResponse>> GetCountriesAsync(
-       GetCountriesRequest _,
-       CancellationToken ct = default)
+    public async Task<Result<GetCountriesResponse>> GetCountriesAsync(CancellationToken ct = default)
     {
         var countries = await _countries.GetAllAsync(ct);
 
-        return Result<GetCountriesResponse>.Ok(
-           new GetCountriesResponse(
-               countries.Select(CountryListItemDto.From).ToList()));
+        var response = new GetCountriesResponse(countries.Select(CountryListItemDto.From).ToList());
+        return Result<GetCountriesResponse>.Ok(response);
     }
 
 }

@@ -47,8 +47,8 @@ public sealed class PolicyService(
         var county = await _counties.GetByIdAsync(city!.CountyId, ct);
         var country = await _countries.GetByIdAsync(county!.CountryId, ct);
 
-        var basePremium = request.Policy.BasePremium.ToDomain();
-        var tenure = request.Policy.Tenure.ToDomain();
+        var basePremium = request.Policy.BasePremium.MapToDomain();
+        var tenure = request.Policy.Tenure.MapToDomain();
 
         var premiumRules = await _premiumRules.GetActiveAsync(ct);
 
@@ -87,9 +87,7 @@ public sealed class PolicyService(
         }
         catch (UniqueConstraintViolationException)
         {
-            return Result<CreateDraftPolicyResponse>.Fail(
-                ErrorType.Conflict,
-                "Duplicate policy number");
+            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.Conflict, "Duplicate policy number");
         }
 
         var response = new CreateDraftPolicyResponse(PolicyListItemDto.From(draft));
@@ -98,7 +96,6 @@ public sealed class PolicyService(
 
     public async Task<Result<ActivatePolicyResponse>> ActivatePolicyAsync(
         Guid policyNumber,
-        ActivatePolicyRequest request,
         CancellationToken ct = default)
     {
         var policy = await _policies.GetByIdAsync(policyNumber, ct);
@@ -133,10 +130,10 @@ public sealed class PolicyService(
     }
 
     public async Task<Result<GetPolicyDetailsResponse>> GetPolicyDetailsAsync(
-        GetPolicyDetailsRequest request,
+        Guid requestPolicyNumber,
         CancellationToken ct = default)
     {
-        var policy = await _policies.GetByIdAsync(request.PolicyNumber, ct);
+        var policy = await _policies.GetByIdAsync(requestPolicyNumber, ct);
         if (policy == null)
             return Result<GetPolicyDetailsResponse>.Fail(ErrorType.NotFound, "Policy not found");
 

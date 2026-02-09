@@ -6,58 +6,56 @@ using EfCounty = Infrastructure.Persistence.Models.County;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountyRepository(InsuranceDbContext _db) : ICountyRepository
+public sealed class CountyRepository(InsuranceDbContext _dbContext) : ICountyRepository
 {
-    public void Add(County aggregate, CancellationToken ct = default)
+    public void Add(County countyToAdd, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (countyToAdd is null) throw new ArgumentNullException(nameof(countyToAdd));
 
-        var ef = ToEfModel(aggregate);
+        var countyRow = MapToEf(countyToAdd);
 
-        _db.Counties.Add(ef);
+        _dbContext.Counties.Add(countyRow);
     }
 
     public async Task<County?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
 
-        var ef = await _db.Counties
+        var countyRow = await _dbContext.Counties
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.CountyId == id, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(x => x.CountyId == id, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return countyRow is null ? null : MapToDomain(countyRow);
     }
 
     public async Task<IReadOnlyList<County>> GetByCountryIdAsync(int countryId, CancellationToken ct = default)
     {
         if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 
-        var rows = await _db.Counties
+        var countyRows = await _dbContext.Counties
             .AsNoTracking()
             .Where(x => x.CountryId == countryId)
             .OrderBy(x => x.Name)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return countyRows.Select(MapToDomain).ToList();
     }
 
-    private static EfCounty ToEfModel(County domain)
+    private static EfCounty MapToEf(County county)
     {
         return new EfCounty
         {
-            CountyId = domain.Id,
-            CountryId = domain.CountryId,
-            Name = domain.Name
+            CountyId = county.Id,
+            CountryId = county.CountryId,
+            Name = county.Name
         };
     }
 
-    private static County ToDomain(EfCounty ef)
+    private static County MapToDomain(EfCounty countyRow)
     {
         return County.Create(
-            id: ef.CountyId,
-            countryId: ef.CountryId,
-            name: ef.Name);
+            id: countyRow.CountyId,
+            countryId: countyRow.CountryId,
+            name: countyRow.Name);
     }
 }

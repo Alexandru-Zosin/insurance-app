@@ -10,7 +10,7 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
 {
 
     [HttpGet]
-    public async Task<ActionResult<SearchClientsResponse>> SearchClient(
+    public async Task<ActionResult<SearchClientsResponse>> SearchClientsAsync(
         [FromQuery] string? name,
         [FromQuery] string? identifier,
         [FromQuery] int page = 1,
@@ -25,33 +25,30 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
     }
 
     [HttpGet("{clientId:guid}")]
-    public async Task<ActionResult<GetClientDetailsResponse>> GetClientDetails(
-        Guid clientId,
-        CancellationToken ct)
+    public async Task<ActionResult<GetClientDetailsResponse>> GetClientDetailsAsync(
+        [FromRoute] Guid clientId,
+        CancellationToken ct = default)
     {
-        var result = await ClientService.GetClientDetailsAsync(
-            new GetClientDetailsRequest(clientId), ct);
+        var result = await ClientService.GetClientDetailsAsync(clientId, ct);
 
         return FromResult(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateClientResponse>> CreateClient(
+    public async Task<ActionResult<CreateClientResponse>> CreateClientAsync(
         [FromBody] CreateClientRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var result = await ClientService.CreateClientAsync(request, ct);
 
-        return FromCreated(
-            result,
-            $"/api/brokers/clients/{result.Value!.ClientId}");
+        return FromCreated(result, $"/api/brokers/clients/{result.Value!.ClientId}");
     }
 
     [HttpPut("{clientId:guid}")]
-    public async Task<ActionResult<UpdateClientResponse>> UpdateClient(
+    public async Task<ActionResult<UpdateClientResponse>> UpdateClientAsync(
         [FromQuery] Guid clientId,
         [FromBody] UpdateClientRequest request,
-        CancellationToken ct)
+        CancellationToken ct = default)
     {
         var result = await ClientService.UpdateClientAsync(clientId, request, ct);
 

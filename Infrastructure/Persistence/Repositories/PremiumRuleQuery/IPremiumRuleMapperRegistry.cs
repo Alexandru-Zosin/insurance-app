@@ -4,5 +4,5 @@ namespace Infrastructure.Persistence.Repositories.PremiumRuleQuery;
 
 public interface IPremiumRuleMapperRegistry
 {
-    IPremiumRuleMapper ResolveForRow(PremiumRule row);
+    IPremiumRuleMapper ResolveMapperForRow(PremiumRule ruleRow);
 }

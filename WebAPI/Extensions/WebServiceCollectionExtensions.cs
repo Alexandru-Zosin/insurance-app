@@ -2,6 +2,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using WebAPI.Exceptions;
 using WebAPI.Swagger;
 using WebAPI.Validators.Buildings;
 
@@ -27,15 +28,23 @@ public static class WebServiceCollectionExtensions
             {
                 Title = "Insurance API",
                 Version = "v1",
-                Description = "Broker-facing insurance management API"
+                Description = "Broker insurance management API"
             });
 
             cfg.CustomSchemaIds(type => type.FullName);
 
-            cfg.SchemaFilter<StringEnumSchemaFilter>();
+            cfg.SchemaFilter<StringEnumSchemaFilterForSwagger>();
         });
 
-        return services;
+        services.AddProblemDetails();
 
+        services.AddSingleton<IExceptionProblemMapper, FluentValidationProblemMapper>();
+        services.AddSingleton<IExceptionProblemMapper, DomainExceptionProblemMapper>();
+        services.AddSingleton<IExceptionProblemMapper, UniqueConstraintProblemMapper>();
+        services.AddSingleton<IExceptionProblemMapper, FallbackProblemMapper>();
+
+        services.AddExceptionHandler<GlobalExceptionHandler>();
+
+        return services;
     }
 }

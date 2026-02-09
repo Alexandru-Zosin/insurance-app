@@ -6,53 +6,51 @@ using EfCountry = Infrastructure.Persistence.Models.Country;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountryRepository(InsuranceDbContext _db) : ICountryRepository
+public sealed class CountryRepository(InsuranceDbContext _dbContext) : ICountryRepository
 {
-    public void Add(Country aggregate, CancellationToken ct = default)
+    public void Add(Country countryToAdd, CancellationToken ct = default)
     {
-        if (aggregate is null) throw new ArgumentNullException(nameof(aggregate));
+        if (countryToAdd is null) throw new ArgumentNullException(nameof(countryToAdd));
 
-        var ef = ToEfModel(aggregate);
+        var countryRow = MapToEf(countryToAdd);
 
-        _db.Countries.Add(ef);
+        _dbContext.Countries.Add(countryRow);
     }
 
     public async Task<Country?> GetByIdAsync(int countryId, CancellationToken cancellationToken = default)
     {
         if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 
-        var ef = await _db.Countries
+        var countryRow = await _dbContext.Countries
             .AsNoTracking()
-            .SingleOrDefaultAsync(c => c.CountryId == countryId, cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(c => c.CountryId == countryId, cancellationToken);
 
-        return ef is null ? null : ToDomain(ef);
+        return countryRow is null ? null : MapToDomain(countryRow);
     }
 
     public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var rows = await _db.Countries
+        var countryRows = await _dbContext.Countries
             .AsNoTracking()
             .OrderBy(c => c.Name)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .ToListAsync(cancellationToken);
 
-        return rows.Select(ToDomain).ToList();
+        return countryRows.Select(MapToDomain).ToList();
     }
 
-    private static EfCountry ToEfModel(Country domain)
+    private static EfCountry MapToEf(Country country)
     {
         return new EfCountry
         {
-            CountryId = domain.Id,
-            Name = domain.Name
+            CountryId = country.Id,
+            Name = country.Name
         };
     }
 
-    private static Country ToDomain(EfCountry ef)
+    private static Country MapToDomain(EfCountry countryRow)
     {
         return Country.Create(
-            id: ef.CountryId,
-            name: ef.Name);
+            id: countryRow.CountryId,
+            name: countryRow.Name);
     }
 }

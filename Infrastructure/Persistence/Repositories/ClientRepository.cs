@@ -8,107 +8,104 @@ using EfClient = Infrastructure.Persistence.Models.Client;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class ClientRepository(InsuranceDbContext _db) : IClientRepository
+public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRepository
 {
-    public void Add(Client client, CancellationToken ct = default)
+    public void Add(Client clientToAdd, CancellationToken ct = default)
     {
-        var ef = ToEfModel(client);
-        _db.Clients.Add(ef);
+        var clientRow = MapToEf(clientToAdd);
+        _dbContext.Clients.Add(clientRow);
     }
 
     public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
-        var ef = await _db.Clients
+        var clientRow = await _dbContext.Clients
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return clientRow is null ? null : MapToDomain(clientRow);
     }
 
-    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifier, string? name, PageRequest pageRequest, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest pageRequest, CancellationToken ct = default)
     {
-        var q = _db.Clients.AsNoTracking().AsQueryable();
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(identifier))
+        if (!string.IsNullOrWhiteSpace(identifierFilter))
         {
-            var id = identifier.Trim();
-            q = q.Where(x => x.IdentificationNumber.Contains(id));
+            var idFilterValue = identifierFilter.Trim();
+            query = query.Where(x => x.IdentificationNumber.Contains(idFilterValue));
         }
 
-        if (!string.IsNullOrWhiteSpace(name))
+        if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            var n = name.Trim();
-            q = q.Where(x => x.Name.Contains(n));
+            var nameValue = nameFilter.Trim();
+            query = query.Where(x => x.Name.Contains(nameValue));
         }
 
-        var skip = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
+        var offset = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
 
-        var rows = await q
+        var clientRows = await query
             .OrderBy(x => x.Name)
             .ThenBy(x => x.IdentificationNumber)
-            .Skip(skip)
+            .Skip(offset)
             .Take(pageRequest.PageSize)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .ToListAsync(ct);
 
-        return rows.Select(ToDomain).ToList();
+        return clientRows.Select(MapToDomain).ToList();
     }
 
-    public async Task UpdateAsync(Client client, CancellationToken ct = default)
+    public async Task UpdateAsync(Client updatedClient, CancellationToken ct = default)
     {
-        var ef = await _db.Clients
-            .SingleOrDefaultAsync(x => x.ClientKey == client.Id, ct)
-            .ConfigureAwait(false);
+        var existingClientRow = await _dbContext.Clients
+                .SingleOrDefaultAsync(x => x.ClientKey == updatedClient.Id, ct);
 
-        if (ef is null)
+        if (existingClientRow is null)
             throw new InvalidOperationException("Client not found.");
 
-        UpdateEfModel(ef, client);
+        MapOntoEf(existingClientRow, updatedClient);
     }
 
-    private static EfClient ToEfModel(Client domain)
+    private static EfClient MapToEf(Client client)
     {
         return new EfClient
         {
-            ClientKey = domain.Id,
-            ClientType = domain.Type.ToString(),
-            Name = domain.Name,
-            IdentificationNumber = domain.Identifier.Value,
-            Email = domain.ContactInfo.Email,
-            Phone = domain.ContactInfo.Phone,
-            Street = domain.Address?.Street,
-            Number = domain.Address?.Number
+            ClientKey = client.Id,
+            ClientType = client.Type.ToString(),
+            Name = client.Name,
+            IdentificationNumber = client.Identifier.Value,
+            Email = client.ContactInfo.Email,
+            Phone = client.ContactInfo.Phone,
+            Street = client.Address?.Street,
+            Number = client.Address?.Number
         };
     }
 
-    private static void UpdateEfModel(EfClient ef, Client domain)
+    private static void MapOntoEf(EfClient clientRow, Client client)
     {
-        ef.ClientType = domain.Type.ToString();
-        ef.Name = domain.Name;
-        ef.IdentificationNumber = domain.Identifier.Value;
-        ef.Email = domain.ContactInfo.Email;
-        ef.Phone = domain.ContactInfo.Phone;
-        ef.Street = domain.Address?.Street;
-        ef.Number = domain.Address?.Number;
+        clientRow.ClientType = client.Type.ToString();
+        clientRow.Name = client.Name;
+        clientRow.IdentificationNumber = client.Identifier.Value;
+        clientRow.Email = client.ContactInfo.Email;
+        clientRow.Phone = client.ContactInfo.Phone;
+        clientRow.Street = client.Address?.Street;
+        clientRow.Number = client.Address?.Number;
     }
 
-    private static Client ToDomain(EfClient ef)
+    private static Client MapToDomain(EfClient clientRow)
     {
         return Client.Rehydrate(
-            id: ef.ClientKey,
-            type: ParseClientType(ef.ClientType),
-            name: ef.Name,
-            identifier: IdentificationNumber.Create(ef.IdentificationNumber),
-            contactInfo: ContactInfo.Create(ef.Email, ef.Phone),
-            address: Address.CreateOptional(ef.Street, ef.Number));
+            id: clientRow.ClientKey,
+            type: ParseClientType(clientRow.ClientType),
+            name: clientRow.Name,
+            identifier: IdentificationNumber.Create(clientRow.IdentificationNumber),
+            contactInfo: ContactInfo.Create(clientRow.Email, clientRow.Phone),
+            address: Address.CreateOptional(clientRow.Street, clientRow.Number));
     }
 
-    private static ClientType ParseClientType(string value)
+    private static ClientType ParseClientType(string clientTypeValue)
     {
-        if (Enum.TryParse<ClientType>(value, ignoreCase: true, out var parsed))
-            return parsed;
+        if (Enum.TryParse<ClientType>(clientTypeValue, ignoreCase: true, out var clientType))
+            return clientType;
 
-        throw new InvalidOperationException($"Unknown client type '{value}'.");
+        throw new InvalidOperationException($"Unknown client type '{clientTypeValue}'.");
     }
 }

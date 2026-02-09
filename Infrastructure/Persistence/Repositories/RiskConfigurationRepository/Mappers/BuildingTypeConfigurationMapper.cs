@@ -8,10 +8,10 @@ public sealed class BuildingTypeRiskConfigurationMapper : IRiskConfigurationMapp
 {
     private const string Kind = "RiskBuildingType";
 
-    public bool CanMaterialize(PremiumRule row)
+    public bool CanMap(PremiumRule row)
         => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule row)
     {
         if (string.IsNullOrWhiteSpace(row.BuildingType))
             throw new InvalidOperationException("RiskBuildingType requires BuildingType.");
@@ -29,7 +29,7 @@ public sealed class BuildingTypeRiskConfigurationMapper : IRiskConfigurationMapp
     public bool CanPersist(IRiskConfiguration aggregate)
         => aggregate is BuildingTypeRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration aggregate)
     {
         var a = (BuildingTypeRiskConfiguration)aggregate;
 
@@ -44,7 +44,7 @@ public sealed class BuildingTypeRiskConfigurationMapper : IRiskConfigurationMapp
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
     {
         var a = (BuildingTypeRiskConfiguration)aggregate;
 

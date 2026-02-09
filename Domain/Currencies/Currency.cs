@@ -42,13 +42,6 @@ public sealed class Currency
         return this;
     }
 
-    public void ValidateAggregate()
-    {
-        ValidateCode(Code);
-        ValidateName(Name);
-        ValidateExchangeRateToBase(ExchangeRateToBase);
-    }
-
     private static void ValidateCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -65,5 +58,12 @@ public sealed class Currency
     {
         if (exchangeRateToBase <= CurrencyConstants.ExchangeRateMinExclusive)
             throw new DomainException(CurrencyConstants.InvalidExchangeRateMsg);
+    }
+
+    public void ValidateAggregate()
+    {
+        ValidateCode(Code);
+        ValidateName(Name);
+        ValidateExchangeRateToBase(ExchangeRateToBase);
     }
 }

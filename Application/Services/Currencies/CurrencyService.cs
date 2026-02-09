@@ -56,7 +56,7 @@ public sealed class CurrencyService(
 
     public async Task<Result<SetCurrencyStatusResponse>> SetCurrencyStatusAsync(
         string requestCurrencyCode,
-        SetCurrencyStatusRequest request,
+        bool requestIsActive,
         CancellationToken ct = default)
     {
         var currency = await _currencies.GetByCodeAsync(requestCurrencyCode, ct);
@@ -64,7 +64,7 @@ public sealed class CurrencyService(
             return Result<SetCurrencyStatusResponse>.Fail(
                 ErrorType.NotFound, "Currency not found");
 
-        if (request.Active)
+        if (requestIsActive)
             currency.Activate();
         else
             currency.Deactivate();
@@ -76,8 +76,7 @@ public sealed class CurrencyService(
             new SetCurrencyStatusResponse(CurrencyDto.From(currency)));
     }
 
-    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(
-        CancellationToken ct = default)
+    public async Task<Result<ListCurrenciesResponse>> ListCurrenciesAsync(CancellationToken ct = default)
     {
         var list = await _currencies.ListAsync(ct);
         var response = new ListCurrenciesResponse(list.Select(CurrencyDto.From).ToList());

@@ -1,10 +1,8 @@
 ﻿using Application.Common;
 using Application.Repositories;
-using Infrastructure.Persistence.Audit;
 using Infrastructure.Persistence.Data;
 using Infrastructure.Persistence.Queries;
 using Infrastructure.Persistence.Repositories;
-using Infrastructure.Persistence.Repositories.FeeConfigurationRepository;
 using Infrastructure.Persistence.Repositories.PremiumRuleQuery;
 using Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 using Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Mappers;

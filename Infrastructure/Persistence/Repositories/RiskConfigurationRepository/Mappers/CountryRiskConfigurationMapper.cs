@@ -7,10 +7,10 @@ public sealed class CountryRiskConfigurationMapper : IRiskConfigurationMapper
 {
     private const string Kind = "RiskCountry";
 
-    public bool CanMaterialize(PremiumRule row)
+    public bool CanMap(PremiumRule row)
         => string.Equals(row.RuleKind, Kind, StringComparison.Ordinal);
 
-    public IRiskConfiguration ToDomain(PremiumRule row)
+    public IRiskConfiguration MapToDomain(PremiumRule row)
     {
         if (row.CountryId is null)
             throw new InvalidOperationException("RiskCountry requires CountryId.");
@@ -26,7 +26,7 @@ public sealed class CountryRiskConfigurationMapper : IRiskConfigurationMapper
     public bool CanPersist(IRiskConfiguration aggregate)
         => aggregate is CountryRiskConfiguration;
 
-    public PremiumRule ToEfModel(IRiskConfiguration aggregate)
+    public PremiumRule MapToEf(IRiskConfiguration aggregate)
     {
         var a = (CountryRiskConfiguration)aggregate;
 
@@ -41,7 +41,7 @@ public sealed class CountryRiskConfigurationMapper : IRiskConfigurationMapper
         };
     }
 
-    public void UpdateEfModel(PremiumRule row, IRiskConfiguration aggregate)
+    public void MapOntoEf(PremiumRule row, IRiskConfiguration aggregate)
     {
         var a = (CountryRiskConfiguration)aggregate;
 

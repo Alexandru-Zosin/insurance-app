@@ -8,71 +8,60 @@ using EfBroker = Infrastructure.Persistence.Models.Broker;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class BrokerRepository(InsuranceDbContext _db) : IBrokerRepository
+public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRepository
 {
-    public void Add(Broker broker, CancellationToken cancellationToken = default)
+    public void Add(Broker brokerToAdd, CancellationToken ct = default)
     {
-        if (broker is null) throw new ArgumentNullException(nameof(broker));
+        var newBrokerRow = MapToEf(brokerToAdd);
 
-        var ef = ToEfModel(broker);
-
-        _db.Brokers.Add(ef);
+        _dbContext.Brokers.Add(newBrokerRow);
     }
 
-    public async Task UpdateAsync(Broker broker, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Broker updatedBroker, CancellationToken ct = default)
     {
-        var ef = await _db.Brokers
-            .SingleOrDefaultAsync(b => b.BrokerKey == broker.Id, cancellationToken)
-            .ConfigureAwait(false);
+        var existingBrokerRow = await _dbContext.Brokers
+            .SingleOrDefaultAsync(b => b.BrokerKey == updatedBroker.Id, ct);
         
-        UpdateEfModel(ef!, broker);
+        if (existingBrokerRow != null)
+            MapOntoEf(existingBrokerRow, updatedBroker);
     }
 
-    public async Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken cancellationToken = default)
+    public async Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken ct = default)
     {
-        if (brokerId == Guid.Empty) throw new ArgumentException("Broker id is required.", nameof(brokerId));
-
-        var ef = await _db.Brokers
+        var brokerRow = await _dbContext.Brokers
             .AsNoTracking()
-            .SingleOrDefaultAsync(b => b.BrokerKey == brokerId, cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(b => b.BrokerKey == brokerId, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return brokerRow is null ? null : MapMapToDomain(brokerRow);
     }
 
-    public async Task<Broker?> GetByCodeAsync(string code, CancellationToken ct = default)
+    public async Task<Broker?> GetByCodeAsync(string brokerCode, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("Code is required.", nameof(code));
+        var normalizedBrokerCode = brokerCode.Trim();
 
-        var normalized = code.Trim();
-
-        var ef = await _db.Brokers
+        var brokerRow = await _dbContext.Brokers
             .AsNoTracking()
-            .SingleOrDefaultAsync(b => b.Code == normalized, ct)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(b => b.Code == normalizedBrokerCode, ct);
 
-        return ef is null ? null : ToDomain(ef);
+        return brokerRow is null ? null : MapMapToDomain(brokerRow);
     }
 
-    public async Task<IReadOnlyList<Broker>> ListAsync(PageRequest pageRequest, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Broker>> ListAsync(PageRequest page, CancellationToken ct = default)
     {
-        if (pageRequest is null) throw new ArgumentNullException(nameof(pageRequest));
+        var offset = (page.PageNumber - 1) * page.PageSize;
 
-        var skip = (pageRequest.PageNumber - 1) * pageRequest.PageSize;
-
-        var items = await _db.Brokers
+        var brokerRows = await _dbContext.Brokers
             .AsNoTracking()
             .OrderBy(b => b.Name)
             .ThenBy(b => b.Code)
-            .Skip(skip)
-            .Take(pageRequest.PageSize)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
+            .Skip(offset)
+            .Take(page.PageSize)
+            .ToListAsync(ct);
 
-        return items.Select(ToDomain).ToList();
+        return brokerRows.Select(MapMapToDomain).ToList();
     }
 
-    private static EfBroker ToEfModel(Broker domain)
+    private static EfBroker MapToEf(Broker domain)
     {
         return new EfBroker
         {
@@ -86,7 +75,7 @@ public sealed class BrokerRepository(InsuranceDbContext _db) : IBrokerRepository
         };
     }
 
-    private static void UpdateEfModel(EfBroker ef, Broker domain)
+    private static void MapOntoEf(EfBroker ef, Broker domain)
     {
         ef.Code = domain.Code;
         ef.Name = domain.Name;
@@ -96,7 +85,7 @@ public sealed class BrokerRepository(InsuranceDbContext _db) : IBrokerRepository
         ef.CommissionPercentage = domain.CommissionPercentage;
     }
 
-    private static Broker ToDomain(EfBroker ef)
+    private static Broker MapMapToDomain(EfBroker ef)
     {
         return Broker.Rehydrate(
             id: ef.BrokerKey,

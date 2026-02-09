@@ -17,7 +17,7 @@ public sealed class BrokerService(
         var broker = Broker.Create(
             request.Broker.BrokerCode,
             request.Broker.Name,
-            request.Broker.ContactInfo.ToDomain(),
+            request.Broker.ContactInfo.MapToDomain(),
             request.Broker.IsActive,
             request.Broker.CommissionPercentage);
 
@@ -46,7 +46,7 @@ public sealed class BrokerService(
             return Result<UpdateBrokerResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
         var newName = request.Broker.Name;
-        var newContactInfo = request.Broker.ContactInfo.ToDomain();
+        var newContactInfo = request.Broker.ContactInfo.MapToDomain();
         var newCommissionPercentage = request.Broker.CommissionPercentage;
 
         broker.UpdateName(newName)
@@ -61,14 +61,15 @@ public sealed class BrokerService(
     }
 
     public async Task<Result<SetBrokerStatusResponse>> SetBrokerStatusAsync(
-        SetBrokerStatusRequest request,
+        Guid requestBrokerId,
+        bool requestIsActive,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokers.GetByIdAsync(requestBrokerId, ct);
         if (broker == null)
             return Result<SetBrokerStatusResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
-        if (request.Active)
+        if (requestIsActive)
             broker.Activate();
         else
             broker.Deactivate();
@@ -81,10 +82,10 @@ public sealed class BrokerService(
     }
 
     public async Task<Result<GetBrokerDetailsResponse>> GetBrokerDetailsAsync(
-        GetBrokerDetailsRequest request,
+        Guid requestBrokerId,
         CancellationToken ct = default)
     {
-        var broker = await _brokers.GetByIdAsync(request.BrokerId, ct);
+        var broker = await _brokers.GetByIdAsync(requestBrokerId, ct);
         if (broker == null)
             return Result<GetBrokerDetailsResponse>.Fail(ErrorType.NotFound, "Broker not found");
 

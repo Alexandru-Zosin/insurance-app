@@ -15,6 +15,6 @@ public sealed record PageRequest
                : pageSize;
     }
 
-    public int Skip => (PageNumber - 1) * PageSize;
+    public int Offset => (PageNumber - 1) * PageSize;
     public int Take => PageSize;
 }

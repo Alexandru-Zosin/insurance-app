@@ -6,6 +6,6 @@ namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository.Ma
 public interface IRiskConfigurationMapperRegistry
 {
     IRiskConfigurationMapper ResolveForAggregate(IRiskConfiguration aggregate);
-    IRiskConfigurationMapper ResolveForRow(PremiumRule row);
-    bool TryResolveForRow(PremiumRule row, out IRiskConfigurationMapper mapper);
+    IRiskConfigurationMapper ResolveMapperForRow(PremiumRule row);
+    bool TryResolveMapperForRow(PremiumRule row, out IRiskConfigurationMapper mapper);
 }

@@ -7,5 +7,5 @@ public sealed record AddressDto(
  string Number)
 {
     public static AddressDto From(Address v) => new(v.Street, v.Number);
-    public Address ToDomain() => Address.Create(Street, Number);
+    public Address MapToDomain() => Address.Create(Street, Number);
 }
