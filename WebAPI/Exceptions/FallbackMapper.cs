@@ -1,21 +1,16 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace WebAPI.Exceptions;
 
 public sealed class FallbackProblemMapper : IExceptionProblemMapper
 {
     public bool CanHandle(Exception ex) => true;
-
     public int StatusCode => (int)HttpStatusCode.InternalServerError;
-
     public bool IsClientDetailSafe => false;
-
     public bool ShouldLog => true;
-
     public LogLevel LogLevel => LogLevel.Error;
-
+    
     public ProblemDetails Map(HttpContext ctx, Exception ex, string traceId, bool includeClientDetails)
     {
         var problem = new ProblemDetails

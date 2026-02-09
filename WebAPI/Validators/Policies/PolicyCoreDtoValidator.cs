@@ -45,10 +45,5 @@ public sealed class PolicyCoreDtoValidator : AbstractValidator<PolicyCoreDto>
             .WithMessage($"CurrencyCode must be exactly {CurrencyValidationConstants.CodeLength} characters.")
             .Matches(CurrencyValidationConstants.CurrencyCodeRegex)
             .WithMessage("CurrencyCode format is invalid. Use 3 uppercase letters.");
-
-        When(x => x.PreliminaryFinalPremium is not null, () =>
-        {
-            RuleFor(x => x.PreliminaryFinalPremium!).SetValidator(new MoneyDtoValidator());
-        });
     }
 }

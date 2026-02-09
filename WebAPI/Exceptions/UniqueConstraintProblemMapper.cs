@@ -1,20 +1,15 @@
 ﻿using System.Net;
 using Application.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace WebAPI.Exceptions;
 
 public sealed class UniqueConstraintProblemMapper : IExceptionProblemMapper
 {
     public bool CanHandle(Exception ex) => ex is UniqueConstraintViolationException;
-
     public int StatusCode => (int)HttpStatusCode.Conflict;
-
     public bool IsClientDetailSafe => true;
-
     public bool ShouldLog => true;
-
     public LogLevel LogLevel => LogLevel.Warning;
 
     public ProblemDetails Map(HttpContext ctx, Exception ex, string traceId, bool includeClientDetails)
