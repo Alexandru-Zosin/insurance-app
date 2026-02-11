@@ -7,19 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class FeeConfigurationRepository(InsuranceDbContext _dbContext) : IFeeConfigurationRepository
+public sealed class FeeConfigurationRepository(InsuranceDbContext dbContext) : IFeeConfigurationRepository
 {
     private const string FeeRuleKind = "Fee";
 
     public void Add(FeeConfiguration feeConfigurationToAdd, CancellationToken ct = default)
     {
         var feeRuleRow = MapToEf(feeConfigurationToAdd);
-        _dbContext.Set<PremiumRule>().Add(feeRuleRow);
+        dbContext.Set<PremiumRule>().Add(feeRuleRow);
     }
 
     public async Task<FeeConfiguration?> GetByIdAsync(Guid feeConfigurationId, CancellationToken ct = default)
     {
-        var feeRuleRow = await _dbContext.Set<PremiumRule>()
+        var feeRuleRow = await dbContext.Set<PremiumRule>()
             .AsNoTracking()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == feeConfigurationId 
                                     && r.RuleKind == FeeRuleKind, ct);
@@ -29,7 +29,7 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext _dbContext) : 
 
     public async Task<IReadOnlyList<FeeConfiguration>> ListAsync(CancellationToken ct = default)
     {
-        var feeRuleRows = await _dbContext.Set<PremiumRule>()
+        var feeRuleRows = await dbContext.Set<PremiumRule>()
             .AsNoTracking()
             .Where(r => r.RuleKind == "Fee")
             .OrderBy(r => r.Name)
@@ -40,7 +40,7 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext _dbContext) : 
 
     public async Task UpdateAsync(FeeConfiguration updatedFeeConfiguration, CancellationToken ct = default)
     {
-        var existingFeeRuleRow = await _dbContext.Set<PremiumRule>()
+        var existingFeeRuleRow = await dbContext.Set<PremiumRule>()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == updatedFeeConfiguration.Id 
             && r.RuleKind == FeeRuleKind, ct);
 
@@ -52,7 +52,7 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext _dbContext) : 
 
     public async Task DeactivateAsync(Guid feeConfigurationId, CancellationToken ct = default)
     {
-        var existingFeeRuleRow = await _dbContext.Set<PremiumRule>()
+        var existingFeeRuleRow = await dbContext.Set<PremiumRule>()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == feeConfigurationId && r.RuleKind == "Fee", ct);
 
         if (existingFeeRuleRow is null)

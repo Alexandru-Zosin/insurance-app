@@ -29,6 +29,4 @@ internal static class PolicyConstants
     internal const string BasePremiumCurrencyMustMatchPolicyCurrencyMsg = "Base premium currency must match policy currency.";
     internal const string FinalPremiumCurrencyMustMatchPolicyCurrencyInvariantMsg =
         "Final premium currency must match policy currency.";
-    internal const string BasePremiumCurrencyMustMatchFinalPremiumCurrencyMsg =
-        "Base premium currency must match final premium currency.";
 }

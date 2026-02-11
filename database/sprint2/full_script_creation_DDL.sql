@@ -338,7 +338,7 @@ CREATE TABLE core.AuditLog
     OldValue NVARCHAR(512) NULL,
     NewValue NVARCHAR(512) NULL,
 
-    PerformedBy NVARCHAR(256) NOT NULL,        -- user id / email / subject id
+    PerformedBy UNIQUEIDENTIFIER NOT NULL,        -- user id / email / subject id
     PerformedAtUtc DATETIME2(7) NOT NULL
         CONSTRAINT DF_core_AuditLog_PerformedAtUtc DEFAULT (SYSUTCDATETIME())
 );

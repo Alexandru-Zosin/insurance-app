@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers;
 
 [Route("api/brokers")]
-public sealed class GeographyController(IGeographyService GeographyService) : ApiController
+public sealed class GeographyController(IGeographyService geographyService) : ApiController
 {
     [HttpGet("countries")]
     public async Task<ActionResult<GetCountriesResponse>> GetCountriesAsync(CancellationToken ct = default)
     {
-        var result = await GeographyService.GetCountriesAsync(ct);
+        var result = await geographyService.GetCountriesAsync(ct);
 
         return FromResult(result);
     }
@@ -20,7 +20,7 @@ public sealed class GeographyController(IGeographyService GeographyService) : Ap
         [FromRoute] int countryId,
         CancellationToken ct = default)
     {
-        var result = await GeographyService.GetCountiesByCountryAsync(countryId, ct);
+        var result = await geographyService.GetCountiesByCountryAsync(countryId, ct);
 
         return FromResult(result);
     }
@@ -30,7 +30,7 @@ public sealed class GeographyController(IGeographyService GeographyService) : Ap
         [FromRoute] int countyId,
         CancellationToken ct = default)
     {
-        var result = await GeographyService.GetCitiesByCountyAsync(countyId, ct);
+        var result = await geographyService.GetCitiesByCountyAsync(countyId, ct);
 
         return FromResult(result);
     }

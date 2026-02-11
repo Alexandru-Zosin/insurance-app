@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers;
 
 [Route("api/admin/currencies")]
-public sealed class CurrenciesController(ICurrencyService CurrencyService) : ApiController
+public sealed class CurrenciesController(ICurrencyService currencyService) : ApiController
 {
     [HttpGet]
     public async Task<ActionResult<ListCurrenciesResponse>> ListCurrenciesAsync(CancellationToken ct = default)
     {
-        var result = await CurrencyService.ListCurrenciesAsync(ct);
+        var result = await currencyService.ListCurrenciesAsync(ct);
 
         return FromResult(result);
     }
@@ -20,7 +20,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
         [FromBody] AddCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var result = await CurrencyService.AddCurrencyAsync(request, ct);
+        var result = await currencyService.AddCurrencyAsync(request, ct);
 
         return FromCreated(result, $"/api/admin/currencies/{result.Value!.Currency.Code}");
     }
@@ -31,7 +31,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
         [FromBody] UpdateCurrencyRequest request,
         CancellationToken ct = default)
     {
-        var result = await CurrencyService.UpdateCurrencyAsync(currencyCode, request, ct);
+        var result = await currencyService.UpdateCurrencyAsync(currencyCode, request, ct);
 
         return FromResult(result);
     }
@@ -41,7 +41,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
     [FromRoute] string currencyCode,
     CancellationToken ct = default)
     {
-        var result = await CurrencyService.SetCurrencyStatusAsync(currencyCode, true, ct);
+        var result = await currencyService.SetCurrencyStatusAsync(currencyCode, true, ct);
 
         return FromResult(result);
     }
@@ -51,7 +51,7 @@ public sealed class CurrenciesController(ICurrencyService CurrencyService) : Api
         [FromRoute] string currencyCode,
         CancellationToken ct = default)
     {
-        var result = await CurrencyService.SetCurrencyStatusAsync(currencyCode, false, ct);
+        var result = await currencyService.SetCurrencyStatusAsync(currencyCode, false, ct);
 
         return FromResult(result);
     }

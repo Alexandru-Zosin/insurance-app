@@ -6,7 +6,7 @@ using Application.Common;
 namespace WebAPI.Controllers;
 
 [Route("api/brokers/clients")]
-public sealed class ClientsController(IClientService ClientService) : ApiController
+public sealed class ClientsController(IClientService clientService) : ApiController
 {
 
     [HttpGet]
@@ -18,7 +18,7 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
         CancellationToken ct = default)
     {
         var pagedRequest = new PageRequest(page, pageSize);
-        var result = await ClientService.SearchClientsAsync(
+        var result = await clientService.SearchClientsAsync(
             new SearchClientsRequest(name, identifier, pagedRequest), ct);
 
         return FromResult(result);
@@ -29,7 +29,7 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
         [FromRoute] Guid clientId,
         CancellationToken ct = default)
     {
-        var result = await ClientService.GetClientDetailsAsync(clientId, ct);
+        var result = await clientService.GetClientDetailsAsync(clientId, ct);
 
         return FromResult(result);
     }
@@ -39,7 +39,7 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
         [FromBody] CreateClientRequest request,
         CancellationToken ct = default)
     {
-        var result = await ClientService.CreateClientAsync(request, ct);
+        var result = await clientService.CreateClientAsync(request, ct);
 
         return FromCreated(result, $"/api/brokers/clients/{result.Value!.ClientId}");
     }
@@ -50,7 +50,7 @@ public sealed class ClientsController(IClientService ClientService) : ApiControl
         [FromBody] UpdateClientRequest request,
         CancellationToken ct = default)
     {
-        var result = await ClientService.UpdateClientAsync(clientId, request, ct);
+        var result = await clientService.UpdateClientAsync(clientId, request, ct);
 
         return FromResult(result);
     }

@@ -7,8 +7,8 @@ using Domain.Brokers;
 namespace Application.Services.Brokers;
 
 public sealed class BrokerService(
-    IBrokerRepository _brokerRepository,
-    IUnitOfWork _uow) : IBrokerService
+    IBrokerRepository brokerRepository,
+    IUnitOfWork uow) : IBrokerService
 {
     public async Task<Result<CreateBrokerResponse>> CreateBrokerAsync(
         CreateBrokerRequest request,
@@ -21,11 +21,11 @@ public sealed class BrokerService(
             request.Broker.IsActive,
             request.Broker.CommissionPercentage);
 
-        _brokerRepository.Add(newBroker, ct);
+        brokerRepository.Add(newBroker, ct);
 
         try
         {
-            await _uow.SaveChangesAsync(ct);
+            await uow.SaveChangesAsync(ct);
         }
         catch (UniqueConstraintViolationException)
         {
@@ -41,7 +41,7 @@ public sealed class BrokerService(
         UpdateBrokerRequest request,
         CancellationToken ct = default)
     {
-        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
+        var broker = await brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<UpdateBrokerResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
@@ -53,8 +53,8 @@ public sealed class BrokerService(
               .UpdateContactInfo(updatedContactInfo)
               .UpdateCommissionPercentage(updatedCommissionPercentage);
 
-        await _brokerRepository.UpdateAsync(broker, ct);
-        await _uow.SaveChangesAsync(ct);
+        await brokerRepository.UpdateAsync(broker, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new UpdateBrokerResponse(BrokerDetailedDto.From(broker));
         return Result<UpdateBrokerResponse>.Ok(response);
@@ -65,7 +65,7 @@ public sealed class BrokerService(
         bool isActive,
         CancellationToken ct = default)
     {
-        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
+        var broker = await brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<SetBrokerStatusResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
@@ -74,8 +74,8 @@ public sealed class BrokerService(
         else
             broker.Deactivate();
 
-        await _brokerRepository.UpdateAsync(broker, ct);
-        await _uow.SaveChangesAsync(ct);
+        await brokerRepository.UpdateAsync(broker, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new SetBrokerStatusResponse(BrokerDetailedDto.From(broker));
         return Result<SetBrokerStatusResponse>.Ok(response);
@@ -85,7 +85,7 @@ public sealed class BrokerService(
         Guid brokerId,
         CancellationToken ct = default)
     {
-        var broker = await _brokerRepository.GetByIdAsync(brokerId, ct);
+        var broker = await brokerRepository.GetByIdAsync(brokerId, ct);
         if (broker == null)
             return Result<GetBrokerDetailsResponse>.Fail(ErrorType.NotFound, "Broker not found");
 
@@ -97,7 +97,7 @@ public sealed class BrokerService(
         ListBrokersRequest request,
         CancellationToken ct = default)
     {
-        var brokersPage = await _brokerRepository.ListAsync(request.Page, ct);
+        var brokersPage = await brokerRepository.ListAsync(request.Page, ct);
 
         var response = new ListBrokersResponse(brokersPage.Select(BrokerListItemDto.From).ToArray());
         return Result<ListBrokersResponse>.Ok(response);

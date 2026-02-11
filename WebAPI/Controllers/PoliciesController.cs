@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers;
 
 [Route("api/brokers")]
-public sealed class PoliciesController(IPolicyService PolicyService) : ApiController 
+public sealed class PoliciesController(IPolicyService policyService) : ApiController 
 {
     [HttpGet("policies")]
     public async Task<ActionResult<ListPoliciesResponse>> ListPoliciesAsync(
@@ -22,7 +22,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
     )
     {
         var pagedRequest = new PageRequest(page, pageSize);
-        var result = await PolicyService.ListPoliciesAsync(
+        var result = await policyService.ListPoliciesAsync(
             new ListPoliciesRequest(clientId, brokerId, status, startDate, endDate, pagedRequest), ct);
 
         return FromResult(result);
@@ -33,7 +33,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         [FromRoute] Guid policyNumber,
         CancellationToken ct = default)
     {
-        var result = await PolicyService.GetPolicyDetailsAsync(policyNumber, ct);
+        var result = await policyService.GetPolicyDetailsAsync(policyNumber, ct);
 
         return FromResult(result);
     }
@@ -43,7 +43,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         [FromBody] CreateDraftPolicyRequest request,
         CancellationToken ct = default)
     {
-        var result = await PolicyService.CreateDraftPolicyAsync(request, ct);
+        var result = await policyService.CreateDraftPolicyAsync(request, ct);
 
         return FromCreated(result, $"/api/brokers/policies/{result.Value!.Policy.Id}");
     }
@@ -53,7 +53,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         [FromRoute] Guid policyNumber,
         CancellationToken ct = default)
     {
-        var result = await PolicyService.ActivatePolicyAsync(policyNumber, ct);
+        var result = await policyService.ActivatePolicyAsync(policyNumber, ct);
 
         return FromResult(result);
     }
@@ -64,7 +64,7 @@ public sealed class PoliciesController(IPolicyService PolicyService) : ApiContro
         [FromBody] CancelPolicyRequest request,
         CancellationToken ct = default)
     {
-        var result = await PolicyService.CancelPolicyAsync(policyNumber, request, ct);
+        var result = await policyService.CancelPolicyAsync(policyNumber, request, ct);
 
         return FromResult(result);
     }

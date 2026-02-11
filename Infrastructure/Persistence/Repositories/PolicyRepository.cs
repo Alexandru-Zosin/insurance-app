@@ -9,21 +9,21 @@ using EfPolicy = Infrastructure.Persistence.Models.Policy;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRepository
+public sealed class PolicyRepository(InsuranceDbContext dbContext) : IPolicyRepository
 {
     public void Add(Policy policyToAdd, CancellationToken ct)
     {
         if (policyToAdd is null) throw new ArgumentNullException(nameof(policyToAdd));
 
         var policyRow = MapToEf(policyToAdd);
-        _dbContext.Policies.Add(policyRow);
+        dbContext.Policies.Add(policyRow);
     }
 
     public async Task UpdateAsync(Policy updatedPolicy, CancellationToken ct = default)
     {
         if (updatedPolicy is null) throw new ArgumentNullException(nameof(updatedPolicy));
 
-        var existingPolicyRow = await _dbContext.Policies
+        var existingPolicyRow = await dbContext.Policies
             .SingleOrDefaultAsync(x => x.PolicyNumber == updatedPolicy.Number, ct);
 
         if (existingPolicyRow is null)
@@ -37,7 +37,7 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
         if (policyNumber == Guid.Empty) 
             throw new ArgumentException("Policy id is required.", nameof(policyNumber));
 
-        var policyRow = await _dbContext.Policies
+        var policyRow = await dbContext.Policies
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.PolicyNumber == policyNumber, ct);
 
@@ -48,7 +48,7 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
     {
         if (clientId == Guid.Empty) throw new ArgumentException("Client id is required.", nameof(clientId));
 
-        var policyRows = await _dbContext.Policies
+        var policyRows = await dbContext.Policies
             .AsNoTracking()
             .Where(x => x.ClientKey == clientId)
             .OrderByDescending(x => x.CreationDate)
@@ -61,7 +61,7 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
     {
         if (buildingId == Guid.Empty) throw new ArgumentException("Building id is required.", nameof(buildingId));
 
-        var rows = await _dbContext.Policies
+        var rows = await dbContext.Policies
             .AsNoTracking()
             .Where(x => x.BuildingKey == buildingId)
             .OrderByDescending(x => x.CreationDate)
@@ -75,7 +75,7 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
         if (filter is null) throw new ArgumentNullException(nameof(filter));
         if (page is null) throw new ArgumentNullException(nameof(page));
 
-        var query = _dbContext.Policies.AsNoTracking().AsQueryable();
+        var query = dbContext.Policies.AsNoTracking().AsQueryable();
 
         if (filter.ClientId is Guid clientId && clientId != Guid.Empty)
             query = query.Where(x => x.ClientKey == clientId);

@@ -7,8 +7,8 @@ using Domain.Configurations;
 namespace Application.Services.Risks;
 
 public sealed class RiskConfigurationService(
-    IRiskConfigurationRepository _riskConfigurationRepository,
-    IUnitOfWork _uow) : IRiskConfigurationService
+    IRiskConfigurationRepository riskConfigurationRepository,
+    IUnitOfWork uow) : IRiskConfigurationService
 {
     public async Task<Result<CreateRiskConfigurationResponse>> CreateBuildingTypeRiskConfigurationAsync(CreateBuildingTypeRiskRequest request, CancellationToken ct = default)
     {
@@ -18,8 +18,8 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.BuildingType);
 
-        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         return Result<CreateRiskConfigurationResponse>.Ok(new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration)));
     }
@@ -31,8 +31,8 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.CountryId);
 
-        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
@@ -46,8 +46,8 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.CountyId);
 
-        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
@@ -61,8 +61,8 @@ public sealed class RiskConfigurationService(
             request.IsActive, 
             request.CityId);
 
-        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
@@ -76,8 +76,8 @@ public sealed class RiskConfigurationService(
             request.IsActive, 
             request.Category);
 
-        _riskConfigurationRepository.Add(newRiskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
         return Result<CreateRiskConfigurationResponse>.Ok(response);
@@ -85,7 +85,7 @@ public sealed class RiskConfigurationService(
 
     public async Task<Result<UpdateRiskConfigurationResponse>> UpdateRiskConfigurationAsync(Guid riskConfigurationId, UpdateRiskConfigurationRequest request, CancellationToken ct = default)
     {
-        var riskConfiguration = await _riskConfigurationRepository.GetByIdAsync(riskConfigurationId, ct);
+        var riskConfiguration = await riskConfigurationRepository.GetByIdAsync(riskConfigurationId, ct);
         if (riskConfiguration is null)
             return Result<UpdateRiskConfigurationResponse>.Fail(ErrorType.NotFound, "Risk factor not found");
 
@@ -98,8 +98,8 @@ public sealed class RiskConfigurationService(
         else 
             riskConfiguration.Core.Deactivate();
 
-        await _riskConfigurationRepository.UpdateAsync(riskConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        await riskConfigurationRepository.UpdateAsync(riskConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new UpdateRiskConfigurationResponse(RiskConfigurationCoreDto.From(riskConfiguration));
         return Result<UpdateRiskConfigurationResponse>.Ok(response);
@@ -107,7 +107,7 @@ public sealed class RiskConfigurationService(
 
     public async Task<Result<ListRiskConfigurationsResponse>> ListRiskConfigurationsAsync(CancellationToken ct = default)
     {
-        var riskConfigurations = await _riskConfigurationRepository.ListAsync(ct);
+        var riskConfigurations = await riskConfigurationRepository.ListAsync(ct);
 
         var response = new ListRiskConfigurationsResponse(
             riskConfigurations.Select(RiskConfigurationListItemDto.From).ToArray());

@@ -8,17 +8,17 @@ using EfClient = Infrastructure.Persistence.Models.Client;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRepository
+public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepository
 {
     public void Add(Client clientToAdd, CancellationToken ct = default)
     {
         var clientRow = MapToEf(clientToAdd);
-        _dbContext.Clients.Add(clientRow);
+        dbContext.Clients.Add(clientRow);
     }
 
     public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
-        var clientRow = await _dbContext.Clients
+        var clientRow = await dbContext.Clients
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct);
 
@@ -27,7 +27,7 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
 
     public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
     {
-        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        var query = dbContext.Clients.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(identifierFilter))
         {
@@ -53,7 +53,7 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
 
     public async Task UpdateAsync(Client updatedClient, CancellationToken ct = default)
     {
-        var existingClientRow = await _dbContext.Clients
+        var existingClientRow = await dbContext.Clients
                 .SingleOrDefaultAsync(x => x.ClientKey == updatedClient.Id, ct);
 
         if (existingClientRow is null)

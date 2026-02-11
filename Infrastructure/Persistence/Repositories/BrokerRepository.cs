@@ -8,18 +8,18 @@ using EfBroker = Infrastructure.Persistence.Models.Broker;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRepository
+public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepository
 {
     public void Add(Broker brokerToAdd, CancellationToken ct = default)
     {
         var newBrokerRow = MapToEf(brokerToAdd);
 
-        _dbContext.Brokers.Add(newBrokerRow);
+        dbContext.Brokers.Add(newBrokerRow);
     }
 
     public async Task UpdateAsync(Broker updatedBroker, CancellationToken ct = default)
     {
-        var existingBrokerRow = await _dbContext.Brokers
+        var existingBrokerRow = await dbContext.Brokers
             .SingleOrDefaultAsync(b => b.BrokerKey == updatedBroker.Id, ct);
         
         if (existingBrokerRow != null)
@@ -28,7 +28,7 @@ public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRep
 
     public async Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken ct = default)
     {
-        var brokerRow = await _dbContext.Brokers
+        var brokerRow = await dbContext.Brokers
             .AsNoTracking()
             .SingleOrDefaultAsync(b => b.BrokerKey == brokerId, ct);
 
@@ -39,7 +39,7 @@ public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRep
     {
         var normalizedBrokerCode = brokerCode.Trim();
 
-        var brokerRow = await _dbContext.Brokers
+        var brokerRow = await dbContext.Brokers
             .AsNoTracking()
             .SingleOrDefaultAsync(b => b.Code == normalizedBrokerCode, ct);
 
@@ -48,7 +48,7 @@ public sealed class BrokerRepository(InsuranceDbContext _dbContext) : IBrokerRep
 
     public async Task<IReadOnlyList<Broker>> ListAsync(PageRequest page, CancellationToken ct = default)
     {
-        var brokerRows = await _dbContext.Brokers
+        var brokerRows = await dbContext.Brokers
             .AsNoTracking()
             .OrderBy(b => b.Name)
             .ThenBy(b => b.Code)

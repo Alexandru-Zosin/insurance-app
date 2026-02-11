@@ -216,9 +216,6 @@ public sealed class Policy
 
         if (FinalPremium.CurrencyCode != CurrencyCode)
             throw new DomainException(PolicyConstants.FinalPremiumCurrencyMustMatchPolicyCurrencyInvariantMsg);
-
-        if (BasePremium.CurrencyCode != FinalPremium.CurrencyCode)
-            throw new DomainException(PolicyConstants.BasePremiumCurrencyMustMatchFinalPremiumCurrencyMsg);
     }
 
     private void ValidateInvariants()
