@@ -51,7 +51,7 @@ public class Building
         IEnumerable<ZoneRiskCategory> zoneRiskCategories
  )
     {
-        var b = new Building(
+        var building = new Building(
                 Guid.NewGuid(),
                 ownerClientId,
                 address,
@@ -61,13 +61,13 @@ public class Building
                 surfaceArea,
                 insuredValue);
 
-        foreach (var c in zoneRiskCategories.Distinct())
-            b._zoneRiskCategories.Add(c);
+        foreach (var zrc in zoneRiskCategories.Distinct())
+            building._zoneRiskCategories.Add(zrc);
 
-        return b;
+        return building;
     }
 
-    public static Building Rehydrate(
+    public static Building FromState(
         Guid id,
         Guid ownerClientId,
         Address address,

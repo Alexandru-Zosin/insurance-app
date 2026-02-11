@@ -11,14 +11,20 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext dbContext) : I
 {
     private const string FeeRuleKind = "Fee";
 
-    public void Add(FeeConfiguration feeConfigurationToAdd, CancellationToken ct = default)
+    public void Add(FeeConfiguration feeConfigurationToAdd)
     {
+        if (feeConfigurationToAdd is null) 
+            throw new ArgumentNullException(nameof(feeConfigurationToAdd));
+
         var feeRuleRow = MapToEf(feeConfigurationToAdd);
         dbContext.Set<PremiumRule>().Add(feeRuleRow);
     }
 
     public async Task<FeeConfiguration?> GetByIdAsync(Guid feeConfigurationId, CancellationToken ct = default)
     {
+        if (feeConfigurationId == Guid.Empty) 
+            throw new ArgumentException("Fee configuration id cannot be empty.", nameof(feeConfigurationId));
+
         var feeRuleRow = await dbContext.Set<PremiumRule>()
             .AsNoTracking()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == feeConfigurationId 
@@ -40,6 +46,9 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext dbContext) : I
 
     public async Task UpdateAsync(FeeConfiguration updatedFeeConfiguration, CancellationToken ct = default)
     {
+        if (updatedFeeConfiguration is null) 
+            throw new ArgumentNullException(nameof(updatedFeeConfiguration));
+
         var existingFeeRuleRow = await dbContext.Set<PremiumRule>()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == updatedFeeConfiguration.Id 
             && r.RuleKind == FeeRuleKind, ct);
@@ -52,6 +61,9 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext dbContext) : I
 
     public async Task DeactivateAsync(Guid feeConfigurationId, CancellationToken ct = default)
     {
+        if (feeConfigurationId == Guid.Empty) 
+            throw new ArgumentException("Fee configuration id cannot be empty.", nameof(feeConfigurationId));
+
         var existingFeeRuleRow = await dbContext.Set<PremiumRule>()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == feeConfigurationId && r.RuleKind == "Fee", ct);
 
@@ -110,7 +122,7 @@ public sealed class FeeConfigurationRepository(InsuranceDbContext dbContext) : I
 
         var validityPeriod = ValidityPeriod.CreateOptional(feeRuleRow.EffectiveFrom, feeRuleRow.EffectiveTo);
 
-        return FeeConfiguration.Rehydrate(
+        return FeeConfiguration.FromState(
             id: feeRuleRow.PremiumRuleKey,
             name: feeRuleRow.Name,
             type: feeType,

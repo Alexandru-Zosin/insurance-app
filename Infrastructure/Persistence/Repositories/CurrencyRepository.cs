@@ -8,9 +8,10 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurrencyRepository
 {
-    public void Add(Currency currencyToAdd, CancellationToken ct = default)
+    public void Add(Currency currencyToAdd)
     {
-        if (currencyToAdd is null) throw new ArgumentNullException(nameof(currencyToAdd));
+        if (currencyToAdd is null) 
+            throw new ArgumentNullException(nameof(currencyToAdd));
 
         var currencyRow = MapToEf(currencyToAdd);
 
@@ -26,7 +27,7 @@ public sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurrency
             .SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
 
         if (existingCurrencyRow is null)
-            throw new InvalidOperationException("Currency not found.");
+            throw new InvalidOperationException($"Currency '{updatedCurrency.Code}' was not found.");
 
         MapOntoEf(existingCurrencyRow, updatedCurrency);
     }

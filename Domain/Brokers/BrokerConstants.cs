@@ -1,7 +1,7 @@
 ﻿namespace Domain.Brokers;
 internal static class BrokerConstants
 {
-    internal const decimal CommissionMin = 0.0m;
+    internal const decimal CommissionMin = -1.0m;
     internal const decimal CommissionMax = 1.0m;
 
     internal const string InvalidCodeMsg = "Invalid Broker Code.";

@@ -27,7 +27,7 @@ public sealed class CountryRiskConfiguration : IRiskConfiguration
     public static CountryRiskConfiguration Create(string name, decimal percentage, bool isActive, int countryId)
         => new(new RiskConfigCore(Guid.NewGuid(), name, percentage, isActive), countryId);
 
-    public static CountryRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, int countryId)
+    public static CountryRiskConfiguration FromState(Guid id, string name, decimal percentage, bool isActive, int countryId)
         => new(new RiskConfigCore(id, name, percentage, isActive), countryId);
 
     private void ValidateInvariants()

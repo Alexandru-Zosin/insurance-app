@@ -1,5 +1,4 @@
-﻿using System.Net;
-
+﻿
 namespace Domain.Common;
 
 public class DomainException : Exception

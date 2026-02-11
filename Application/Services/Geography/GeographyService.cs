@@ -15,7 +15,7 @@ public sealed class GeographyService(
         int countyId,
         CancellationToken ct = default)
     {
-        var countyCities = await cityRepository.GetByCountyIdAsync(countyId, ct);
+        var countyCities = await cityRepository.ListByCountyIdAsync(countyId, ct);
 
         var response = new GetCitiesByCountyResponse(countyCities.Select(CityListItemDto.From).ToList());
         return Result<GetCitiesByCountyResponse>.Ok(response);
@@ -25,7 +25,7 @@ public sealed class GeographyService(
         int countryId,
         CancellationToken ct = default)
     {
-        var countryCounties = await countyRepository.GetByCountryIdAsync(countryId, ct);
+        var countryCounties = await countyRepository.ListByCountryIdAsync(countryId, ct);
 
         var response = new GetCountiesByCountryResponse(countryCounties
             .Select(CountyListItemDto.From).ToList());
@@ -34,7 +34,7 @@ public sealed class GeographyService(
 
     public async Task<Result<GetCountriesResponse>> GetCountriesAsync(CancellationToken ct = default)
     {
-        var allCountries = await countryRepositories.GetAllAsync(ct);
+        var allCountries = await countryRepositories.ListAsync(ct);
 
         var response = new GetCountriesResponse(allCountries.Select(CountryListItemDto.From).ToList());
         return Result<GetCountriesResponse>.Ok(response);

@@ -2,7 +2,7 @@
 namespace Application.Repositories;
 public interface ICountyRepository
 {
-    void Add(County county, CancellationToken ct = default);
+    void Add(County county);
     Task<County?> GetByIdAsync(int countyId, CancellationToken ct = default);
-    Task<IReadOnlyList<County>> GetByCountryIdAsync(int countryId, CancellationToken ct = default);
+    Task<IReadOnlyList<County>> ListByCountryIdAsync(int countryId, CancellationToken ct = default);
 }

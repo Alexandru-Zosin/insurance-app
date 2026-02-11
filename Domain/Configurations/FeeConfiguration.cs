@@ -41,7 +41,7 @@ public sealed class FeeConfiguration : IPremiumRule
         return new FeeConfiguration(Guid.NewGuid(), name, type, percentage, validityPeriod, isActive);
     }
 
-    public static FeeConfiguration Rehydrate(
+    public static FeeConfiguration FromState(
         Guid id,
         string name,
         FeeType type,

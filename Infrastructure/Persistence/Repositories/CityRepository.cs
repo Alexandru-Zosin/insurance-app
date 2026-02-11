@@ -8,9 +8,10 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class CityRepository(InsuranceDbContext dbContext) : ICityRepository
 {
-    public void Add(City cityToAdd, CancellationToken ct = default)
+    public void Add(City cityToAdd)
     {
-        if (cityToAdd is null) throw new ArgumentNullException(nameof(cityToAdd));
+        if (cityToAdd is null) 
+            throw new ArgumentNullException(nameof(cityToAdd));
 
         var cityRow = MapToEf(cityToAdd);
 
@@ -19,7 +20,8 @@ public sealed class CityRepository(InsuranceDbContext dbContext) : ICityReposito
 
     public async Task<City?> GetByIdAsync(int cityId, CancellationToken ct = default)
     {
-        if (cityId <= 0) throw new ArgumentOutOfRangeException(nameof(cityId));
+        if (cityId <= 0) 
+            throw new ArgumentOutOfRangeException(nameof(cityId));
 
         var cityRow = await dbContext.Cities
             .AsNoTracking()
@@ -28,9 +30,10 @@ public sealed class CityRepository(InsuranceDbContext dbContext) : ICityReposito
         return cityRow is null ? null : MapToDomain(cityRow);
     }
 
-    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<City>> ListByCountyIdAsync(int countyId, CancellationToken ct = default)
     {
-        if (countyId <= 0) throw new ArgumentOutOfRangeException(nameof(countyId));
+        if (countyId <= 0) 
+            throw new ArgumentOutOfRangeException(nameof(countyId));
 
         var cityRows = await dbContext.Cities
             .AsNoTracking()

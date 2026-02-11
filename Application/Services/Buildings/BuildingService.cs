@@ -1,5 +1,6 @@
 ﻿using Application.Common;
 using Application.Repositories;
+using Application.Repositories.SearchCriteria;
 using Application.Services.Buildings.DTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
@@ -22,7 +23,8 @@ public sealed class BuildingService(
         if (building == null)
             return Result<GetBuildingDetailsResponse>.Fail(ErrorType.None, "Building was not found.");
 
-        var buildingPolicies = await policyRepository.GetByBuildingIdAsync(buildingId, ct);
+        var buildingPolicies = await policyRepository.ListAsync(
+            PolicySearchCriteria.ByBuildingId(buildingId), ct: ct);
 
         var response = new GetBuildingDetailsResponse(
             BuildingDetailedDto.From(
@@ -38,7 +40,7 @@ public sealed class BuildingService(
         if (client == null)
             return Result<GetBuildingsForClientResponse>.Fail(ErrorType.NotFound, "Client not found.");
 
-        var clientBuildings = await buildingRepository.GetByClientIdAsync(clientId, ct);
+        var clientBuildings = await buildingRepository.ListByClientIdAsync(clientId, ct);
         var response = new GetBuildingsForClientResponse(clientBuildings.Select(BuildingListItemDto.From).ToList());
 
         return Result<GetBuildingsForClientResponse>.Ok(response);

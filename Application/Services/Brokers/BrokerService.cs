@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Exceptions;
 using Application.Repositories;
 using Application.Services.Brokers.DTOs;
 using Application.Services.Shared.DTOs.BrokerDTOs;
@@ -21,13 +22,13 @@ public sealed class BrokerService(
             request.Broker.IsActive,
             request.Broker.CommissionPercentage);
 
-        brokerRepository.Add(newBroker, ct);
+        brokerRepository.Add(newBroker);
 
         try
         {
             await uow.SaveChangesAsync(ct);
         }
-        catch (UniqueConstraintViolationException)
+        catch (DuplicateKeyException)
         {
             return Result<CreateBrokerResponse>.Fail(ErrorType.Conflict, "Broker code already exists");
         }

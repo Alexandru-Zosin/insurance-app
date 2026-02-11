@@ -12,7 +12,7 @@ public class ReportService(
         GetReportsCriteria criteria,
         CancellationToken ct = default)
     {
-        var reportsByCountry = await reportsQuery.GetByCountryAsync(criteria, ct);
+        var reportsByCountry = await reportsQuery.GetAsync(criteria, ReportDimension.Country, ct);
 
         var response = new GetReportsResponse(reportsByCountry);
         return Result<GetReportsResponse>.Ok(response);
@@ -22,7 +22,7 @@ public class ReportService(
         GetReportsCriteria criteria,
         CancellationToken ct = default)
     {
-        var reportsByCounty = await reportsQuery.GetByCountyAsync(criteria, ct);
+        var reportsByCounty = await reportsQuery.GetAsync(criteria, ReportDimension.County, ct);
 
         var response = new GetReportsResponse(reportsByCounty);
         return Result<GetReportsResponse>.Ok(response);
@@ -32,7 +32,7 @@ public class ReportService(
         GetReportsCriteria criteria,
         CancellationToken ct = default)
     {
-        var reportsByCity = await reportsQuery.GetByCityAsync(criteria, ct);
+        var reportsByCity = await reportsQuery.GetAsync(criteria, ReportDimension.City, ct);
 
         var response = new GetReportsResponse(reportsByCity);
         return Result<GetReportsResponse>.Ok(response);
@@ -42,7 +42,7 @@ public class ReportService(
         GetReportsCriteria criteria,
         CancellationToken ct = default)
     {
-        var reportsByBroker = await reportsQuery.GetByBrokerAsync(criteria, ct);
+        var reportsByBroker = await reportsQuery.GetAsync(criteria, ReportDimension.Broker, ct);
 
         var response = new GetReportsResponse(reportsByBroker);
         return Result<GetReportsResponse>.Ok(response);

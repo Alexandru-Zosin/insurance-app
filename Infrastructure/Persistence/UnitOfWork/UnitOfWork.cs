@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Exceptions;
 using Infrastructure.Persistence.Configuration;
 using Infrastructure.Persistence.Data;
 using Infrastructure.Persistence.Models;
@@ -45,7 +46,7 @@ public sealed class UnitOfWork(InsuranceDbContext dbContext) : IUnitOfWork
         }
         catch (DbUpdateException ex) when (SqlServerErrors.IsUniqueViolation(ex))
         {
-            throw new UniqueConstraintViolationException(ex);
+            throw new DuplicateKeyException(ex);
         }
     }
 }

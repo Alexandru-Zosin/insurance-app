@@ -1,5 +1,7 @@
 ﻿using Application.Common;
+using Application.Exceptions;
 using Application.Repositories;
+using Application.Repositories.SearchCriteria;
 using Application.Services.Clients.DTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
@@ -30,16 +32,15 @@ public sealed class ClientService(
             clientContactInfo,
             clientAddress);
 
-        clientRepository.Add(newClient, ct);
+        clientRepository.Add(newClient);
 
         try
         {
             await uow.SaveChangesAsync(ct);
         }
-        catch (UniqueConstraintViolationException)
+        catch (DuplicateKeyException)
         {
-            return Result<CreateClientResponse>.Fail(
-                ErrorType.Conflict,
+            return Result<CreateClientResponse>.Fail(ErrorType.Conflict, 
                 "Identification number already exists.");
         }
 
@@ -57,8 +58,9 @@ public sealed class ClientService(
                 "Client not found");
         }
 
-        var clientBuildings = await buildingRepository.GetByClientIdAsync(clientId, ct);
-        var clientPolicies = await policyRepository.GetByClientIdAsync(clientId, ct);
+        var clientBuildings = await buildingRepository.ListByClientIdAsync(clientId, ct);
+        var clientPolicies = await policyRepository.ListAsync(
+            PolicySearchCriteria.ByClientId(clientId), ct: ct);
 
         var response = new GetClientDetailsResponse(
             ClientDetailedDto.From(
@@ -74,7 +76,7 @@ public sealed class ClientService(
     {
         var page = request.PageRequest;
 
-        var matchedClients = await clientRepository.SearchAsync(
+        var matchedClients = await clientRepository.ListAsync(
             request.Identifier,
             request.Name,
             page,

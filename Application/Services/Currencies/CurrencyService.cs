@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Exceptions;
 using Application.Repositories;
 using Application.Services.Currencies.DTOs;
 using Application.Services.Shared.DTOs.CurrencyDTOs;
@@ -20,13 +21,13 @@ public sealed class CurrencyService(
             request.Currency.ExchangeRateToBase,
             request.Currency.IsActive);
 
-        currencyRepository.Add(newCurrency, ct);
+        currencyRepository.Add(newCurrency);
 
         try
         {
             await uow.SaveChangesAsync(ct);
         }
-        catch (UniqueConstraintViolationException)
+        catch (DuplicateKeyException)
         {
             return Result<AddCurrencyResponse>.Fail(
                 ErrorType.Conflict, "Currency code already exists");

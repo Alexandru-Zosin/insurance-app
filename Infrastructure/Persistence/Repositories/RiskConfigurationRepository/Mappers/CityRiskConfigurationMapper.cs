@@ -17,7 +17,7 @@ public sealed class CityRiskConfigurationMapper : IRiskConfigurationMapper
 
         var premiumRuleRowCityId = premiumRuleRow.CityId.Value;
 
-        return CityRiskConfiguration.Rehydrate(
+        return CityRiskConfiguration.FromState(
             id: premiumRuleRow.PremiumRuleKey,
             name: premiumRuleRow.Name,
             percentage: premiumRuleRow.Percentage,

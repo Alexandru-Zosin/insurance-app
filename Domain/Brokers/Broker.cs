@@ -31,7 +31,7 @@ public class Broker
         return new Broker(Guid.NewGuid(), code, name, contactInfo, isActive, commissionPercentage);
     }
 
-     public static Broker Rehydrate(
+     public static Broker FromState(
         Guid id,
         string code,
         string name,

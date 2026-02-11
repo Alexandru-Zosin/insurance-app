@@ -18,7 +18,7 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.BuildingType);
 
-        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        riskConfigurationRepository.Add(newRiskConfiguration);
         await uow.SaveChangesAsync(ct);
 
         return Result<CreateRiskConfigurationResponse>.Ok(new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration)));
@@ -31,7 +31,7 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.CountryId);
 
-        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        riskConfigurationRepository.Add(newRiskConfiguration);
         await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
@@ -46,7 +46,7 @@ public sealed class RiskConfigurationService(
             request.IsActive,
             request.CountyId);
 
-        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        riskConfigurationRepository.Add(newRiskConfiguration);
         await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
@@ -61,7 +61,7 @@ public sealed class RiskConfigurationService(
             request.IsActive, 
             request.CityId);
 
-        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        riskConfigurationRepository.Add(newRiskConfiguration);
         await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));
@@ -76,7 +76,7 @@ public sealed class RiskConfigurationService(
             request.IsActive, 
             request.Category);
 
-        riskConfigurationRepository.Add(newRiskConfiguration, ct);
+        riskConfigurationRepository.Add(newRiskConfiguration);
         await uow.SaveChangesAsync(ct);
 
         var response = new CreateRiskConfigurationResponse(RiskConfigurationListItemDto.From(newRiskConfiguration));

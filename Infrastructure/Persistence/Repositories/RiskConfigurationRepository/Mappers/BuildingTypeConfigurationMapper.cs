@@ -18,7 +18,7 @@ public sealed class BuildingTypeRiskConfigurationMapper : IRiskConfigurationMapp
 
         var rowBuildingType = Enum.Parse<BuildingType>(premiumRuleRow.BuildingType, ignoreCase: true);
 
-        return BuildingTypeRiskConfiguration.Rehydrate(
+        return BuildingTypeRiskConfiguration.FromState(
             id: premiumRuleRow.PremiumRuleKey,
             name: premiumRuleRow.Name,
             percentage: premiumRuleRow.Percentage,

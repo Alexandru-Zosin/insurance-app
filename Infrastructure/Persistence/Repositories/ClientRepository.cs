@@ -10,14 +10,20 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepository
 {
-    public void Add(Client clientToAdd, CancellationToken ct = default)
+    public void Add(Client clientToAdd)
     {
+        if (clientToAdd is null) 
+            throw new ArgumentNullException(nameof(clientToAdd));
+
         var clientRow = MapToEf(clientToAdd);
         dbContext.Clients.Add(clientRow);
     }
 
     public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
+        if (clientId == Guid.Empty)
+            throw new ArgumentException("Client id cannot be empty.", nameof(clientId));
+
         var clientRow = await dbContext.Clients
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct);
@@ -25,8 +31,11 @@ public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepo
         return clientRow is null ? null : MapToDomain(clientRow);
     }
 
-    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Client>> ListAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
     {
+        if (page is null) 
+            throw new ArgumentNullException(nameof(page));
+
         var query = dbContext.Clients.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(identifierFilter))
@@ -53,6 +62,9 @@ public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepo
 
     public async Task UpdateAsync(Client updatedClient, CancellationToken ct = default)
     {
+        if (updatedClient is null) 
+            throw new ArgumentNullException(nameof(updatedClient));
+
         var existingClientRow = await dbContext.Clients
                 .SingleOrDefaultAsync(x => x.ClientKey == updatedClient.Id, ct);
 
@@ -90,7 +102,7 @@ public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepo
 
     private static Client MapToDomain(EfClient clientRow)
     {
-        return Client.Rehydrate(
+        return Client.FromState(
             id: clientRow.ClientKey,
             type: ParseClientType(clientRow.ClientType),
             name: clientRow.Name,

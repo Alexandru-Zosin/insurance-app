@@ -25,7 +25,7 @@ public sealed class BuildingTypeRiskConfiguration : IRiskConfiguration
     public static BuildingTypeRiskConfiguration Create(string name, decimal percentage, bool isActive, BuildingType buildingType)
         => new(new RiskConfigCore(Guid.NewGuid(), name, percentage, isActive), buildingType);
 
-    public static BuildingTypeRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, BuildingType buildingType)
+    public static BuildingTypeRiskConfiguration FromState(Guid id, string name, decimal percentage, bool isActive, BuildingType buildingType)
         => new(new RiskConfigCore(id, name, percentage, isActive), buildingType);
 
     public bool IsApplicable(PolicyDraftContext ctx)

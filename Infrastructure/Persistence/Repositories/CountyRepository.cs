@@ -8,9 +8,10 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class CountyRepository(InsuranceDbContext dbContext) : ICountyRepository
 {
-    public void Add(County countyToAdd, CancellationToken ct = default)
+    public void Add(County countyToAdd)
     {
-        if (countyToAdd is null) throw new ArgumentNullException(nameof(countyToAdd));
+        if (countyToAdd is null) 
+            throw new ArgumentNullException(nameof(countyToAdd));
 
         var countyRow = MapToEf(countyToAdd);
 
@@ -19,7 +20,8 @@ public sealed class CountyRepository(InsuranceDbContext dbContext) : ICountyRepo
 
     public async Task<County?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+        if (id <= 0) 
+            throw new ArgumentOutOfRangeException(nameof(id));
 
         var countyRow = await dbContext.Counties
             .AsNoTracking()
@@ -28,7 +30,7 @@ public sealed class CountyRepository(InsuranceDbContext dbContext) : ICountyRepo
         return countyRow is null ? null : MapToDomain(countyRow);
     }
 
-    public async Task<IReadOnlyList<County>> GetByCountryIdAsync(int countryId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<County>> ListByCountryIdAsync(int countryId, CancellationToken ct = default)
     {
         if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 

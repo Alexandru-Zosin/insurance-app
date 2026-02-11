@@ -24,7 +24,7 @@ public sealed class ZoneRiskConfiguration : IRiskConfiguration
     public static ZoneRiskConfiguration Create(string name, decimal pct, bool active, ZoneRiskCategory category)
         => new(new RiskConfigCore(Guid.NewGuid(), name, pct, active), category);
 
-    public static ZoneRiskConfiguration Rehydrate(Guid id, string name, decimal pct, bool active, ZoneRiskCategory category)
+    public static ZoneRiskConfiguration FromState(Guid id, string name, decimal pct, bool active, ZoneRiskCategory category)
         => new(new RiskConfigCore(id, name, pct, active), category);
 
     public bool IsApplicable(PolicyDraftContext ctx)

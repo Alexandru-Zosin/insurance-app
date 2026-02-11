@@ -1,14 +1,13 @@
-﻿using Application.Common;
-using Application.Repositories;
+﻿using Domain.Policies;
+using Application.Common;
+using Application.Exceptions;
+using Application.Repositories.SearchCriteria;
 using Application.Services.Policies.DTOs;
 using Application.Services.Shared.DTOs.BrokerDTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.ClientDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
-using Domain.Configurations;
-using Domain.Policies;
-using Domain.Services;
-using Domain.Shared;
+using Application.Repositories;
 
 namespace Application.Services.Policies;
 
@@ -17,99 +16,51 @@ public sealed class PolicyService(
     IClientRepository clientRepository,
     IBuildingRepository buildingRepository,
     IBrokerRepository brokerRepository,
-    ICurrencyRepository currencyRepository,
-    ICityRepository cityRepository,
-    ICountyRepository countyRepository,
-    ICountryRepository countryRepository,
-    IFeeConfigurationRepository feeConfigurationRepository,
-    IRiskConfigurationRepository riskConfigurationRepository,
-    IPremiumCalculatorService premiumCalculatorService,
+    IPolicyDraftPrerequisitesLoader draftPrerequisitesLoader,
+    IPolicyPricingService pricingService,
     IUnitOfWork uow) : IPolicyService
 {
     public async Task<Result<CreateDraftPolicyResponse>> CreateDraftPolicyAsync(
         CreateDraftPolicyRequest request,
         CancellationToken ct = default)
     {
-        var draftClient = await clientRepository.GetByIdAsync(request.Policy.ClientId, ct);
-        if (draftClient == null)
-            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Client not found");
+        var draftPrereqResult = await draftPrerequisitesLoader.LoadAsync(request, ct);
+        if (!draftPrereqResult.IsSuccess)
+            return Result<CreateDraftPolicyResponse>.Fail(draftPrereqResult.ErrorType, draftPrereqResult.ErrorMessage);
 
-        var draftBuilding = await buildingRepository.GetByIdAsync(request.Policy.BuildingId, ct);
-        if (draftBuilding == null || draftBuilding.OwnerClientId != draftClient.Id)
-            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Building not found");
-
-        var draftBroker = await brokerRepository.GetByIdAsync(request.Policy.BrokerId, ct);
-        if (draftBroker == null)
-            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Broker not found");
-
-        var draftCurrency = await currencyRepository.GetByCodeAsync(request.Policy.CurrencyCode, ct);
-        if (draftCurrency == null || !draftCurrency.IsActive)
-            return Result<CreateDraftPolicyResponse>.Fail(ErrorType.NotFound, "Currency not found or inactive");
-
-        var draftCity = await cityRepository.GetByIdAsync(draftBuilding.CityId, ct);
-        var draftCounty = await countyRepository.GetByIdAsync(draftCity!.CountyId, ct);
-        var draftCountry = await countryRepository.GetByIdAsync(draftCounty!.CountryId, ct);
+        var draftPrerequisites = draftPrereqResult.Value!;
 
         var draftBasePremium = request.Policy.BasePremium.MapToDomain();
         var draftTenure = request.Policy.Tenure.MapToDomain();
-
-        var draftContext = new PolicyDraftContext
-        (
-            draftBroker.Id,
-            draftBroker.CommissionPercentage,
-            draftCountry!.Id,
-            draftCounty.Id,
-            draftCity.Id,
-            draftBuilding.BuildingType,
-            draftBuilding.ZoneRiskCategories,
-            draftBasePremium,
-            DateOnly.FromDateTime(DateTime.UtcNow)
-        );
-        var draftFinalPremium = await CalculateDraftFinalPremiumAsync(draftContext, ct);
+        var finalPremium = await pricingService.CalculateDraftFinalPremiumAsync(
+            draftPrerequisites,
+            request,
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            ct);
 
         var newDraft = Policy.CreateDraft(
-            draftClient.Id,
-            draftBuilding.Id,
-            draftBroker.Id,
+            draftPrerequisites.Client.Id,
+            draftPrerequisites.Building.Id,
+            draftPrerequisites.Broker.Id,
             draftTenure,
             draftBasePremium,
-            draftCurrency.Code,
-            draftFinalPremium,
-            DateOnly.FromDateTime(DateTime.Now)
-            );
+            draftPrerequisites.Currency.Code,
+            finalPremium,
+            DateOnly.FromDateTime(DateTime.UtcNow));
 
-        policyRepository.Add(newDraft, ct);
+        policyRepository.Add(newDraft);
 
         try
         {
             await uow.SaveChangesAsync(ct);
         }
-        catch (UniqueConstraintViolationException)
+        catch (DuplicateKeyException)
         {
             return Result<CreateDraftPolicyResponse>.Fail(ErrorType.Conflict, "Duplicate policy number");
         }
 
         var response = new CreateDraftPolicyResponse(PolicyListItemDto.From(newDraft));
         return Result<CreateDraftPolicyResponse>.Ok(response);
-    }
-
-    private async Task<Money> CalculateDraftFinalPremiumAsync(
-        PolicyDraftContext draftContext,
-        CancellationToken ct = default)
-    {
-        if (draftContext is null) throw new ArgumentNullException(nameof(draftContext));
-
-        var feeConfigurations = await feeConfigurationRepository.ListAsync(ct);
-        var riskConfigurations = await riskConfigurationRepository.ListAsync(ct);
-
-        var activePremiumRules = feeConfigurations
-            .Where(fee => fee.IsActive)
-            .Cast<IPremiumRule>()
-            .Concat(riskConfigurations.Where(risk => risk.Core.IsActive)
-                                      .Cast<IPremiumRule>())
-            .ToArray();
-
-        return premiumCalculatorService.CalculateFinalPremium(draftContext, activePremiumRules);
     }
 
     public async Task<Result<ActivatePolicyResponse>> ActivatePolicyAsync(
@@ -175,16 +126,15 @@ public sealed class PolicyService(
         var criteria = new PolicySearchCriteria(
             request.ClientId,
             request.BrokerId,
+            null,
             request.Status,
             request.StartDate,
             request.EndDate);
 
-        var matchedPolicies = await policyRepository.SearchAsync(
-            criteria,
-            request.Page,
-            ct);
+        var matchedPolicies = await policyRepository.ListAsync(criteria, request.Page, ct);
 
-        var response = new ListPoliciesResponse(matchedPolicies.Select(PolicyListItemDto.From).ToArray());
-        return Result<ListPoliciesResponse>.Ok(response);
+        return Result<ListPoliciesResponse>.Ok(
+            new ListPoliciesResponse(matchedPolicies.Select(PolicyListItemDto.From).ToArray()));
     }
 }
+

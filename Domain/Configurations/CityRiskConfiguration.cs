@@ -27,7 +27,7 @@ public sealed class CityRiskConfiguration : IRiskConfiguration
     public static CityRiskConfiguration Create(string name, decimal percentage, bool isActive, int cityId)
         => new(new RiskConfigCore(Guid.NewGuid(), name, percentage, isActive), cityId);
 
-    public static CityRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, int cityId)
+    public static CityRiskConfiguration FromState(Guid id, string name, decimal percentage, bool isActive, int cityId)
         => new(new RiskConfigCore(id, name, percentage, isActive), cityId);
 
     public bool IsApplicable(PolicyDraftContext ctx)

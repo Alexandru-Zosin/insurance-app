@@ -8,10 +8,22 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class ReportQuery(InsuranceDbContext dbContext) : IReportQuery
 {
-    public async Task<IReadOnlyList<ReportRow>> GetByCountryAsync(GetReportsCriteria filter, CancellationToken ct)
+    public async Task<IReadOnlyList<ReportRow>> GetAsync(GetReportsCriteria filter, ReportDimension dimension, CancellationToken ct = default)
     {
         var query = GetFilteredQueryByCriteria(filter);
-        var reportByCountry = await query
+
+        return dimension switch
+        {
+            ReportDimension.Country => await GetByCountryAsync(query, ct),
+            ReportDimension.County => await GetByCountyAsync(query, ct),
+            ReportDimension.City => await GetByCityAsync(query, ct),
+            ReportDimension.Broker => await GetByBrokerAsync(query, ct),
+            _ => throw new ArgumentOutOfRangeException(nameof(dimension), dimension, "Unknown report dimension.")
+        };
+    }
+
+    private async Task<IReadOnlyList<ReportRow>> GetByCountryAsync(IQueryable<Policy> query,
+        CancellationToken ct) => await query
                               .Select(p => new
                               {
                                   CountryId = p.BuildingKeyNavigation.City.County.CountryId,
@@ -27,14 +39,8 @@ public sealed class ReportQuery(InsuranceDbContext dbContext) : IReportQuery
                               ))
                               .ToListAsync(ct);
 
-        return reportByCountry;
-    }
-
-    public async Task<IReadOnlyList<ReportRow>> GetByCountyAsync(GetReportsCriteria filter, CancellationToken ct)
-    {
-        var query = GetFilteredQueryByCriteria(filter);
-        var reportByCounty = await query
-                                   .Select(p => new
+    private async Task<IReadOnlyList<ReportRow>> GetByCountyAsync(IQueryable<Policy> query, CancellationToken ct) => await query
+                     .Select(p => new
                                     {
                                         CountyId = p.BuildingKeyNavigation.City.CountyId,
                                         CurrencyCode = p.CurrencyCode,
@@ -48,14 +54,8 @@ public sealed class ReportQuery(InsuranceDbContext dbContext) : IReportQuery
                                        g.Sum(x => x.FinalPremiumAmount)
                                     ))
                                    .ToListAsync(ct);
-    
-        return reportByCounty;
-    }
 
-    public async Task<IReadOnlyList<ReportRow>> GetByCityAsync(GetReportsCriteria filter, CancellationToken ct)
-    {
-        var query = GetFilteredQueryByCriteria(filter);
-        var reportByCity = await query
+    private async Task<IReadOnlyList<ReportRow>> GetByCityAsync(IQueryable<Policy> query, CancellationToken ct) => await query
                                    .Select(p => new
                                    {
                                        CityId = p.BuildingKeyNavigation.CityId,
@@ -70,15 +70,8 @@ public sealed class ReportQuery(InsuranceDbContext dbContext) : IReportQuery
                                        g.Sum(x => x.FinalPremiumAmount)
                                     ))
                                    .ToListAsync(ct);
-
-        return reportByCity;
-
-    }
-
-    public async Task<IReadOnlyList<ReportRow>> GetByBrokerAsync(GetReportsCriteria filter, CancellationToken ct)
-    {
-        var query = GetFilteredQueryByCriteria(filter);
-        var reportByBroker = await query.Select(p => new
+    
+    private async Task<IReadOnlyList<ReportRow>> GetByBrokerAsync(IQueryable<Policy> query, CancellationToken ct) => await query.Select(p => new
                                             { p.BrokerKeyNavigation.Code,
                                               p.CurrencyCode,
                                               p.FinalPremiumAmount
@@ -90,9 +83,6 @@ public sealed class ReportQuery(InsuranceDbContext dbContext) : IReportQuery
                                            g.Count(),
                                            g.Sum(x => x.FinalPremiumAmount)
                                         )).ToListAsync(ct);
-
-        return reportByBroker;
-    }
 
     private IQueryable<Policy> GetFilteredQueryByCriteria(GetReportsCriteria filter)
     {

@@ -13,12 +13,18 @@ public sealed class BuildingRepository(InsuranceDbContext dbContext) : IBuilding
 {
     public async Task AddAsync(Building buildingToAdd, CancellationToken ct = default)
     {
+        if (buildingToAdd is null) 
+            throw new ArgumentNullException(nameof(buildingToAdd));
+
         var buildingRow = await MapToEfAsync(buildingToAdd, ct);
         dbContext.Buildings.Add(buildingRow);
     }
 
-    public async Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid ownerClientId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Building>> ListByClientIdAsync(Guid ownerClientId, CancellationToken ct = default)
     {
+        if (ownerClientId == Guid.Empty)
+            throw new ArgumentException("Owner client id cannot be empty.", nameof(ownerClientId));
+
         var buildingRows = await dbContext.Buildings
             .AsNoTracking()
             .Include(b => b.RiskCategories)
@@ -30,6 +36,9 @@ public sealed class BuildingRepository(InsuranceDbContext dbContext) : IBuilding
 
     public async Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken ct = default)
     {
+        if (buildingId == Guid.Empty)
+            throw new ArgumentException("Building id cannot be empty.", nameof(buildingId));
+
         var buildingRow = await dbContext.Buildings
             .AsNoTracking()
             .Include(b => b.RiskCategories)
@@ -40,14 +49,15 @@ public sealed class BuildingRepository(InsuranceDbContext dbContext) : IBuilding
 
     public async Task UpdateAsync(Building updatedBuilding, CancellationToken ct = default)
     {
+        if (updatedBuilding is null) 
+            throw new ArgumentNullException(nameof(updatedBuilding));
+
         var existingBuildingRow = await dbContext.Buildings
             .Include(b => b.RiskCategories)
             .SingleOrDefaultAsync(b => b.BuildingKey == updatedBuilding.Id, ct);
 
-        if (existingBuildingRow is null)
-            throw new InvalidOperationException("Building not found.");
-
-        await MapOntoEfAsync(existingBuildingRow, updatedBuilding, ct);
+        if (existingBuildingRow != null)
+            await MapOntoEfAsync(existingBuildingRow, updatedBuilding, ct);
     }
 
     private async Task<EfBuilding> MapToEfAsync(Building building, CancellationToken ct)
@@ -75,7 +85,7 @@ public sealed class BuildingRepository(InsuranceDbContext dbContext) : IBuilding
         var buildingAddress = Address.Create(buildingRow.Street, buildingRow.Number);
         var insuredValue = Money.Create(buildingRow.InsuredValueAmount, buildingRow.InsuredValueCurrencyCode);
 
-        return Building.Rehydrate(
+        return Building.FromState(
             id: buildingRow.BuildingKey,
             ownerClientId: buildingRow.OwnerClientId,
             address: buildingAddress,

@@ -19,7 +19,7 @@ public sealed class ZoneRiskConfigurationMapper : IRiskConfigurationMapper
             premiumRuleRow.ZoneRiskCategoryCode,
             ignoreCase: true);
 
-        return ZoneRiskConfiguration.Rehydrate(
+        return ZoneRiskConfiguration.FromState(
             id: premiumRuleRow.PremiumRuleKey,
             name: premiumRuleRow.Name,
             pct: premiumRuleRow.Percentage,

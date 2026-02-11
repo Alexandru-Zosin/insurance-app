@@ -9,9 +9,10 @@ namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 public sealed class RiskConfigurationRepository(InsuranceDbContext dbContext,
     IRiskConfigurationMapperRegistry _riskMapperRegistry) : IRiskConfigurationRepository
 {
-    public void Add(IRiskConfiguration riskConfigurationToAdd, CancellationToken ct = default)
+    public void Add(IRiskConfiguration riskConfigurationToAdd)
     {
-        if (riskConfigurationToAdd is null) throw new ArgumentNullException(nameof(riskConfigurationToAdd));
+        if (riskConfigurationToAdd is null) 
+            throw new ArgumentNullException(nameof(riskConfigurationToAdd));
 
         var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(riskConfigurationToAdd);
         var premiumRuleRow = resolvedRiskMapper.MapToEf(riskConfigurationToAdd);
@@ -27,16 +28,19 @@ public sealed class RiskConfigurationRepository(InsuranceDbContext dbContext,
         var existingPremiumRuleRow = await dbContext.PremiumRules
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == updatedRiskConfiguration.Core.Id, ct);
 
+        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(updatedRiskConfiguration);
+
         if (existingPremiumRuleRow is null)
             throw new InvalidOperationException("Risk factor not found.");
 
-        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(updatedRiskConfiguration);
-
-        resolvedRiskMapper.MapOntoEf(existingPremiumRuleRow, updatedRiskConfiguration);
+        resolvedRiskMapper.MapOntoEf(existingPremiumRuleRow!, updatedRiskConfiguration);
     }
 
     public async Task<IRiskConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Risk configuration id cannot be empty.", nameof(id));
+
         var premiumRuleRow = await dbContext.PremiumRules
             .AsNoTracking()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == id, ct);

@@ -10,8 +10,11 @@ namespace Infrastructure.Persistence.Repositories;
 
 public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepository
 {
-    public void Add(Broker brokerToAdd, CancellationToken ct = default)
+    public void Add(Broker brokerToAdd)
     {
+        if (brokerToAdd is null)
+            throw new ArgumentNullException(nameof(brokerToAdd));
+
         var newBrokerRow = MapToEf(brokerToAdd);
 
         dbContext.Brokers.Add(newBrokerRow);
@@ -19,15 +22,23 @@ public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepo
 
     public async Task UpdateAsync(Broker updatedBroker, CancellationToken ct = default)
     {
+        if (updatedBroker is null)
+            throw new ArgumentNullException(nameof(updatedBroker));
+
         var existingBrokerRow = await dbContext.Brokers
             .SingleOrDefaultAsync(b => b.BrokerKey == updatedBroker.Id, ct);
-        
-        if (existingBrokerRow != null)
-            MapOntoEf(existingBrokerRow, updatedBroker);
+
+        if (existingBrokerRow is null)
+            throw new InvalidOperationException("Broker not found.");
+
+        MapOntoEf(existingBrokerRow, updatedBroker);
     }
 
     public async Task<Broker?> GetByIdAsync(Guid brokerId, CancellationToken ct = default)
     {
+        if (brokerId == Guid.Empty) 
+            throw new ArgumentException("Broker id cannot be empty.", nameof(brokerId));
+
         var brokerRow = await dbContext.Brokers
             .AsNoTracking()
             .SingleOrDefaultAsync(b => b.BrokerKey == brokerId, ct);
@@ -37,6 +48,9 @@ public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepo
 
     public async Task<Broker?> GetByCodeAsync(string brokerCode, CancellationToken ct = default)
     {
+        if (brokerCode is null) 
+            throw new ArgumentNullException(nameof(brokerCode));
+
         var normalizedBrokerCode = brokerCode.Trim();
 
         var brokerRow = await dbContext.Brokers
@@ -48,6 +62,9 @@ public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepo
 
     public async Task<IReadOnlyList<Broker>> ListAsync(PageRequest page, CancellationToken ct = default)
     {
+        if (page is null) 
+            throw new ArgumentNullException(nameof(page));
+
         var brokerRows = await dbContext.Brokers
             .AsNoTracking()
             .OrderBy(b => b.Name)
@@ -85,7 +102,7 @@ public sealed class BrokerRepository(InsuranceDbContext dbContext) : IBrokerRepo
 
     private static Broker MapMapToDomain(EfBroker ef)
     {
-        return Broker.Rehydrate(
+        return Broker.FromState(
             id: ef.BrokerKey,
             code: ef.Code,
             name: ef.Name,

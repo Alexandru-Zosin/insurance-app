@@ -81,7 +81,7 @@ public sealed class Policy
             cancellationEffectiveDate: null);
     }
 
-    public static Policy Rehydrate(
+    public static Policy FromState(
         Guid number,
         Guid clientId,
         Guid buildingId,

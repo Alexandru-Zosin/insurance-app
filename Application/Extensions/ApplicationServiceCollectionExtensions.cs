@@ -24,6 +24,11 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
         services.AddScoped<IRiskConfigurationService, RiskConfigurationService>();
         services.AddScoped<IPolicyService, PolicyService>();
+        services.AddScoped<IPremiumRulesProvider, PremiumRulesProvider>();
+        services.AddScoped<IPolicyDraftPrerequisitesLoader, PolicyDraftPrerequisitesLoader>();
+        services.AddScoped<IPolicyPricingService, PolicyPricingService>();
+
+
         services.AddScoped<IReportService, ReportService>();
 
         services.AddScoped<IPremiumCalculatorService, PremiumCalculatorService>();
