@@ -1,104 +1,168 @@
 ﻿using Domain.Common;
-using Domain.Geography;
+using Domain.Configurations;
 using Domain.Shared;
 namespace Domain.Buildings;
 
-public enum BuildingType
-{
-    Residential, Office, Industrial
-}
-
 public class Building
 {
+    private HashSet<ZoneRiskCategory> _zoneRiskCategories = [];
+
     public Guid Id { get; }
-    public Guid ClientId { get; }
-    public Address Address { get; }
-    public City City { get; }
-    public int ConstructionYear { get; private set; }
+    public Guid OwnerClientId { get; }
+    public Address Address { get; private set; }
+    public int CityId { get; private set; }
+    public int ConstructionYear { get; }
     public BuildingType BuildingType { get; }
     public int SurfaceArea { get; private set; }
     public Money InsuredValue { get; private set;  }
-    public RiskProfile RiskProfile { get; private set; }
+    public IReadOnlyCollection<ZoneRiskCategory> ZoneRiskCategories => _zoneRiskCategories;
 
     private Building(
         Guid id,
-        Guid clientId,
+        Guid ownerClientId,
         Address address,
-        City city,
+        int cityId,
         int constructionYear,
         BuildingType type,
         int surfaceArea,
-        Money insuredValue,
-        RiskProfile riskProfile)
+        Money insuredValue
+        )
     {
         Id = id;
-        ClientId = clientId;
+        OwnerClientId = ownerClientId;
         Address = address;
-        City = city;
+        CityId = cityId;
         ConstructionYear = constructionYear;
         BuildingType = type;
         SurfaceArea = surfaceArea;
         InsuredValue = insuredValue;
-        RiskProfile = riskProfile;
+
+        ValidateInvariants();
     }
 
-    public static Result<Building> Create(
-        Guid clientId,
+    public static Building RegisterForClient(
+        Guid ownerClientId,
         Address address,
-        City city,
+        int cityId,
         int constructionYear,
         BuildingType type,
         int surfaceArea,
         Money insuredValue,
-        RiskProfile riskProfile)
+        IEnumerable<ZoneRiskCategory> zoneRiskCategories
+ )
     {
-        if (surfaceArea <= 0)
-            return Result<Building>.Fail(ErrorType.Validation, "Surface area must be positive");
-
-        if (constructionYear < 1700 || constructionYear > DateTime.UtcNow.Year)
-            return Result<Building>.Fail(ErrorType.Validation, "Invalid construction year");
-
-        return Result<Building>.Ok(
-            new Building(
+        var b = new Building(
                 Guid.NewGuid(),
-                clientId,
+                ownerClientId,
                 address,
-                city,
+                cityId,
                 constructionYear,
                 type,
                 surfaceArea,
-                insuredValue,
-                riskProfile));
+                insuredValue);
+
+        foreach (var c in zoneRiskCategories.Distinct())
+            b._zoneRiskCategories.Add(c);
+
+        return b;
     }
 
-    public Result UpdateConstructionYear(int year)
+    public static Building Rehydrate(
+        Guid id,
+        Guid ownerClientId,
+        Address address,
+        int cityId,
+        int constructionYear,
+        BuildingType type,
+        int surfaceArea,
+        Money insuredValue,
+        IEnumerable<ZoneRiskCategory> zoneRiskCategories)
     {
-        if (year < 1700 || year > DateTime.UtcNow.Year)
-            return Result.Fail(ErrorType.Validation, "Invalid construction year");
+        var b = new Building(
+            id,
+            ownerClientId,
+            address,
+            cityId,
+            constructionYear,
+            type,
+            surfaceArea,
+            insuredValue);
 
-        ConstructionYear = year;
-        return Result.Ok();
+        foreach (var tag in zoneRiskCategories)
+            b.AddRisk(tag);
+
+        return b;
     }
 
-    public Result UpdateSurfaceArea(int surfaceArea)
+    public Building AddRisk(ZoneRiskCategory tag)
+    {
+        _zoneRiskCategories.Add(tag);
+        return this;
+    }
+
+    public Building RemoveRisk(ZoneRiskCategory tag)
+    {
+        _zoneRiskCategories.Remove(tag);
+        return this;
+    }
+
+    public Building UpdateAddress(Address address)
+    {
+        ValidateAddress(address);
+        Address = address;
+        return this;
+    }
+
+    public Building UpdateSurfaceArea(int surfaceArea)
+    {
+        ValidateSurfaceArea(surfaceArea);
+        SurfaceArea = surfaceArea;
+        return this;
+    }
+
+    public Building UpdateInsuredValue(Money insuredValue)
+    {
+        ValidateInsuredValue(insuredValue);
+        InsuredValue = insuredValue;
+        return this;
+    }
+
+    private static void ValidateAddress(Address address)
+    {
+        if (address is null)
+            throw new DomainException(BuildingConstants.InvalidAddressMsg);
+    }
+
+    private static void ValidateCity(int cityId)
+    {
+        if (cityId <= 0)
+            throw new DomainException(BuildingConstants.InvalidCityIdMsg);
+    }
+
+    private static void ValidateSurfaceArea(int surfaceArea)
     {
         if (surfaceArea <= 0)
-            return Result.Fail(ErrorType.Validation, "Surface area must be positive");
-
-        SurfaceArea = surfaceArea;
-        return Result.Ok();
+            throw new DomainException(BuildingConstants.SurfaceAreaMustBePositiveMsg);
     }
 
-    public Result UpdateInsuredValue(Money insuredValue)
+    private void ValidateInsuredValue(Money insuredValue)
     {
-        InsuredValue = insuredValue;
-        return Result.Ok();
+        if (insuredValue is null)
+            throw new DomainException(BuildingConstants.InvalidInsuredValueMsg);
     }
 
-    public Result UpdateRiskProfile(RiskProfile riskProfile)
+    private static void ValidateConstructionYear(int year)
     {
-        RiskProfile = riskProfile;
-        return Result.Ok();
+        if (year < BuildingConstants.ConstructionYearMin || year > DateTime.UtcNow.Year)
+            throw new DomainException(BuildingConstants.InvalidConstructionYearMsg);
     }
 
+    private void ValidateInvariants()
+    {
+        ValidateAddress(Address);
+        ValidateCity(CityId);
+        ValidateSurfaceArea(SurfaceArea);
+        ValidateInsuredValue(InsuredValue);
+        ValidateConstructionYear(ConstructionYear);
+    }
 }

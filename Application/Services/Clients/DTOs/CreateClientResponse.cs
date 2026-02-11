@@ -1,2 +1,3 @@
-﻿namespace Application.Services.Clients.DTO;
+﻿namespace Application.Services.Clients.DTOs;
+
 public sealed record CreateClientResponse(Guid ClientId);

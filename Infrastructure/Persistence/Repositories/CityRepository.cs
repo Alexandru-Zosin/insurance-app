@@ -1,41 +1,61 @@
-﻿using Domain.Geography;
+﻿using Application.Repositories;
+using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfCity = Infrastructure.Persistence.Models.City;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CityRepository : ICityRepository
+public sealed class CityRepository(InsuranceDbContext _dbContext) : ICityRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public CityRepository(InsuranceDbContext db)
+    public void Add(City cityToAdd, CancellationToken ct = default)
     {
-        _db = db;
+        if (cityToAdd is null) throw new ArgumentNullException(nameof(cityToAdd));
+
+        var cityRow = MapToEf(cityToAdd);
+
+        _dbContext.Cities.Add(cityRow);
     }
 
-    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(
-        int countyId,
-        CancellationToken cancellationToken)
+    public async Task<City?> GetByIdAsync(int cityId, CancellationToken ct = default)
     {
-        return await _db.Cities
+        if (cityId <= 0) throw new ArgumentOutOfRangeException(nameof(cityId));
+
+        var cityRow = await _dbContext.Cities
+            .AsNoTracking()
+            .SingleOrDefaultAsync(c => c.CityId == cityId, ct);
+
+        return cityRow is null ? null : MapToDomain(cityRow);
+    }
+
+    public async Task<IReadOnlyList<City>> GetByCountyIdAsync(int countyId, CancellationToken ct = default)
+    {
+        if (countyId <= 0) throw new ArgumentOutOfRangeException(nameof(countyId));
+
+        var cityRows = await _dbContext.Cities
             .AsNoTracking()
             .Where(c => c.CountyId == countyId)
-            .Select(c => new City(c.CityId, c.Name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .OrderBy(c => c.Name)
+            .ToListAsync(ct);
+
+        return cityRows.Select(MapToDomain).ToList();
     }
 
-    public async Task<City?> GetByIdAsync(
-        int cityId,
-        CancellationToken cancellationToken)
+    private static EfCity MapToEf(City city)
     {
-        var ef = await _db.Cities
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.CityId == cityId,
-                cancellationToken)
-            .ConfigureAwait(false);
+        return new EfCity
+        {
+            CityId = city.Id,
+            CountyId = city.CountyId,
+            Name = city.Name
+        };
+    }
 
-        return ef == null ? null : new City(ef.CityId, ef.Name);
+    private static City MapToDomain(EfCity cityRow)
+    {
+        return City.Create(
+            id: cityRow.CityId,
+            countyId: cityRow.CountyId,
+            name: cityRow.Name);
     }
 }

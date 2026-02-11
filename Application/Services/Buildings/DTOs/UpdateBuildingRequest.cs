@@ -1,10 +1,5 @@
-﻿namespace Application.Services.Buildings.DTO;
+﻿using Application.Services.Shared.DTOs.BuildingDTOs;
 
-public sealed record UpdateBuildingRequest(
-    Guid BuildingId,
-    int ConstructionYear,
-    int SurfaceArea,
-    decimal InsuredValue,
-    string Currency,
-    bool FloodRisk,
-    bool EarthquakeRisk);
+namespace Application.Services.Buildings.DTOs;
+
+public sealed record UpdateBuildingRequest(BuildingCoreDto BuildingInfo);

@@ -14,4 +14,6 @@ public partial class County
     public virtual ICollection<City> Cities { get; set; } = new List<City>();
 
     public virtual Country Country { get; set; } = null!;
+
+    public virtual ICollection<PremiumRule> PremiumRules { get; set; } = new List<PremiumRule>();
 }

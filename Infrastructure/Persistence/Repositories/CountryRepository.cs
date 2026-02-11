@@ -1,42 +1,56 @@
-﻿using Domain.Geography;
+﻿using Application.Repositories;
+using Domain.Geography;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using EfCountry = Infrastructure.Persistence.Models.Country;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountryRepository : ICountryRepository
+public sealed class CountryRepository(InsuranceDbContext _dbContext) : ICountryRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public CountryRepository(InsuranceDbContext db)
+    public void Add(Country countryToAdd, CancellationToken ct = default)
     {
-        _db = db;
+        if (countryToAdd is null) throw new ArgumentNullException(nameof(countryToAdd));
+
+        var countryRow = MapToEf(countryToAdd);
+
+        _dbContext.Countries.Add(countryRow);
     }
 
-    public async Task<IReadOnlyList<Country>> GetAllAsync(
-        CancellationToken cancellationToken)
+    public async Task<Country?> GetByIdAsync(int countryId, CancellationToken ct = default)
     {
-        return await _db.Countries
+        if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
+
+        var countryRow = await _dbContext.Countries
             .AsNoTracking()
-            .Select(c => new Country(c.CountryId, c.Name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(c => c.CountryId == countryId, ct);
+
+        return countryRow is null ? null : MapToDomain(countryRow);
     }
 
-    public async Task<Country?> GetByIdAsync(
-        int countryId,
-        CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken ct = default)
     {
-        var ef = await _db.Countries
+        var countryRows = await _dbContext.Countries
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.CountryId == countryId,
-                cancellationToken)
-            .ConfigureAwait(false);
+            .OrderBy(c => c.Name)
+            .ToListAsync(ct);
 
-        return ef == null ? null : new Country(ef.CountryId, ef.Name);
+        return countryRows.Select(MapToDomain).ToList();
+    }
+
+    private static EfCountry MapToEf(Country country)
+    {
+        return new EfCountry
+        {
+            CountryId = country.Id,
+            Name = country.Name
+        };
+    }
+
+    private static Country MapToDomain(EfCountry countryRow)
+    {
+        return Country.Create(
+            id: countryRow.CountryId,
+            name: countryRow.Name);
     }
 }

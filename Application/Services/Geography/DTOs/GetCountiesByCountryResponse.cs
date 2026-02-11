@@ -1,18 +1,5 @@
-﻿using Domain.Geography;
+﻿using Application.Services.Shared.DTOs.GeographyDTOs;
 
-namespace Application.Services.Geography.DTO;
+namespace Application.Services.Geography.DTOs;
 
-public sealed record GetCountiesByCountryResponse(
-    IReadOnlyList<CountyDto> Counties);
-
-public sealed record CountyDto(
-    int Id,
-    string Name)
-{
-    public static CountyDto From(County county)
-    {
-        return new CountyDto(
-            county.Id,
-            county.Name);
-    }
-}
+public sealed record GetCountiesByCountryResponse(IReadOnlyList<CountyListItemDto> Counties);

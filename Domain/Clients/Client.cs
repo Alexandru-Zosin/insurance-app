@@ -1,14 +1,6 @@
 ﻿using Domain.Common;
 using Domain.Shared;
-using Domain.ValueObjects;
 namespace Domain.Clients;
-
-public enum ClientType
-{
-    Individual,
-    Company
-}
-
 public sealed class Client
 {
     public Guid Id { get; }
@@ -16,12 +8,10 @@ public sealed class Client
     public string Name { get; private set; }
     public IdentificationNumber Identifier { get; }
     public ContactInfo ContactInfo { get; private set; }
-    public Address Address { get; private set; }
-
+    public Address? Address { get; private set; }
 
     private Client(Guid id, ClientType type, string name, IdentificationNumber identifier,
-        ContactInfo contactInfo,
-        Address address)
+        ContactInfo contactInfo, Address? address)
     {
         Id = id;
         Type = type;
@@ -29,42 +19,67 @@ public sealed class Client
         Identifier = identifier;
         ContactInfo = contactInfo;
         Address = address;
+
+        ValidateInvariants();
     }
 
-    public static Result<Client> Create(
+    public static Client Create(
         ClientType type,
         string name,
         IdentificationNumber identifier,
         ContactInfo contactInfo,
-        Address address)
+        Address? address)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            return Result<Client>.Fail(ErrorType.Validation, "Name required");
-
-        return Result<Client>.Ok(
-            new Client(Guid.NewGuid(), type, name, identifier, contactInfo,
-                address));
+        return new Client(Guid.NewGuid(), type, name, identifier, contactInfo,
+                address);
     }
 
-    public Result<bool> ChangeName(string newName)
+    public static Client Rehydrate(
+        Guid id,
+        ClientType type,
+        string name,
+        IdentificationNumber identifier,
+        ContactInfo contactInfo,
+        Address? address)
     {
-        if (string.IsNullOrWhiteSpace(newName))
-            return Result<bool>.Fail(ErrorType.Validation, "Invalid name");
-
-        Name = newName;
-        return Result<bool>.Ok(true);
+        return new Client(id, type, name, identifier, contactInfo, address);
     }
 
-    public Result<bool> ChangeContactInfo(ContactInfo contactInfo)
+    public Client UpdateName(string name)
     {
+        ValidateName(name);
+        Name = name;
+        return this;
+    }
+
+    public Client UpdateContactInfo(ContactInfo contactInfo)
+    {
+        ValidateContactInfo(contactInfo);
         ContactInfo = contactInfo;
-        return Result<bool>.Ok(true);
+        return this;
     }
-
-    public Result<bool> ChangeAddress(Address address)
+    public Client UpdateAddress(Address? address)
     {
         Address = address;
-        return Result<bool>.Ok(true);
+        return this;
+    }
+
+    private static void ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException(ClientConstants.InvalidNameMsg);
+    }
+
+    private static void ValidateContactInfo(ContactInfo contactInfo)
+    {
+        if (contactInfo is null)
+            throw new DomainException(ClientConstants.InvalidContactInfoMsg);
+    }
+
+    private void ValidateInvariants()
+    {
+        ValidateName(Name);
+        ValidateContactInfo(ContactInfo);
     }
 }
 

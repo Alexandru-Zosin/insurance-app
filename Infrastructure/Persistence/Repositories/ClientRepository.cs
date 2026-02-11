@@ -1,112 +1,109 @@
-﻿using Domain.Clients;
+﻿using Application.Common;
+using Application.Repositories;
+using Domain.Clients;
 using Domain.Shared;
-using Domain.ValueObjects;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfClient = Infrastructure.Persistence.Models.Client;
+
 namespace Infrastructure.Persistence.Repositories;
 
-public class ClientRepository : IClientRepository
+public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public ClientRepository(InsuranceDbContext db)
+    public void Add(Client clientToAdd, CancellationToken ct = default)
     {
-        _db = db;
+        var clientRow = MapToEf(clientToAdd);
+        _dbContext.Clients.Add(clientRow);
     }
 
-    public async Task<Domain.Clients.Client?> GetByIdAsync(
-        Guid clientId,
-        CancellationToken cancellationToken)
+    public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
-        var ef = await _db.Clients
+        var clientRow = await _dbContext.Clients
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                c => c.ClientKey == clientId,
-                cancellationToken)
-            .ConfigureAwait(false);
+            .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct);
 
-        return ef == null ? null : Map(ef);
+        return clientRow is null ? null : MapToDomain(clientRow);
     }
 
-    public async Task<Domain.Clients.Client?> GetByRegistrationNumberAsync(
-        string registrationNumber,
-        CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
     {
-        var ef = await _db.Clients
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                x => x.RegistrationNumber == registrationNumber,
-                cancellationToken)
-            .ConfigureAwait(false);
+        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
 
-        return ef == null ? null : Map(ef);
+        if (!string.IsNullOrWhiteSpace(identifierFilter))
+        {
+            var idFilterValue = identifierFilter.Trim();
+            query = query.Where(x => x.IdentificationNumber.Contains(idFilterValue));
+        }
+
+        if (!string.IsNullOrWhiteSpace(nameFilter))
+        {
+            var nameValue = nameFilter.Trim();
+            query = query.Where(x => x.Name.Contains(nameValue));
+        }
+
+        var clientRows = await query
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.IdentificationNumber)
+            .Skip(page.Offset)
+            .Take(page.Take)
+            .ToListAsync(ct);
+
+        return clientRows.Select(MapToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<Client>> SearchByNameAsync(
-    string name,
-    CancellationToken cancellationToken)
+    public async Task UpdateAsync(Client updatedClient, CancellationToken ct = default)
     {
-        var entities = await _db.Clients
-            .AsNoTracking()
-            .Where(c => c.Name.Contains(name))
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var existingClientRow = await _dbContext.Clients
+                .SingleOrDefaultAsync(x => x.ClientKey == updatedClient.Id, ct);
 
-        return entities
-            .Select(Map)
-            .ToList();
+        if (existingClientRow is null)
+            throw new InvalidOperationException("Client not found.");
+
+        MapOntoEf(existingClientRow, updatedClient);
     }
 
-    public async Task AddAsync(
-        Client client,
-        CancellationToken cancellationToken)
+    private static EfClient MapToEf(Client client)
     {
-        await _db.Clients.AddAsync(
-            new Models.Client
-            {
-                ClientKey = client.Id,
-                ClientType = client.Type.ToString(),
-                Name = client.Name,
-                RegistrationNumber = client.Identifier.Value,
-                Email = client.ContactInfo.Email,
-                Phone = client.ContactInfo.Phone,
-                Street = client.Address.Street,
-                Number = client.Address.Number
- //               Address = $"{client.Address!.Street} {client.Address.Number}"
-            },
-            cancellationToken
-        ).ConfigureAwait(false);
+        return new EfClient
+        {
+            ClientKey = client.Id,
+            ClientType = client.Type.ToString(),
+            Name = client.Name,
+            IdentificationNumber = client.Identifier.Value,
+            Email = client.ContactInfo.Email,
+            Phone = client.ContactInfo.Phone,
+            Street = client.Address?.Street,
+            Number = client.Address?.Number
+        };
     }
 
-    public async Task UpdateAsync(
-        Client client,
-        CancellationToken cancellationToken)
+    private static void MapOntoEf(EfClient clientRow, Client client)
     {
-        var ef = await _db.Clients
-            .SingleAsync(
-                c => c.ClientKey == client.Id,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        ef.Name = client.Name;
-        ef.Email = client.ContactInfo.Email;
-        ef.Phone = client.ContactInfo.Phone;
-        ef.Street = client.Address.Street;
-        ef.Number = client.Address.Number;
-        //ef.Address = $"{client.Address!.Street} {client.Address.Number}";
+        clientRow.ClientType = client.Type.ToString();
+        clientRow.Name = client.Name;
+        clientRow.IdentificationNumber = client.Identifier.Value;
+        clientRow.Email = client.ContactInfo.Email;
+        clientRow.Phone = client.ContactInfo.Phone;
+        clientRow.Street = client.Address?.Street;
+        clientRow.Number = client.Address?.Number;
     }
 
-    private static Client Map(Models.Client ef)
+    private static Client MapToDomain(EfClient clientRow)
     {
-        var identifier = IdentificationNumber.Create(ef.RegistrationNumber).Value!;
-        var contact = ContactInfo.Create(ef.Email, ef.Phone).Value!;
-        var address = Address.Create(ef.Street, ef.Number).Value!;
+        return Client.Rehydrate(
+            id: clientRow.ClientKey,
+            type: ParseClientType(clientRow.ClientType),
+            name: clientRow.Name,
+            identifier: IdentificationNumber.Create(clientRow.IdentificationNumber),
+            contactInfo: ContactInfo.Create(clientRow.Email, clientRow.Phone),
+            address: Address.CreateOptional(clientRow.Street, clientRow.Number));
+    }
 
-        return Client.Create(
-            Enum.Parse<ClientType>(ef.ClientType),
-            ef.Name,
-            identifier,
-            contact,
-            address).Value!;
+    private static ClientType ParseClientType(string clientTypeValue)
+    {
+        if (Enum.TryParse<ClientType>(clientTypeValue, ignoreCase: true, out var clientType))
+            return clientType;
+
+        throw new InvalidOperationException($"Unknown client type '{clientTypeValue}'.");
     }
 }

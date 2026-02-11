@@ -1,124 +1,135 @@
-﻿using Domain.Buildings;
+﻿using Application.Repositories;
+using Domain.Buildings;
+using Domain.Configurations;
 using Domain.Shared;
 using Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using EfBuilding = Infrastructure.Persistence.Models.Building;
+using EfRiskCategory = Infrastructure.Persistence.Models.RiskCategory;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class BuildingRepository : IBuildingRepository
+public sealed class BuildingRepository(InsuranceDbContext _dbContext) : IBuildingRepository
 {
-    private readonly InsuranceDbContext _db;
-
-    public BuildingRepository(InsuranceDbContext db)
+    public async Task AddAsync(Building buildingToAdd, CancellationToken ct = default)
     {
-        _db = db;
+        var buildingRow = await MapToEfAsync(buildingToAdd, ct);
+        _dbContext.Buildings.Add(buildingRow);
     }
 
-    public async Task<Domain.Buildings.Building?> GetByIdAsync(
-        Guid buildingId,
-        CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid ownerClientId, CancellationToken ct = default)
     {
-        var ef = await _db.Buildings
-            .Include(b => b.Client)
-            .Include(b => b.City)
+        var buildingRows = await _dbContext.Buildings
             .AsNoTracking()
-            .SingleOrDefaultAsync(
-                b => b.BuildingKey == buildingId,
-                cancellationToken)
-            .ConfigureAwait(false);
+            .Include(b => b.RiskCategories)
+            .Where(b => b.OwnerClientId == ownerClientId)
+            .ToListAsync(ct);
 
-        return ef == null ? null : Map(ef);
+        return buildingRows.Select(MapToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<Domain.Buildings.Building>> GetByClientIdAsync(
-        Guid clientId,
-        CancellationToken cancellationToken)
+    public async Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken ct = default)
     {
-        var entities = await _db.Buildings
-            .Include(b => b.Client)
-            .Include(b => b.City)
-            .Where(b => b.Client.ClientKey == clientId)
+        var buildingRow = await _dbContext.Buildings
             .AsNoTracking()
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .Include(b => b.RiskCategories)
+            .SingleOrDefaultAsync(b => b.BuildingKey == buildingId, ct);
 
-        return entities.Select(Map).ToList();
+        return buildingRow is null ? null : MapToDomain(buildingRow);
     }
 
-    public async Task AddAsync(
-        Domain.Buildings.Building building,
-        CancellationToken cancellationToken)
+    public async Task UpdateAsync(Building updatedBuilding, CancellationToken ct = default)
     {
-        var clientId = await _db.Clients
-            .Where(c => c.ClientKey == building.ClientId)
-            .Select(c => c.ClientId)
-            .SingleAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var existingBuildingRow = await _dbContext.Buildings
+            .Include(b => b.RiskCategories)
+            .SingleOrDefaultAsync(b => b.BuildingKey == updatedBuilding.Id, ct);
 
-        await _db.Buildings.AddAsync(
-            new Models.Building
-            {
-                BuildingKey = building.Id,
-                ClientId = clientId,
-                CityId = building.City.Id,
-                ConstructionYear = building.ConstructionYear,
-                Street = building.Address.Street,
-                Number = building.Address.Number,
-//                Address = $"{building.Address.Street} {building.Address.Number}",
-                BuildingType = building.BuildingType.ToString(),
-                NumberOfFloors = 1,
-                SurfaceArea = building.SurfaceArea,
-                InsuredValue = (int)building.InsuredValue.Amount,
-                InsuredValueCurrency = building.InsuredValue.Currency,
-                FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0,
-                EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0
-            },
-            cancellationToken
-        ).ConfigureAwait(false);
+        if (existingBuildingRow is null)
+            throw new InvalidOperationException("Building not found.");
+
+        await MapOntoEfAsync(existingBuildingRow, updatedBuilding, ct);
     }
 
-    public async Task UpdateAsync(
-    Domain.Buildings.Building building,
-    CancellationToken cancellationToken)
+    private async Task<EfBuilding> MapToEfAsync(Building building, CancellationToken ct)
     {
-        var ef = await _db.Buildings
-            .SingleAsync(
-                b => b.BuildingKey == building.Id,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        ef.CityId = building.City.Id;
-        ef.ConstructionYear = building.ConstructionYear;
-        ef.Street = building.Address.Street;
-        ef.Number = building.Address.Number;
-//        ef.Address = $"{building.Address.Street} {building.Address.Number}";
-        ef.BuildingType = building.BuildingType.ToString();
-        ef.SurfaceArea = building.SurfaceArea;
-        ef.InsuredValue = (int)building.InsuredValue.Amount;
-        ef.InsuredValueCurrency = building.InsuredValue.Currency;
-        ef.FloodRiskZone = building.RiskProfile.FloodRisk ? 1 : 0;
-        ef.EarthquakeRiskZone = building.RiskProfile.EarthquakeRisk ? 1 : 0;
+        var buildingRow = new EfBuilding
+        {
+            BuildingKey = building.Id,
+            OwnerClientId = building.OwnerClientId,
+            CityId = building.CityId,
+            Street = building.Address.Street,
+            Number = building.Address.Number,
+            ConstructionYear = building.ConstructionYear,
+            BuildingType = building.BuildingType.ToString(),
+            SurfaceArea = building.SurfaceArea,
+            InsuredValueAmount = building.InsuredValue.Amount,
+            InsuredValueCurrencyCode = building.InsuredValue.CurrencyCode
+        };
+        await ApplyRiskCategoriesAsync(buildingRow, building, ct);
+        
+        return buildingRow;
     }
-    private static Domain.Buildings.Building Map(Models.Building ef)
+
+    private static Building MapToDomain(EfBuilding buildingRow)
     {
-        var address = Address.Create(ef.Street, ef.Number).Value!;
-        var money = Money.Create(ef.InsuredValue, ef.InsuredValueCurrency).Value!;
-        var risk = new RiskProfile(
-            ef.FloodRiskZone == 1,
-            ef.EarthquakeRiskZone == 1);
+        var buildingAddress = Address.Create(buildingRow.Street, buildingRow.Number);
+        var insuredValue = Money.Create(buildingRow.InsuredValueAmount, buildingRow.InsuredValueCurrencyCode);
 
-        var city = new Domain.Geography.City(
-            ef.City.CityId,
-            ef.City.Name);
+        return Building.Rehydrate(
+            id: buildingRow.BuildingKey,
+            ownerClientId: buildingRow.OwnerClientId,
+            address: buildingAddress,
+            cityId: buildingRow.CityId,
+            constructionYear: buildingRow.ConstructionYear,
+            type: ParseBuildingType(buildingRow.BuildingType),
+            surfaceArea: buildingRow.SurfaceArea,
+            insuredValue: insuredValue,
+            zoneRiskCategories: buildingRow.RiskCategories.Select(rc => ParseRiskCategory(rc.Code)).ToList());
+    }
 
-        return Domain.Buildings.Building.Create(
-            ef.Client.ClientKey,
-            address,
-            city,
-            ef.ConstructionYear,
-            Enum.Parse<BuildingType>(ef.BuildingType),
-            ef.SurfaceArea,
-            money,
-            risk).Value!;
+    private async Task MapOntoEfAsync(EfBuilding buildingRow, Building building, CancellationToken ct)
+    {
+        buildingRow.OwnerClientId = building.OwnerClientId;
+        buildingRow.CityId = building.CityId;
+        buildingRow.Street = building.Address.Street;
+        buildingRow.Number = building.Address.Number;
+        buildingRow.SurfaceArea = building.SurfaceArea;
+        buildingRow.InsuredValueAmount = building.InsuredValue.Amount;
+        buildingRow.InsuredValueCurrencyCode = building.InsuredValue.CurrencyCode;
+
+        await ApplyRiskCategoriesAsync(buildingRow, building, ct);
+    }
+
+    private async Task ApplyRiskCategoriesAsync(EfBuilding buildingRow, Building domainBuilding, CancellationToken ct)
+    {
+        var riskCategoryCodes = domainBuilding.ZoneRiskCategories
+            .Select(t => t.ToString())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var riskCategoryRows = (riskCategoryCodes.Count == 0) ? new List<EfRiskCategory>()
+                : await _dbContext.RiskCategories
+                .Where(rc => riskCategoryCodes.Contains(rc.Code))
+                .ToListAsync(ct);
+
+        buildingRow.RiskCategories.Clear();
+        foreach (var riskCategoryRow in riskCategoryRows)
+            buildingRow.RiskCategories.Add(riskCategoryRow);
+    }
+
+    private static BuildingType ParseBuildingType(string buildingTypeValue)
+    {
+        if (Enum.TryParse<BuildingType>(buildingTypeValue, ignoreCase: true, out var buildingType))
+            return buildingType;
+
+        throw new InvalidOperationException($"Unknown building type '{buildingTypeValue}'.");
+    }
+
+    private static ZoneRiskCategory ParseRiskCategory(string riskCategoryCode)
+    {
+        if (Enum.TryParse<ZoneRiskCategory>(riskCategoryCode, ignoreCase: true, out var riskCategory))
+            return riskCategory;
+
+        throw new InvalidOperationException($"Unknown risk category code '{riskCategoryCode}'.");
     }
 }

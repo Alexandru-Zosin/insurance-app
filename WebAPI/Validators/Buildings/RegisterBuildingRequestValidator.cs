@@ -1,41 +1,19 @@
-﻿using Application.Services.Buildings.DTO;
-using Domain.Buildings;
+﻿using Application.Services.Buildings.DTOs;
 using FluentValidation;
 
-public sealed class RegisterBuildingRequestValidator
-    : AbstractValidator<RegisterBuildingRequest>
+namespace WebAPI.Validators.Buildings;
+
+public sealed class RegisterBuildingRequestValidator : AbstractValidator<RegisterBuildingRequest>
 {
     public RegisterBuildingRequestValidator()
     {
-        RuleFor(x => x.ClientId)
-            .NotEmpty();
+        RuleFor(x => x.Building)
+            .NotNull()
+            .WithMessage("Building is required.");
 
-        RuleFor(x => x.CityId)
-            .GreaterThan(0);
-
-        RuleFor(x => x.Street)
-            .NotEmpty()
-            .MaximumLength(100);
-
-        RuleFor(x => x.Number)
-            .NotEmpty()
-            .MaximumLength(20);
-
-        RuleFor(x => x.ConstructionYear)
-            .InclusiveBetween(1500, DateTime.UtcNow.Year);
-
-        RuleFor(x => x.BuildingType)
-            .Must(v => Enum.TryParse<BuildingType>(v, out _))
-            .WithMessage("Invalid building type");
-
-        RuleFor(x => x.SurfaceArea)
-            .GreaterThan(0);
-
-        RuleFor(x => x.InsuredValue)
-            .GreaterThan(0);
-
-        RuleFor(x => x.Currency)
-            .NotEmpty()
-            .MaximumLength(10);
+        When(x => x.Building is not null, () =>
+        {
+            RuleFor(x => x.Building).SetValidator(new BuildingCoreDtoValidator());
+        });
     }
 }

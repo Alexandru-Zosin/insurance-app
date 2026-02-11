@@ -1,16 +1,19 @@
-﻿namespace Domain.Geography;
+﻿using Domain.Common;
+namespace Domain.Geography;
 
-public sealed record City
+public sealed record City(int Id, int CountyId, string Name)
 {
-    public int Id { get; }
-    public string Name { get; }
-
-    public City(int id, string name)
+    public static City Create(int id, int countyId, string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("City name required");
+        if (id < 0)
+            throw new DomainException(GeographyConstants.CityIdMustBePositiveMsg);
 
-        Id = id;
-        Name = name;
+        if (countyId < 0)
+            throw new DomainException(GeographyConstants.CountyIdMustBePositiveMsg);
+
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException(GeographyConstants.CityNameRequiredMsg);
+
+        return new City(id, countyId, name);
     }
 }
