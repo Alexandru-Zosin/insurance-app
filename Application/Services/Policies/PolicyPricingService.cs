@@ -6,7 +6,7 @@ using Domain.Shared;
 namespace Application.Services.Policies;
 
 public sealed class PolicyPricingService(
-    PremiumRulesProvider premiumRulesProvider,
+    IPremiumRulesProvider premiumRulesProvider,
     IPremiumCalculatorService premiumCalculatorService) : IPolicyPricingService
 {
     public async Task<Money> CalculateDraftFinalPremiumAsync(

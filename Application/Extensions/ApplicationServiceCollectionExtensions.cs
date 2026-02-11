@@ -23,11 +23,10 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IGeographyService, GeographyService>();
         services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
         services.AddScoped<IRiskConfigurationService, RiskConfigurationService>();
-        services.AddScoped<IPolicyService, PolicyService>();
         services.AddScoped<IPremiumRulesProvider, PremiumRulesProvider>();
         services.AddScoped<IPolicyDraftPrerequisitesLoader, PolicyDraftPrerequisitesLoader>();
         services.AddScoped<IPolicyPricingService, PolicyPricingService>();
-
+        services.AddScoped<IPolicyService, PolicyService>();
 
         services.AddScoped<IReportService, ReportService>();
 
