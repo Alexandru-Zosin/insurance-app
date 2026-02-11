@@ -6,31 +6,33 @@ using EfCountry = Infrastructure.Persistence.Models.Country;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountryRepository(InsuranceDbContext _dbContext) : ICountryRepository
+public sealed class CountryRepository(InsuranceDbContext dbContext) : ICountryRepository
 {
-    public void Add(Country countryToAdd, CancellationToken ct = default)
+    public void Add(Country countryToAdd)
     {
-        if (countryToAdd is null) throw new ArgumentNullException(nameof(countryToAdd));
+        if (countryToAdd is null) 
+            throw new ArgumentNullException(nameof(countryToAdd));
 
         var countryRow = MapToEf(countryToAdd);
 
-        _dbContext.Countries.Add(countryRow);
+        dbContext.Countries.Add(countryRow);
     }
 
     public async Task<Country?> GetByIdAsync(int countryId, CancellationToken ct = default)
     {
-        if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
+        if (countryId <= 0) 
+            throw new ArgumentOutOfRangeException(nameof(countryId));
 
-        var countryRow = await _dbContext.Countries
+        var countryRow = await dbContext.Countries
             .AsNoTracking()
             .SingleOrDefaultAsync(c => c.CountryId == countryId, ct);
 
         return countryRow is null ? null : MapToDomain(countryRow);
     }
 
-    public async Task<IReadOnlyList<Country>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<Country>> ListAsync(CancellationToken ct = default)
     {
-        var countryRows = await _dbContext.Countries
+        var countryRows = await dbContext.Countries
             .AsNoTracking()
             .OrderBy(c => c.Name)
             .ToListAsync(ct);

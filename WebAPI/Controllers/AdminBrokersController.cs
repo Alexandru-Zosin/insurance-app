@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers;
 
 [Route("api/admin/brokers")]
-public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiController
+public sealed class AdminBrokersController(IBrokerService brokerService) : ApiController
 {
     [HttpGet]
     public async Task<ActionResult<ListBrokersResponse>> ListBrokersAsync(
@@ -15,7 +15,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         CancellationToken ct = default)
     {
         var pagedRequest = new PageRequest(pageNumber, pageSize);
-        var result = await BrokerService.ListBrokersAsync(
+        var result = await brokerService.ListBrokersAsync(
             new ListBrokersRequest(pagedRequest), ct);
 
         return FromResult(result);
@@ -26,7 +26,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         Guid brokerId,
         CancellationToken ct)
     {
-        var result = await BrokerService.GetBrokerDetailsAsync(brokerId, ct);
+        var result = await brokerService.GetBrokerDetailsAsync(brokerId, ct);
 
         return FromResult(result);
     }
@@ -36,7 +36,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         [FromBody] CreateBrokerRequest request,
         CancellationToken ct)
     {
-        var result = await BrokerService.CreateBrokerAsync(request, ct);
+        var result = await brokerService.CreateBrokerAsync(request, ct);
 
         return FromCreated(
             result,
@@ -49,7 +49,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         [FromBody] UpdateBrokerRequest request,
         CancellationToken ct)
     {
-        var result = await BrokerService.UpdateBrokerAsync(brokerId, request, ct);
+        var result = await brokerService.UpdateBrokerAsync(brokerId, request, ct);
 
         return FromResult(result);
     }
@@ -59,7 +59,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         [FromRoute] Guid brokerId,
         CancellationToken ct)
     {
-        var result = await BrokerService.SetBrokerStatusAsync(brokerId, true, ct);
+        var result = await brokerService.SetBrokerStatusAsync(brokerId, true, ct);
 
         return FromResult(result);
     }
@@ -69,7 +69,7 @@ public sealed class AdminBrokersController(IBrokerService BrokerService) : ApiCo
         [FromRoute] Guid brokerId,
         CancellationToken ct)
     {
-        var result = await BrokerService.SetBrokerStatusAsync(brokerId, false, ct);
+        var result = await brokerService.SetBrokerStatusAsync(brokerId, false, ct);
 
         return FromResult(result);
     }

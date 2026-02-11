@@ -6,15 +6,16 @@ using EfCurrency = Infrastructure.Persistence.Models.Currency;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CurrencyRepository(InsuranceDbContext _dbContext) : ICurrencyRepository
+public sealed class CurrencyRepository(InsuranceDbContext dbContext) : ICurrencyRepository
 {
-    public void Add(Currency currencyToAdd, CancellationToken ct = default)
+    public void Add(Currency currencyToAdd)
     {
-        if (currencyToAdd is null) throw new ArgumentNullException(nameof(currencyToAdd));
+        if (currencyToAdd is null) 
+            throw new ArgumentNullException(nameof(currencyToAdd));
 
         var currencyRow = MapToEf(currencyToAdd);
 
-        _dbContext.Currencies.Add(currencyRow);
+        dbContext.Currencies.Add(currencyRow);
     }
 
     public async Task UpdateAsync(Currency updatedCurrency, CancellationToken ct = default)
@@ -22,11 +23,11 @@ public sealed class CurrencyRepository(InsuranceDbContext _dbContext) : ICurrenc
         if (updatedCurrency is null) throw new ArgumentNullException(nameof(updatedCurrency));
 
         var normalizedCode = NormalizeCode(updatedCurrency.Code);
-        var existingCurrencyRow = await _dbContext.Currencies
+        var existingCurrencyRow = await dbContext.Currencies
             .SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
 
         if (existingCurrencyRow is null)
-            throw new InvalidOperationException("Currency not found.");
+            throw new InvalidOperationException($"Currency '{updatedCurrency.Code}' was not found.");
 
         MapOntoEf(existingCurrencyRow, updatedCurrency);
     }
@@ -38,7 +39,7 @@ public sealed class CurrencyRepository(InsuranceDbContext _dbContext) : ICurrenc
 
         var normalizedCode = NormalizeCode(currencyCode);
 
-        var currencyRow = await _dbContext.Currencies
+        var currencyRow = await dbContext.Currencies
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Code == normalizedCode, ct);
 
@@ -47,7 +48,7 @@ public sealed class CurrencyRepository(InsuranceDbContext _dbContext) : ICurrenc
 
     public async Task<IReadOnlyList<Currency>> ListAsync(CancellationToken ct = default)
     {
-        var currencyRows = await _dbContext.Currencies
+        var currencyRows = await dbContext.Currencies
             .AsNoTracking()
             .OrderBy(x => x.Code)
             .ToListAsync(ct);

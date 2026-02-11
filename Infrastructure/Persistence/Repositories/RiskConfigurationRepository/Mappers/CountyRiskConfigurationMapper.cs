@@ -17,7 +17,7 @@ public sealed class CountyRiskConfigurationMapper : IRiskConfigurationMapper
 
         var premiumRuleRowCountyId = premiumRuleRow.CountyId.Value;
 
-        return CountyRiskConfiguration.Rehydrate(
+        return CountyRiskConfiguration.FromState(
             id: premiumRuleRow.PremiumRuleKey,
             name: premiumRuleRow.Name,
             percentage: premiumRuleRow.Percentage,

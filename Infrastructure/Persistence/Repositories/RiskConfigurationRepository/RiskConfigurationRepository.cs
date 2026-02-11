@@ -6,17 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories.RiskConfigurationRepository;
 
-public sealed class RiskConfigurationRepository(InsuranceDbContext _dbContext,
+public sealed class RiskConfigurationRepository(InsuranceDbContext dbContext,
     IRiskConfigurationMapperRegistry _riskMapperRegistry) : IRiskConfigurationRepository
 {
-    public void Add(IRiskConfiguration riskConfigurationToAdd, CancellationToken ct = default)
+    public void Add(IRiskConfiguration riskConfigurationToAdd)
     {
-        if (riskConfigurationToAdd is null) throw new ArgumentNullException(nameof(riskConfigurationToAdd));
+        if (riskConfigurationToAdd is null) 
+            throw new ArgumentNullException(nameof(riskConfigurationToAdd));
 
         var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(riskConfigurationToAdd);
         var premiumRuleRow = resolvedRiskMapper.MapToEf(riskConfigurationToAdd);
 
-        _dbContext.PremiumRules.Add(premiumRuleRow);
+        dbContext.PremiumRules.Add(premiumRuleRow);
     }
 
     public async Task UpdateAsync(IRiskConfiguration updatedRiskConfiguration, CancellationToken ct = default)
@@ -24,20 +25,23 @@ public sealed class RiskConfigurationRepository(InsuranceDbContext _dbContext,
         if (updatedRiskConfiguration is null)
             throw new ArgumentNullException(nameof(updatedRiskConfiguration));
 
-        var existingPremiumRuleRow = await _dbContext.PremiumRules
+        var existingPremiumRuleRow = await dbContext.PremiumRules
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == updatedRiskConfiguration.Core.Id, ct);
+
+        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(updatedRiskConfiguration);
 
         if (existingPremiumRuleRow is null)
             throw new InvalidOperationException("Risk factor not found.");
 
-        var resolvedRiskMapper = _riskMapperRegistry.ResolveMapperForRiskConfiguration(updatedRiskConfiguration);
-
-        resolvedRiskMapper.MapOntoEf(existingPremiumRuleRow, updatedRiskConfiguration);
+        resolvedRiskMapper.MapOntoEf(existingPremiumRuleRow!, updatedRiskConfiguration);
     }
 
     public async Task<IRiskConfiguration?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var premiumRuleRow = await _dbContext.PremiumRules
+        if (id == Guid.Empty)
+            throw new ArgumentException("Risk configuration id cannot be empty.", nameof(id));
+
+        var premiumRuleRow = await dbContext.PremiumRules
             .AsNoTracking()
             .SingleOrDefaultAsync(r => r.PremiumRuleKey == id, ct);
 
@@ -52,7 +56,7 @@ public sealed class RiskConfigurationRepository(InsuranceDbContext _dbContext,
 
     public async Task<IReadOnlyList<IRiskConfiguration>> ListAsync(CancellationToken ct = default)
     {
-        var premiumRuleRows = await _dbContext.PremiumRules
+        var premiumRuleRows = await dbContext.PremiumRules
             .AsNoTracking()
             .ToListAsync(ct);
 

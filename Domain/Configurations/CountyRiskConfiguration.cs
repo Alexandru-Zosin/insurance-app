@@ -27,7 +27,7 @@ public sealed class CountyRiskConfiguration : IRiskConfiguration
     public static CountyRiskConfiguration Create(string name, decimal percentage, bool isActive, int countyId)
         => new(new RiskConfigCore(Guid.NewGuid(), name, percentage, isActive), countyId);
 
-    public static CountyRiskConfiguration Rehydrate(Guid id, string name, decimal percentage, bool isActive, int countyId)
+    public static CountyRiskConfiguration FromState(Guid id, string name, decimal percentage, bool isActive, int countyId)
         => new(new RiskConfigCore(id, name, percentage, isActive), countyId);
 
     public bool IsApplicable(PolicyDraftContext ctx)

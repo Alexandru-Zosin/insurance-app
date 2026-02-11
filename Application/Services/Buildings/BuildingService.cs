@@ -1,5 +1,6 @@
 ﻿using Application.Common;
 using Application.Repositories;
+using Application.Repositories.SearchCriteria;
 using Application.Services.Buildings.DTOs;
 using Application.Services.Shared.DTOs.BuildingDTOs;
 using Application.Services.Shared.DTOs.PolicyDTOs;
@@ -8,21 +9,22 @@ using Domain.Buildings;
 namespace Application.Services.Buildings;
 
 public sealed class BuildingService(
-    IBuildingRepository _buildingRepository,
-    IPolicyRepository _policyRepository,
-    IClientRepository _clientRepository,
-    ICityRepository _cityRepository,
-    IUnitOfWork _uow) : IBuildingService
+    IBuildingRepository buildingRepository,
+    IPolicyRepository policyRepository,
+    IClientRepository clientRepository,
+    ICityRepository cityRepository,
+    IUnitOfWork uow) : IBuildingService
 
 {
     public async Task<Result<GetBuildingDetailsResponse>> GetBuildingDetailsAsync(
         Guid buildingId, CancellationToken ct = default)
     {
-        var building = await _buildingRepository.GetByIdAsync(buildingId, ct);
+        var building = await buildingRepository.GetByIdAsync(buildingId, ct);
         if (building == null)
             return Result<GetBuildingDetailsResponse>.Fail(ErrorType.None, "Building was not found.");
 
-        var buildingPolicies = await _policyRepository.GetByBuildingIdAsync(buildingId, ct);
+        var buildingPolicies = await policyRepository.ListAsync(
+            PolicySearchCriteria.ByBuildingId(buildingId), ct: ct);
 
         var response = new GetBuildingDetailsResponse(
             BuildingDetailedDto.From(
@@ -33,12 +35,12 @@ public sealed class BuildingService(
 
     public async Task<Result<GetBuildingsForClientResponse>> GetBuildingsForClientAsync(Guid clientId, CancellationToken ct = default)
     {
-        var client = await _clientRepository.GetByIdAsync(clientId, ct);
+        var client = await clientRepository.GetByIdAsync(clientId, ct);
 
         if (client == null)
             return Result<GetBuildingsForClientResponse>.Fail(ErrorType.NotFound, "Client not found.");
 
-        var clientBuildings = await _buildingRepository.GetByClientIdAsync(clientId, ct);
+        var clientBuildings = await buildingRepository.ListByClientIdAsync(clientId, ct);
         var response = new GetBuildingsForClientResponse(clientBuildings.Select(BuildingListItemDto.From).ToList());
 
         return Result<GetBuildingsForClientResponse>.Ok(response);
@@ -48,7 +50,7 @@ public sealed class BuildingService(
         RegisterBuildingRequest request,
         CancellationToken ct = default)
     {
-        var existingCity = await _cityRepository.GetByIdAsync(request.Building.CityId, ct);
+        var existingCity = await cityRepository.GetByIdAsync(request.Building.CityId, ct);
         if (existingCity == null)
         {
             return Result<RegisterBuildingResponse>.Fail(
@@ -66,15 +68,15 @@ public sealed class BuildingService(
             request.Building.InsuredValue.MapToDomain(),
             request.Building.ZoneRiskCategories);
 
-        await _buildingRepository.AddAsync(newBuilding, ct);
-        await _uow.SaveChangesAsync(ct);
+        await buildingRepository.AddAsync(newBuilding, ct);
+        await uow.SaveChangesAsync(ct);
 
         return Result<RegisterBuildingResponse>.Ok(new RegisterBuildingResponse(newBuilding.Id));
     }
 
     public async Task<Result<UpdateBuildingResponse>> UpdateBuildingAsync(Guid buildingId, UpdateBuildingRequest request, CancellationToken ct = default)
     {
-        var building = await _buildingRepository.GetByIdAsync(buildingId, ct);
+        var building = await buildingRepository.GetByIdAsync(buildingId, ct);
         if (building == null)
         {
             return Result<UpdateBuildingResponse>.Fail(
@@ -88,8 +90,8 @@ public sealed class BuildingService(
         building.UpdateSurfaceArea(updatedSurfaceArea)
                 .UpdateInsuredValue(updatedInsuredValue);
 
-        await _buildingRepository.UpdateAsync(building, ct);
-        await _uow.SaveChangesAsync(ct);
+        await buildingRepository.UpdateAsync(building, ct);
+        await uow.SaveChangesAsync(ct);
 
         return Result<UpdateBuildingResponse>.Ok(
             new UpdateBuildingResponse(true));

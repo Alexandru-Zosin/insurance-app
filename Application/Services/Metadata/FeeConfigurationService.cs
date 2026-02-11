@@ -5,8 +5,8 @@ using Application.Services.Shared.DTOs.MetadataDTOs;
 using Domain.Configurations;
 
 public sealed class FeeConfigurationService(
-    IFeeConfigurationRepository _feeConfigurationRepository,
-    IUnitOfWork _uow) : IFeeConfigurationService 
+    IFeeConfigurationRepository feeConfigurationRepository,
+    IUnitOfWork uow) : IFeeConfigurationService
 {
     public async Task<Result<CreateFeeConfigurationResponse>> CreateFeeConfigurationAsync(
         CreateFeeConfigurationRequest request,
@@ -19,8 +19,8 @@ public sealed class FeeConfigurationService(
             request.FeeConfig.ValidityPeriod.MapToDomain(),
             request.FeeConfig.IsActive);
 
-        _feeConfigurationRepository.Add(newFeeConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        feeConfigurationRepository.Add(newFeeConfiguration);
+        await uow.SaveChangesAsync(ct);
        
         var response = new CreateFeeConfigurationResponse(FeeConfigurationDetailedDto.From(newFeeConfiguration));
         return Result<CreateFeeConfigurationResponse>.Ok(response);
@@ -31,7 +31,7 @@ public sealed class FeeConfigurationService(
         UpdateFeeConfigurationRequest request,
         CancellationToken ct = default)
     {
-        var feeConfiguration = await _feeConfigurationRepository.GetByIdAsync(feeConfigurationId, ct);
+        var feeConfiguration = await feeConfigurationRepository.GetByIdAsync(feeConfigurationId, ct);
         if (feeConfiguration == null)
             return Result<UpdateFeeConfigurationResponse>.Fail(
                 ErrorType.NotFound, "Fee configuration not found");
@@ -42,8 +42,8 @@ public sealed class FeeConfigurationService(
         feeConfiguration.UpdatePercentage(updatedPercentage)
                         .UpdateValidity(updatedValidity);
 
-        await _feeConfigurationRepository.UpdateAsync(feeConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        await feeConfigurationRepository.UpdateAsync(feeConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new UpdateFeeConfigurationResponse(FeeConfigurationDetailedDto.From(feeConfiguration));
         return Result<UpdateFeeConfigurationResponse>.Ok(response);
@@ -54,7 +54,7 @@ public sealed class FeeConfigurationService(
         bool isActive,
         CancellationToken ct = default)
     {
-        var feeConfiguration = await _feeConfigurationRepository.GetByIdAsync(feeConfigurationId, ct);
+        var feeConfiguration = await feeConfigurationRepository.GetByIdAsync(feeConfigurationId, ct);
         if (feeConfiguration == null)
             return Result<SetFeeConfigStatusResponse>.Fail(ErrorType.NotFound, "Fee configuration not found");
 
@@ -63,8 +63,8 @@ public sealed class FeeConfigurationService(
         else
             feeConfiguration.Deactivate();
 
-        await _feeConfigurationRepository.UpdateAsync(feeConfiguration, ct);
-        await _uow.SaveChangesAsync(ct);
+        await feeConfigurationRepository.UpdateAsync(feeConfiguration, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new SetFeeConfigStatusResponse(FeeConfigurationDetailedDto.From(feeConfiguration));
         return Result<SetFeeConfigStatusResponse>.Ok(response);
@@ -73,7 +73,7 @@ public sealed class FeeConfigurationService(
     public async Task<Result<ListFeeConfigurationsResponse>> ListFeeConfigurationsAsync(
         CancellationToken ct = default)
     {
-        var feeConfigurations = await _feeConfigurationRepository.ListAsync(ct);
+        var feeConfigurations = await feeConfigurationRepository.ListAsync(ct);
 
         var response = new ListFeeConfigurationsResponse(feeConfigurations.Select(FeeConfigurationListDto.From).ToArray());
         return Result<ListFeeConfigurationsResponse>.Ok(response);

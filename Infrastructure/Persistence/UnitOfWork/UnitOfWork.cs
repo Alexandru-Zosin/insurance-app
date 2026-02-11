@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.Exceptions;
 using Infrastructure.Persistence.Configuration;
 using Infrastructure.Persistence.Data;
 using Infrastructure.Persistence.Models;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.UnitOfWork;
 
-public sealed class UnitOfWork(InsuranceDbContext _dbContext) : IUnitOfWork
+public sealed class UnitOfWork(InsuranceDbContext dbContext) : IUnitOfWork
 {
     private readonly List<AuditEntry> _pendingAudits = new();
 
@@ -16,7 +17,7 @@ public sealed class UnitOfWork(InsuranceDbContext _dbContext) : IUnitOfWork
 
         foreach (var entry in _pendingAudits)
         {
-            _dbContext.Set<AuditLog>().Add(new AuditLog
+            dbContext.Set<AuditLog>().Add(new AuditLog
             {
                 Id = Guid.NewGuid(),
                 EntityType = entry.EntityType,
@@ -40,12 +41,12 @@ public sealed class UnitOfWork(InsuranceDbContext _dbContext) : IUnitOfWork
         try
         {
             FlushAuditsToDbContext();
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
             _pendingAudits.Clear();
         }
         catch (DbUpdateException ex) when (SqlServerErrors.IsUniqueViolation(ex))
         {
-            throw new UniqueConstraintViolationException(ex);
+            throw new DuplicateKeyException(ex);
         }
     }
 }

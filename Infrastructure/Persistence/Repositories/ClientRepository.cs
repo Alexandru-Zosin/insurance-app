@@ -8,26 +8,35 @@ using EfClient = Infrastructure.Persistence.Models.Client;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRepository
+public sealed class ClientRepository(InsuranceDbContext dbContext) : IClientRepository
 {
-    public void Add(Client clientToAdd, CancellationToken ct = default)
+    public void Add(Client clientToAdd)
     {
+        if (clientToAdd is null) 
+            throw new ArgumentNullException(nameof(clientToAdd));
+
         var clientRow = MapToEf(clientToAdd);
-        _dbContext.Clients.Add(clientRow);
+        dbContext.Clients.Add(clientRow);
     }
 
     public async Task<Client?> GetByIdAsync(Guid clientId, CancellationToken ct = default)
     {
-        var clientRow = await _dbContext.Clients
+        if (clientId == Guid.Empty)
+            throw new ArgumentException("Client id cannot be empty.", nameof(clientId));
+
+        var clientRow = await dbContext.Clients
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.ClientKey == clientId, ct);
 
         return clientRow is null ? null : MapToDomain(clientRow);
     }
 
-    public async Task<IReadOnlyList<Client>> SearchAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Client>> ListAsync(string? identifierFilter, string? nameFilter, PageRequest page, CancellationToken ct = default)
     {
-        var query = _dbContext.Clients.AsNoTracking().AsQueryable();
+        if (page is null) 
+            throw new ArgumentNullException(nameof(page));
+
+        var query = dbContext.Clients.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(identifierFilter))
         {
@@ -53,7 +62,10 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
 
     public async Task UpdateAsync(Client updatedClient, CancellationToken ct = default)
     {
-        var existingClientRow = await _dbContext.Clients
+        if (updatedClient is null) 
+            throw new ArgumentNullException(nameof(updatedClient));
+
+        var existingClientRow = await dbContext.Clients
                 .SingleOrDefaultAsync(x => x.ClientKey == updatedClient.Id, ct);
 
         if (existingClientRow is null)
@@ -90,7 +102,7 @@ public sealed class ClientRepository(InsuranceDbContext _dbContext) : IClientRep
 
     private static Client MapToDomain(EfClient clientRow)
     {
-        return Client.Rehydrate(
+        return Client.FromState(
             id: clientRow.ClientKey,
             type: ParseClientType(clientRow.ClientType),
             name: clientRow.Name,

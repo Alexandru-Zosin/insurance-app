@@ -81,7 +81,7 @@ public sealed class Policy
             cancellationEffectiveDate: null);
     }
 
-    public static Policy Rehydrate(
+    public static Policy FromState(
         Guid number,
         Guid clientId,
         Guid buildingId,
@@ -216,9 +216,6 @@ public sealed class Policy
 
         if (FinalPremium.CurrencyCode != CurrencyCode)
             throw new DomainException(PolicyConstants.FinalPremiumCurrencyMustMatchPolicyCurrencyInvariantMsg);
-
-        if (BasePremium.CurrencyCode != FinalPremium.CurrencyCode)
-            throw new DomainException(PolicyConstants.BasePremiumCurrencyMustMatchFinalPremiumCurrencyMsg);
     }
 
     private void ValidateInvariants()

@@ -1,6 +1,6 @@
 ﻿using Application.Common;
 using Application.Repositories;
-using Application.Services.Policies.DTOs;
+using Application.Repositories.SearchCriteria;
 using Domain.Policies;
 using Domain.Shared;
 using Infrastructure.Persistence.Data;
@@ -9,21 +9,23 @@ using EfPolicy = Infrastructure.Persistence.Models.Policy;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRepository
+public sealed class PolicyRepository(InsuranceDbContext dbContext) : IPolicyRepository
 {
-    public void Add(Policy policyToAdd, CancellationToken ct)
+    public void Add(Policy policyToAdd)
     {
-        if (policyToAdd is null) throw new ArgumentNullException(nameof(policyToAdd));
+        if (policyToAdd is null) 
+            throw new ArgumentNullException(nameof(policyToAdd));
 
         var policyRow = MapToEf(policyToAdd);
-        _dbContext.Policies.Add(policyRow);
+        dbContext.Policies.Add(policyRow);
     }
 
     public async Task UpdateAsync(Policy updatedPolicy, CancellationToken ct = default)
     {
-        if (updatedPolicy is null) throw new ArgumentNullException(nameof(updatedPolicy));
+        if (updatedPolicy is null) 
+            throw new ArgumentNullException(nameof(updatedPolicy));
 
-        var existingPolicyRow = await _dbContext.Policies
+        var existingPolicyRow = await dbContext.Policies
             .SingleOrDefaultAsync(x => x.PolicyNumber == updatedPolicy.Number, ct);
 
         if (existingPolicyRow is null)
@@ -37,45 +39,22 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
         if (policyNumber == Guid.Empty) 
             throw new ArgumentException("Policy id is required.", nameof(policyNumber));
 
-        var policyRow = await _dbContext.Policies
+        var policyRow = await dbContext.Policies
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.PolicyNumber == policyNumber, ct);
 
         return policyRow is null ? null : MapToDomain(policyRow);
     }
 
-    public async Task<IReadOnlyList<Policy>> GetByClientIdAsync(Guid clientId, CancellationToken ct)
+    public async Task<IReadOnlyList<Policy>> ListAsync(
+        PolicySearchCriteria filter,
+        PageRequest? page = null,
+        CancellationToken ct = default)
     {
-        if (clientId == Guid.Empty) throw new ArgumentException("Client id is required.", nameof(clientId));
+        if (filter is null)
+            throw new ArgumentNullException(nameof(filter));
 
-        var policyRows = await _dbContext.Policies
-            .AsNoTracking()
-            .Where(x => x.ClientKey == clientId)
-            .OrderByDescending(x => x.CreationDate)
-            .ToListAsync(ct);
-
-        return policyRows.Select(MapToDomain).ToList();
-    }
-
-    public async Task<IReadOnlyList<Policy>> GetByBuildingIdAsync(Guid buildingId, CancellationToken ct)
-    {
-        if (buildingId == Guid.Empty) throw new ArgumentException("Building id is required.", nameof(buildingId));
-
-        var rows = await _dbContext.Policies
-            .AsNoTracking()
-            .Where(x => x.BuildingKey == buildingId)
-            .OrderByDescending(x => x.CreationDate)
-            .ToListAsync(ct);
-
-        return rows.Select(MapToDomain).ToList();
-    }
-
-    public async Task<IReadOnlyList<Policy>> SearchAsync(PolicySearchCriteria filter, PageRequest page, CancellationToken ct = default)
-    {
-        if (filter is null) throw new ArgumentNullException(nameof(filter));
-        if (page is null) throw new ArgumentNullException(nameof(page));
-
-        var query = _dbContext.Policies.AsNoTracking().AsQueryable();
+        var query = dbContext.Policies.AsNoTracking().AsQueryable();
 
         if (filter.ClientId is Guid clientId && clientId != Guid.Empty)
             query = query.Where(x => x.ClientKey == clientId);
@@ -92,16 +71,16 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
         if (filter.EndDate is DateOnly endDate)
             query = query.Where(x => x.EndDate <= endDate);
 
-        var policyRows = await query
+        query = query
             .OrderByDescending(x => x.CreationDate)
-            .ThenByDescending(x => x.PolicyId)
-            .Skip(page.Offset)
-            .Take(page.Take)
-            .ToListAsync(ct);
+            .ThenByDescending(x => x.PolicyId);
 
+        if (page is not null)
+            query = query.Skip(page.Offset).Take(page.Take);
+
+        var policyRows = await query.ToListAsync(ct);
         return policyRows.Select(MapToDomain).ToList();
     }
-
 
     private static EfPolicy MapToEf(Policy policy)
     {
@@ -142,7 +121,7 @@ public sealed class PolicyRepository(InsuranceDbContext _dbContext) : IPolicyRep
 
     private static Policy MapToDomain(EfPolicy policyRow)
     {
-        return Policy.Rehydrate(
+        return Policy.FromState(
             number: policyRow.PolicyNumber,
             clientId: policyRow.ClientKey,
             buildingId: policyRow.BuildingKey,

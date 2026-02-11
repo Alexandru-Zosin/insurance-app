@@ -17,7 +17,7 @@ public sealed class CountryRiskConfigurationMapper : IRiskConfigurationMapper
 
         var premiumRuleRowCountryId = premiumRuleRow.CountryId.Value;
 
-        return CountryRiskConfiguration.Rehydrate(
+        return CountryRiskConfiguration.FromState(
             id: premiumRuleRow.PremiumRuleKey,
             name: premiumRuleRow.Name,
             percentage: premiumRuleRow.Percentage,

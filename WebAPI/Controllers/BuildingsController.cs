@@ -5,14 +5,14 @@ using Application.Services.Buildings.DTOs;
 namespace WebAPI.Controllers;
 
 [Route("api/brokers")]
-public sealed class BuildingsController(IBuildingService BuildingService) : ApiController
+public sealed class BuildingsController(IBuildingService buildingService) : ApiController
 {
     [HttpGet("clients/{clientId:guid}/buildings")]
     public async Task<ActionResult<GetBuildingsForClientResponse>> GetBuildingsForClientAsync(
         [FromRoute] Guid clientId,
         CancellationToken ct)
     {
-        var result = await BuildingService.GetBuildingsForClientAsync(clientId, ct);
+        var result = await buildingService.GetBuildingsForClientAsync(clientId, ct);
 
         return FromResult(result);
     }
@@ -22,7 +22,7 @@ public sealed class BuildingsController(IBuildingService BuildingService) : ApiC
         [FromRoute] Guid buildingId,
         CancellationToken ct)
     {
-        var result = await BuildingService.GetBuildingDetailsAsync(buildingId, ct);
+        var result = await buildingService.GetBuildingDetailsAsync(buildingId, ct);
 
         return FromResult(result);
     }
@@ -32,7 +32,7 @@ public sealed class BuildingsController(IBuildingService BuildingService) : ApiC
         [FromBody] RegisterBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await BuildingService.RegisterBuildingAsync(request, ct);
+        var result = await buildingService.RegisterBuildingAsync(request, ct);
 
         return FromCreated(
             result,
@@ -45,7 +45,7 @@ public sealed class BuildingsController(IBuildingService BuildingService) : ApiC
         [FromBody] UpdateBuildingRequest request,
         CancellationToken ct)
     {
-        var result = await BuildingService.UpdateBuildingAsync(buildingId, request, ct);
+        var result = await buildingService.UpdateBuildingAsync(buildingId, request, ct);
 
         return FromResult(result);
     }

@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebAPI.Controllers;
 
 [Route("api/admin/fees")]
-public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConfigService) : ApiController
+public sealed class FeeConfigurationsController(IFeeConfigurationService feeConfigurationService) : ApiController
 {
     [HttpGet]
     public async Task<ActionResult<ListFeeConfigurationsResponse>> ListFeeConfigurationsAsync(CancellationToken ct = default)
     {
-        var result = await FeeConfigService.ListFeeConfigurationsAsync(ct);
+        var result = await feeConfigurationService.ListFeeConfigurationsAsync(ct);
 
         return FromResult(result);
     }
@@ -19,7 +19,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromBody] CreateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.CreateFeeConfigurationAsync(request, ct);
+        var result = await feeConfigurationService.CreateFeeConfigurationAsync(request, ct);
         
         return FromCreated(result, $"/api/admin/fees/{result.Value!.FeeConfig.Id}");
     }
@@ -30,7 +30,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromBody] UpdateFeeConfigurationRequest request,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.UpdateFeeConfigurationAsync(feeConfigId, request, ct);
+        var result = await feeConfigurationService.UpdateFeeConfigurationAsync(feeConfigId, request, ct);
 
         return FromResult(result);
     }
@@ -40,7 +40,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromRoute] Guid feeConfigId,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, true, ct);
+        var result = await feeConfigurationService.SetFeeConfigurationStatusAsync(feeConfigId, true, ct);
 
         return FromResult(result);
     }
@@ -50,7 +50,7 @@ public sealed class FeeConfigurationsController(IFeeConfigurationService FeeConf
         [FromRoute] Guid feeConfigId,
         CancellationToken ct)
     {
-        var result = await FeeConfigService.SetFeeConfigurationStatusAsync(feeConfigId, false, ct);
+        var result = await feeConfigurationService.SetFeeConfigurationStatusAsync(feeConfigId, false, ct);
 
         return FromResult(result);
     }

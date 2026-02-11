@@ -33,6 +33,7 @@ public static class PersistenceServiceCollectionExtensions
         services.AddScoped<IPolicyRepository, PolicyRepository>();
         services.AddScoped<IFeeConfigurationRepository, FeeConfigurationRepository>();
         services.AddScoped<IRiskConfigurationRepository, RiskConfigurationRepository>();
+        services.AddScoped<IReportQuery, ReportQuery>();
 
         services.AddScoped<IRiskConfigurationMapperRegistry, RiskConfigurationMapperRegistry>();
         services.AddScoped<IRiskConfigurationMapper, CountryRiskConfigurationMapper>();

@@ -34,7 +34,7 @@ public sealed class Client
                 address);
     }
 
-    public static Client Rehydrate(
+    public static Client FromState(
         Guid id,
         ClientType type,
         string name,

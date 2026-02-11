@@ -40,7 +40,7 @@ public static class WebServiceCollectionExtensions
 
         services.AddSingleton<IExceptionProblemMapper, FluentValidationProblemMapper>();
         services.AddSingleton<IExceptionProblemMapper, DomainExceptionProblemMapper>();
-        services.AddSingleton<IExceptionProblemMapper, UniqueConstraintProblemMapper>();
+        services.AddSingleton<IExceptionProblemMapper, DuplicateKeyExceptionMapper>();
         services.AddSingleton<IExceptionProblemMapper, FallbackProblemMapper>();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
