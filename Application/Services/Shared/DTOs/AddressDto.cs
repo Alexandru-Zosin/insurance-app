@@ -2,9 +2,7 @@
 
 namespace Application.Services.Shared.DTOs;
 
-public sealed record AddressDto(
- string Street,
- string Number)
+public sealed record AddressDto(string Street, string Number)
 {
     public static AddressDto From(Address v) => new(v.Street, v.Number);
     public Address MapToDomain() => Address.Create(Street, Number);

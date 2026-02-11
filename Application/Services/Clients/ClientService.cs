@@ -9,10 +9,10 @@ using Domain.Clients;
 namespace Application.Services.Clients;
 
 public sealed class ClientService(
-    IClientRepository _clientRepository,
-    IBuildingRepository _buildingRepository,
-    IPolicyRepository _policyRepository,
-    IUnitOfWork _uow
+    IClientRepository clientRepository,
+    IBuildingRepository buildingRepository,
+    IPolicyRepository policyRepository,
+    IUnitOfWork uow
     ) : IClientService
 {
     public async Task<Result<CreateClientResponse>> CreateClientAsync(
@@ -30,11 +30,11 @@ public sealed class ClientService(
             clientContactInfo,
             clientAddress);
 
-        _clientRepository.Add(newClient, ct);
+        clientRepository.Add(newClient, ct);
 
         try
         {
-            await _uow.SaveChangesAsync(ct);
+            await uow.SaveChangesAsync(ct);
         }
         catch (UniqueConstraintViolationException)
         {
@@ -49,7 +49,7 @@ public sealed class ClientService(
 
     public async Task<Result<GetClientDetailsResponse>> GetClientDetailsAsync(Guid clientId, CancellationToken ct = default)
     {
-        var client = await _clientRepository.GetByIdAsync(clientId, ct);
+        var client = await clientRepository.GetByIdAsync(clientId, ct);
         if (client == null)
         {
             return Result<GetClientDetailsResponse>.Fail(
@@ -57,8 +57,8 @@ public sealed class ClientService(
                 "Client not found");
         }
 
-        var clientBuildings = await _buildingRepository.GetByClientIdAsync(clientId, ct);
-        var clientPolicies = await _policyRepository.GetByClientIdAsync(clientId, ct);
+        var clientBuildings = await buildingRepository.GetByClientIdAsync(clientId, ct);
+        var clientPolicies = await policyRepository.GetByClientIdAsync(clientId, ct);
 
         var response = new GetClientDetailsResponse(
             ClientDetailedDto.From(
@@ -74,7 +74,7 @@ public sealed class ClientService(
     {
         var page = request.PageRequest;
 
-        var matchedClients = await _clientRepository.SearchAsync(
+        var matchedClients = await clientRepository.SearchAsync(
             request.Identifier,
             request.Name,
             page,
@@ -88,7 +88,7 @@ public sealed class ClientService(
         UpdateClientRequest request,
         CancellationToken ct = default)
     {
-        var client = await _clientRepository.GetByIdAsync(clientId, ct);
+        var client = await clientRepository.GetByIdAsync(clientId, ct);
         if (client == null)
             return Result<UpdateClientResponse>.Fail(ErrorType.NotFound, "Client not found");
 
@@ -100,7 +100,7 @@ public sealed class ClientService(
         var originalIdentificationNumber = client.Identifier;
         if (originalIdentificationNumber != updatedIdentificationNumber)
         {
-            _uow.EnqueueAudit(new AuditEntry(
+            uow.EnqueueAudit(new AuditEntry(
                 EntityType: nameof(Client),
                 EntityId: client.Id,
                 Action: "ChangeIdentificationNumber",
@@ -114,8 +114,8 @@ public sealed class ClientService(
                                   .UpdateContactInfo(updatedContactInfo)
                                   .UpdateAddress(updatedAddress);
 
-        await _clientRepository.UpdateAsync(updatedClient, ct);
-        await _uow.SaveChangesAsync(ct);
+        await clientRepository.UpdateAsync(updatedClient, ct);
+        await uow.SaveChangesAsync(ct);
 
         var response = new UpdateClientResponse(true);
         return Result<UpdateClientResponse>.Ok(response);

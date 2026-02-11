@@ -6,7 +6,7 @@ using EfCounty = Infrastructure.Persistence.Models.County;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CountyRepository(InsuranceDbContext _dbContext) : ICountyRepository
+public sealed class CountyRepository(InsuranceDbContext dbContext) : ICountyRepository
 {
     public void Add(County countyToAdd, CancellationToken ct = default)
     {
@@ -14,14 +14,14 @@ public sealed class CountyRepository(InsuranceDbContext _dbContext) : ICountyRep
 
         var countyRow = MapToEf(countyToAdd);
 
-        _dbContext.Counties.Add(countyRow);
+        dbContext.Counties.Add(countyRow);
     }
 
     public async Task<County?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
 
-        var countyRow = await _dbContext.Counties
+        var countyRow = await dbContext.Counties
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.CountyId == id, ct);
 
@@ -32,7 +32,7 @@ public sealed class CountyRepository(InsuranceDbContext _dbContext) : ICountyRep
     {
         if (countryId <= 0) throw new ArgumentOutOfRangeException(nameof(countryId));
 
-        var countyRows = await _dbContext.Counties
+        var countyRows = await dbContext.Counties
             .AsNoTracking()
             .Where(x => x.CountryId == countryId)
             .OrderBy(x => x.Name)

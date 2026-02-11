@@ -6,7 +6,7 @@ using EfCity = Infrastructure.Persistence.Models.City;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class CityRepository(InsuranceDbContext _dbContext) : ICityRepository
+public sealed class CityRepository(InsuranceDbContext dbContext) : ICityRepository
 {
     public void Add(City cityToAdd, CancellationToken ct = default)
     {
@@ -14,14 +14,14 @@ public sealed class CityRepository(InsuranceDbContext _dbContext) : ICityReposit
 
         var cityRow = MapToEf(cityToAdd);
 
-        _dbContext.Cities.Add(cityRow);
+        dbContext.Cities.Add(cityRow);
     }
 
     public async Task<City?> GetByIdAsync(int cityId, CancellationToken ct = default)
     {
         if (cityId <= 0) throw new ArgumentOutOfRangeException(nameof(cityId));
 
-        var cityRow = await _dbContext.Cities
+        var cityRow = await dbContext.Cities
             .AsNoTracking()
             .SingleOrDefaultAsync(c => c.CityId == cityId, ct);
 
@@ -32,7 +32,7 @@ public sealed class CityRepository(InsuranceDbContext _dbContext) : ICityReposit
     {
         if (countyId <= 0) throw new ArgumentOutOfRangeException(nameof(countyId));
 
-        var cityRows = await _dbContext.Cities
+        var cityRows = await dbContext.Cities
             .AsNoTracking()
             .Where(c => c.CountyId == countyId)
             .OrderBy(c => c.Name)

@@ -9,17 +9,17 @@ using EfRiskCategory = Infrastructure.Persistence.Models.RiskCategory;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public sealed class BuildingRepository(InsuranceDbContext _dbContext) : IBuildingRepository
+public sealed class BuildingRepository(InsuranceDbContext dbContext) : IBuildingRepository
 {
     public async Task AddAsync(Building buildingToAdd, CancellationToken ct = default)
     {
         var buildingRow = await MapToEfAsync(buildingToAdd, ct);
-        _dbContext.Buildings.Add(buildingRow);
+        dbContext.Buildings.Add(buildingRow);
     }
 
     public async Task<IReadOnlyList<Building>> GetByClientIdAsync(Guid ownerClientId, CancellationToken ct = default)
     {
-        var buildingRows = await _dbContext.Buildings
+        var buildingRows = await dbContext.Buildings
             .AsNoTracking()
             .Include(b => b.RiskCategories)
             .Where(b => b.OwnerClientId == ownerClientId)
@@ -30,7 +30,7 @@ public sealed class BuildingRepository(InsuranceDbContext _dbContext) : IBuildin
 
     public async Task<Building?> GetByIdAsync(Guid buildingId, CancellationToken ct = default)
     {
-        var buildingRow = await _dbContext.Buildings
+        var buildingRow = await dbContext.Buildings
             .AsNoTracking()
             .Include(b => b.RiskCategories)
             .SingleOrDefaultAsync(b => b.BuildingKey == buildingId, ct);
@@ -40,7 +40,7 @@ public sealed class BuildingRepository(InsuranceDbContext _dbContext) : IBuildin
 
     public async Task UpdateAsync(Building updatedBuilding, CancellationToken ct = default)
     {
-        var existingBuildingRow = await _dbContext.Buildings
+        var existingBuildingRow = await dbContext.Buildings
             .Include(b => b.RiskCategories)
             .SingleOrDefaultAsync(b => b.BuildingKey == updatedBuilding.Id, ct);
 
@@ -108,7 +108,7 @@ public sealed class BuildingRepository(InsuranceDbContext _dbContext) : IBuildin
             .ToList();
 
         var riskCategoryRows = (riskCategoryCodes.Count == 0) ? new List<EfRiskCategory>()
-                : await _dbContext.RiskCategories
+                : await dbContext.RiskCategories
                 .Where(rc => riskCategoryCodes.Contains(rc.Code))
                 .ToListAsync(ct);
 

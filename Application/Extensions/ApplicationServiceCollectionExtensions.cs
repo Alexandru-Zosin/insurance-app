@@ -4,6 +4,7 @@ using Application.Services.Clients;
 using Application.Services.Currencies;
 using Application.Services.Geography;
 using Application.Services.Policies;
+using Application.Services.Reports;
 using Application.Services.Risks;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IFeeConfigurationService, FeeConfigurationService>();
         services.AddScoped<IRiskConfigurationService, RiskConfigurationService>();
         services.AddScoped<IPolicyService, PolicyService>();
+        services.AddScoped<IReportService, ReportService>();
 
         services.AddScoped<IPremiumCalculatorService, PremiumCalculatorService>();
 
